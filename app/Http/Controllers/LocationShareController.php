@@ -29,6 +29,10 @@ class LocationShareController extends Controller
             return back()->with('error', 'No customer associated with this service request.');
         }
 
+        if (! $customer->wantsNotification('location_requests')) {
+            return back()->with('warning', 'Customer has disabled location request notifications.');
+        }
+
         // ── Consent gate ──────────────────────────────────────────
         if (! $customer->hasSmsConsent()) {
             // Send the opt-in / welcome message and tell operator to wait

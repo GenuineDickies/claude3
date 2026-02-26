@@ -53,7 +53,7 @@ class SendSmsJob implements ShouldQueue
         if (! $result['success']) {
             Log::warning('SendSmsJob failed', [
                 'template' => $this->template->slug,
-                'to' => $this->to,
+                'to' => '***' . substr($this->to, -4),
                 'error' => $result['error'] ?? 'unknown',
             ]);
 

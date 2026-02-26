@@ -39,6 +39,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Customer extends Model
 {
+    public const DEFAULT_NOTIFICATION_PREFERENCES = [
+        'status_updates'     => true,
+        'location_requests'  => true,
+        'signature_requests' => true,
+        'marketing'          => true,
+    ];
+
     protected $fillable = [
         'first_name',
         'last_name',
@@ -46,15 +53,28 @@ class Customer extends Model
         'is_active',
         'sms_consent_at',
         'sms_opt_out_at',
+        'notification_preferences',
     ];
 
     protected function casts(): array
     {
         return [
-            'is_active'      => 'boolean',
-            'sms_consent_at' => 'datetime',
-            'sms_opt_out_at' => 'datetime',
+            'is_active'                => 'boolean',
+            'sms_consent_at'           => 'datetime',
+            'sms_opt_out_at'           => 'datetime',
+            'notification_preferences' => 'array',
         ];
+    }
+
+    /**
+     * Check if the customer wants to receive a specific notification type.
+     * Defaults to true for unknown or unset types.
+     */
+    public function wantsNotification(string $type): bool
+    {
+        $prefs = $this->notification_preferences ?? self::DEFAULT_NOTIFICATION_PREFERENCES;
+
+        return $prefs[$type] ?? true;
     }
 
     /**

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class SettingsController extends Controller
 {
@@ -36,6 +37,15 @@ class SettingsController extends Controller
     public function update(Request $request): RedirectResponse
     {
         $definitions = Setting::definitions();
+
+        $rules = [];
+        foreach ($definitions as $group => $section) {
+            foreach ($section['fields'] as $key => $field) {
+                $rules['settings.' . $key] = $this->validationRulesFor($field);
+            }
+        }
+
+        $request->validate($rules);
 
         foreach ($definitions as $group => $section) {
             foreach ($section['fields'] as $key => $field) {
@@ -72,6 +82,10 @@ class SettingsController extends Controller
             abort(404);
         }
 
+        $request->validate([
+            'value' => $this->validationRulesFor($field),
+        ]);
+
         $inputValue = $request->input('value');
 
         // For encrypted fields: skip if the user left the masked placeholder unchanged
@@ -91,6 +105,24 @@ class SettingsController extends Controller
         $action = $value === null ? 'cleared' : 'saved';
 
         return redirect()->route('settings.edit')->with('success', $field['label'] . ' ' . $action . '.');
+    }
+
+    /**
+     * Build validation rules for a field definition.
+     */
+    private function validationRulesFor(array $field): array
+    {
+        $rules = ['nullable', 'string', 'max:1000'];
+
+        $type = $field['type'] ?? 'text';
+
+        return match ($type) {
+            'url'      => ['nullable', 'string', 'max:2048', 'url:https'],
+            'email'    => ['nullable', 'string', 'max:255', 'email'],
+            'number'   => ['nullable', 'numeric', 'min:0', 'max:10000'],
+            'textarea' => ['nullable', 'string', 'max:5000'],
+            default    => $rules,
+        };
     }
 
     /**

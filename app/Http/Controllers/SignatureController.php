@@ -9,6 +9,7 @@ use App\Models\Setting;
 use App\Jobs\SendSmsJob;
 use App\Models\MessageTemplate;
 use App\Services\SmsServiceInterface;
+use App\Services\StatusAutomationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -35,8 +36,10 @@ class SignatureController extends Controller
             'signature_id' => $signature->id,
         ], Auth::id());
 
-        // Send SMS if customer has consented
-        if ($request->boolean('send_sms') && $serviceRequest->customer?->hasSmsConsent()) {
+        // Send SMS if customer has consented and wants signature notifications
+        if ($request->boolean('send_sms')
+            && $serviceRequest->customer?->hasSmsConsent()
+            && $serviceRequest->customer->wantsNotification('signature_requests')) {
             $signUrl = route('signature.show', $signature->token);
             $companyName = Setting::getValue('company_name', config('app.name'));
 
@@ -117,6 +120,8 @@ class SignatureController extends Controller
                 'ip_address'   => $signature->ip_address,
             ],
         );
+
+        app(StatusAutomationService::class)->handle($signature->serviceRequest, 'signature_captured');
 
         return view('signatures.thank-you', [
             'companyName' => Setting::getValue('company_name', config('app.name')),

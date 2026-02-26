@@ -76,6 +76,7 @@
             <h2 class="text-lg font-semibold text-gray-800">Estimate Items</h2>
         </div>
 
+        <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-100 border-b border-gray-300">
                 <tr>
@@ -103,6 +104,7 @@
                 @endforeach
             </tbody>
         </table>
+        </div>
 
         {{-- Totals --}}
         <div class="border-t-2 border-gray-200 bg-blue-50/60 px-6 py-4">

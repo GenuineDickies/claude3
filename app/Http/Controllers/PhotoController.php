@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ServiceLog;
 use App\Models\ServicePhoto;
 use App\Models\ServiceRequest;
+use App\Services\StatusAutomationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -39,6 +40,8 @@ class PhotoController extends Controller
             'type'     => $photo->type,
             'caption'  => $photo->caption,
         ], Auth::id());
+
+        app(StatusAutomationService::class)->handle($serviceRequest, 'photo_uploaded');
 
         return redirect()->route('service-requests.show', $serviceRequest)
             ->with('success', 'Photo uploaded.');

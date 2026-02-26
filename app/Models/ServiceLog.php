@@ -35,20 +35,28 @@ class ServiceLog extends Model
         'payment_deleted',
         'location_shared',
         'sms_sent',
+        'work_order_created',
+        'work_order_updated',
+        'work_order_completed',
+        'work_order_cancelled',
     ];
 
     /** Human-readable labels. */
     public const EVENT_LABELS = [
-        'status_change'       => 'Status Changed',
-        'note_added'          => 'Note Added',
-        'photo_uploaded'      => 'Photo Uploaded',
-        'photo_deleted'       => 'Photo Deleted',
-        'signature_requested' => 'Signature Requested',
-        'signature_captured'  => 'Signature Captured',
-        'payment_collected'   => 'Payment Collected',
-        'payment_deleted'     => 'Payment Deleted',
-        'location_shared'     => 'Location Shared',
-        'sms_sent'            => 'SMS Sent',
+        'status_change'         => 'Status Changed',
+        'note_added'            => 'Note Added',
+        'photo_uploaded'        => 'Photo Uploaded',
+        'photo_deleted'         => 'Photo Deleted',
+        'signature_requested'   => 'Signature Requested',
+        'signature_captured'    => 'Signature Captured',
+        'payment_collected'     => 'Payment Collected',
+        'payment_deleted'       => 'Payment Deleted',
+        'location_shared'       => 'Location Shared',
+        'sms_sent'              => 'SMS Sent',
+        'work_order_created'    => 'Work Order Created',
+        'work_order_updated'    => 'Work Order Updated',
+        'work_order_completed'  => 'Work Order Completed',
+        'work_order_cancelled'  => 'Work Order Cancelled',
     ];
 
     public function serviceRequest(): BelongsTo

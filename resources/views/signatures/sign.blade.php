@@ -13,13 +13,14 @@
         .subtitle { font-size: .875rem; color: #6b7280; margin-bottom: 1rem; }
         .info { font-size: .8rem; color: #6b7280; background: #f9fafb; border-radius: 8px; padding: .75rem; margin-bottom: 1rem; }
         .info strong { color: #374151; }
-        .canvas-wrap { border: 2px solid #d1d5db; border-radius: 8px; position: relative; touch-action: none; margin-bottom: .75rem; background: #fff; }
-        canvas { display: block; width: 100%; border-radius: 6px; cursor: crosshair; }
+        .canvas-wrap { border: 2px solid #d1d5db; border-radius: 8px; position: relative; touch-action: none; margin-bottom: .75rem; background: #fff; height: 150px; }
+        @media (min-width: 480px) { .canvas-wrap { height: 200px; } }
+        canvas { display: block; width: 100%; height: 100%; border-radius: 6px; cursor: crosshair; }
         .label { display: block; font-size: .8rem; font-weight: 600; color: #374151; margin-bottom: .25rem; }
         input[type="text"] { width: 100%; padding: .5rem .75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: .875rem; outline: none; }
         input[type="text"]:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.2); }
         .actions { display: flex; gap: .5rem; margin-top: 1rem; }
-        .btn { flex: 1; padding: .625rem; font-size: .875rem; font-weight: 600; border-radius: 6px; border: none; cursor: pointer; text-align: center; }
+        .btn { flex: 1; padding: .625rem; font-size: .875rem; font-weight: 600; border-radius: 6px; border: none; cursor: pointer; text-align: center; min-height: 44px; }
         .btn-primary { background: #16a34a; color: #fff; }
         .btn-primary:hover { background: #15803d; }
         .btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
@@ -53,7 +54,7 @@
 
             <p class="hint">Draw your signature in the box below</p>
             <div class="canvas-wrap" id="canvasWrap">
-                <canvas id="sigCanvas" height="200"></canvas>
+                <canvas id="sigCanvas"></canvas>
             </div>
 
             <label class="label" for="signer_name">Your Name <span style="color:#dc2626">*</span></label>
@@ -83,6 +84,7 @@
         function resizeCanvas() {
             const rect = wrap.getBoundingClientRect();
             canvas.width = rect.width - 4;
+            canvas.height = rect.height - 4;
             ctx.strokeStyle = '#1f2937';
             ctx.lineWidth = 2;
             ctx.lineCap = 'round';

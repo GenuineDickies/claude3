@@ -1,0 +1,351 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": "1",
+        "title": "Commit and stabilize current work",
+        "description": "Commit all uncommitted features and ensure the codebase is stable with proper version control",
+        "details": "Review all uncommitted changes, test functionality, resolve any conflicts, and commit to version control. Ensure all 21 completed features are properly committed with descriptive commit messages. Run full test suite to verify stability.",
+        "testStrategy": "Verify all features work as expected, run automated tests if available, and ensure no regressions in existing functionality",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": "2",
+        "title": "Upgrade Tailwind CSS from v3 to v4",
+        "description": "Migrate the frontend styling from Tailwind CSS v3 to v4 for performance improvements and new features",
+        "details": "Update package.json to Tailwind CSS v4, update tailwind.config.js for v4 syntax, review and update any breaking changes in utility classes, test all Blade templates for styling consistency. Update build process if needed.",
+        "testStrategy": "Visual regression testing across all pages, verify responsive design works correctly, test dark mode if implemented, ensure no broken styles",
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-02-25T17:14:40.674Z"
+      },
+      {
+        "id": "3",
+        "title": "Create Customer List Page",
+        "description": "Implement the customer list page with search, filtering, and pagination functionality",
+        "details": "Create CustomerController@index method, design customer list Blade template with Tailwind CSS v4, implement search by name/phone/email, add filters for SMS consent status, pagination with Laravel's built-in paginator, include action buttons for view/edit/message customer.",
+        "testStrategy": "Test search functionality, verify pagination works correctly, test filters, ensure responsive design, validate customer data display accuracy",
+        "priority": "high",
+        "dependencies": [
+          "2"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-02-25T17:21:47.447Z"
+      },
+      {
+        "id": "4",
+        "title": "Create Service Types Management Page",
+        "description": "Implement CRUD operations for service types with pricing and category management",
+        "details": "Create ServiceTypeController with index, create, store, edit, update, destroy methods. Design service types list view with create/edit forms, implement validation rules, add soft deletes, include pricing fields and category assignment. Use Alpine.js for interactive elements.",
+        "testStrategy": "Test CRUD operations, validate form submissions, test soft delete functionality, verify pricing calculations, ensure proper error handling and validation messages",
+        "priority": "high",
+        "dependencies": [
+          "2"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-02-25T23:38:05.249Z"
+      },
+      {
+        "id": "5",
+        "title": "Implement Reporting Dashboard",
+        "description": "Create analytics dashboard showing service request metrics, revenue tracking, and response times",
+        "details": "Create ReportsController with dashboard method, design dashboard view with charts using Chart.js or similar, implement metrics: service requests by status, revenue by period, average response times, top service types. Use Laravel's query builder for efficient data aggregation.",
+        "testStrategy": "Verify metric calculations are accurate, test date range filters, ensure charts render correctly, validate performance with large datasets",
+        "priority": "medium",
+        "dependencies": [
+          "3",
+          "4"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "6",
+        "title": "Implement Service Request Status Workflow Automation",
+        "description": "Auto-advance service request status based on specific events and triggers",
+        "details": "Create ServiceRequestStatusAutomation class with event listeners, implement rules: photo upload → on_scene, signature capture → completed, payment recorded → completed. Use Laravel Events and Listeners, create database migrations for automation rules if needed.",
+        "testStrategy": "Test each automation rule triggers correctly, verify status transitions are logged, ensure manual status changes still work, test edge cases and race conditions",
+        "priority": "medium",
+        "dependencies": [
+          "1"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-02-26T01:12:40.626Z"
+      },
+      {
+        "id": "7",
+        "title": "Implement Invoice Generation",
+        "description": "Generate formal invoices from estimates with PDF output using DomPDF",
+        "details": "Create Invoice model and migration, InvoiceController with generate/download methods, design invoice PDF template with company branding, convert estimates to invoices with proper numbering sequence, include payment terms and due dates. Use DomPDF for PDF generation.",
+        "testStrategy": "Test PDF generation with various estimate configurations, verify invoice numbering sequence, test company branding integration, validate tax calculations",
+        "priority": "medium",
+        "dependencies": [
+          "1"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-02-26T01:27:07.987Z"
+      },
+      {
+        "id": "8",
+        "title": "Implement Customer Notification Preferences",
+        "description": "Allow customers to set individual SMS notification preferences for different event types",
+        "details": "Add notification_preferences JSON column to customers table, create CustomerNotificationPreferences model/form, implement preference types: status updates, estimates, receipts, reminders. Update SMS sending logic to check preferences before sending.",
+        "testStrategy": "Test preference saving and retrieval, verify SMS filtering works correctly, test opt-out scenarios, ensure GDPR compliance for preference management",
+        "priority": "medium",
+        "dependencies": [
+          "3"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-02-26T01:53:21.746Z"
+      },
+      {
+        "id": "9",
+        "title": "Optimize for Mobile Responsiveness",
+        "description": "Ensure all views work optimally on mobile devices for field technicians",
+        "details": "Review all Blade templates for mobile optimization, implement touch-friendly interfaces, optimize forms for mobile input, ensure photo upload works on mobile browsers, test GPS location sharing on mobile devices. Use Tailwind CSS v4 responsive utilities.",
+        "testStrategy": "Test on various mobile devices and screen sizes, verify touch interactions work correctly, test camera/photo functionality, ensure forms are usable on mobile",
+        "priority": "medium",
+        "dependencies": [
+          "2"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-02-26T02:04:20.264Z"
+      },
+      {
+        "id": "10",
+        "title": "Implement Full-Text Search",
+        "description": "Add comprehensive search functionality across service requests, customers, and messages",
+        "details": "Implement MySQL full-text search or Laravel Scout, create SearchController, add search indexes to relevant tables, implement search across: service request descriptions, customer names/addresses, message content. Include search result highlighting and relevance scoring.",
+        "testStrategy": "Test search accuracy and performance, verify search results relevance, test with large datasets, ensure search respects user permissions",
+        "priority": "low",
+        "dependencies": [
+          "3",
+          "4"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "11",
+        "title": "Implement Recurring Service Tracking",
+        "description": "Track repeat customers and maintain comprehensive service history",
+        "details": "Add service history tracking to customer profiles, implement repeat customer identification, create service frequency analytics, add customer loyalty indicators, design service history timeline view with filtering options.",
+        "testStrategy": "Test service history accuracy, verify repeat customer identification logic, test timeline view functionality, validate analytics calculations",
+        "priority": "low",
+        "dependencies": [
+          "3"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "12",
+        "title": "Create Dashboard Widgets",
+        "description": "Implement interactive dashboard widgets for today's tickets, pending payments, and expiring warranties",
+        "details": "Create widget components using Alpine.js, implement widgets: today's service requests, pending payments summary, expiring warranties alert, recent customer messages. Make widgets interactive with click-through functionality and real-time updates.",
+        "testStrategy": "Test widget data accuracy, verify real-time updates work correctly, test click-through navigation, ensure widgets are responsive",
+        "priority": "low",
+        "dependencies": [
+          "5"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "13",
+        "title": "Prepare Production Deployment Infrastructure",
+        "description": "Set up production deployment pipeline and hosting configuration for SiteGround or alternative",
+        "details": "Configure production environment variables, set up database migrations for production, configure file storage for production, implement deployment scripts, set up SSL certificates, configure cron jobs for Laravel scheduler, test webhook proxy integration.",
+        "testStrategy": "Test deployment process in staging environment, verify all environment configurations, test SSL certificate installation, validate webhook functionality in production",
+        "priority": "low",
+        "dependencies": [
+          "1",
+          "2"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "14",
+        "title": "Implement Security Hardening",
+        "description": "Enhance application security with input validation, CSRF protection, and PII data handling",
+        "details": "Audit all forms for CSRF protection, implement comprehensive input validation using Laravel Form Requests, ensure all database queries use parameterized statements, implement proper output escaping in Blade templates, audit logging to ensure no PII is logged, implement rate limiting for SMS and API endpoints.",
+        "testStrategy": "Perform security audit, test CSRF protection on all forms, validate input sanitization, test rate limiting functionality, verify no sensitive data in logs",
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-02-26T01:05:24.972Z"
+      },
+      {
+        "id": "15",
+        "title": "Performance Optimization and Caching",
+        "description": "Optimize application performance with caching strategies and query optimization",
+        "details": "Implement Laravel caching for frequently accessed data (settings, tax rates, service types), optimize database queries with eager loading, implement view caching for static content, configure Redis or file-based caching for shared hosting compatibility, optimize image storage and delivery.",
+        "testStrategy": "Performance testing with large datasets, verify cache invalidation works correctly, test application performance under load, monitor database query performance",
+        "priority": "medium",
+        "dependencies": [
+          "13"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "16",
+        "title": "Implement Work Order System",
+        "description": "Create the work order module that fills the critical gap between approved estimates and invoices, managing the actual field service execution.",
+        "details": "Build a complete work order system modeled after claude_admin and claude_admin2 implementations:\n\n1. **WorkOrder Model & Migration**: Fields: work_order_number (auto-generated via document series), service_request_id, estimate_id, status (pending/dispatched/en_route/in_progress/awaiting_parts/completed/cancelled), assigned_technician, scheduled_date, is_asap, started_at, completed_at, notes, cancellation_reason.\n\n2. **WorkOrderItem Model**: Line items inherited from the approved estimate. Fields: work_order_id, catalog_item_id, description, quantity, unit_price, unit, taxable, sort_order.\n\n3. **WorkOrderController**: CRUD + status transitions. Create from approved estimate, assign technician, dispatch (triggers SMS notification), track progress, complete.\n\n4. **Work Order Number Generation**: Use existing document numbering pattern (WO-YYYYMMDD-XXXX).\n\n5. **Status Lifecycle**: pending → dispatched → en_route → in_progress → awaiting_parts → completed/cancelled. Each transition logged to service_logs.\n\n6. **Technician Assignment**: Dropdown of available technicians during creation, SMS dispatch notification on assignment.\n\n7. **Labor Tracking**: Record started_at and completed_at timestamps for labor duration calculation.\n\n8. **Views**: Work order detail page showing job context (customer + vehicle + location), line items, status controls, technician info. Work order list with filters.\n\n9. **PDF Generation**: Work order PDF with line items, technician assignment, job details.\n\nReference: claude_admin WorkOrder/WorkOrderLineItem models, claude_admin2 work order progress logging pattern.",
+        "testStrategy": "Test work order creation from estimate, verify line items are properly inherited, test all status transitions and logging, verify technician assignment and SMS dispatch, test PDF generation, validate labor tracking timestamps.",
+        "priority": "high",
+        "dependencies": ["7"],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": "17",
+        "title": "Implement Change Order / Authorization System",
+        "description": "Handle mid-job scope changes that require customer authorization when costs exceed defined thresholds, preventing invoice disputes.",
+        "details": "Build a change order system modeled after claude_admin ChangeReport and Gravity4 authorization rules:\n\n1. **ChangeOrder Model & Migration**: Fields: work_order_id, change_type (add_item/remove_item/modify_item/informational), description, price_impact (positive or negative delta), requires_customer_approval (bool), approval_status (pending/approved/rejected/not_required), approval_method (sms/in_person), approval_token (32-byte), approval_token_expires_at (7 days), approved_at, approved_by_name, approval_device_info (JSON), technician_notes, rejection_resolution.\n\n2. **ChangeOrderItem Model**: What was added/removed/modified. Fields: change_order_id, catalog_item_id, description, quantity, unit_price, reason.\n\n3. **Authorization Threshold Logic** (from Gravity4):\n   - delta = ABS(new_total - approved_estimate_total)\n   - threshold = MIN(200, approved_estimate_total * 0.10)\n   - If delta > threshold: customer authorization REQUIRED\n   - Server-side enforcement — cannot finalize invoice without authorization\n\n4. **Approval Workflow**:\n   - Create change order → generate approval token → send SMS with approval link\n   - Public approval page (no auth, token-validated) with change details + price impact\n   - Canvas signature capture for approval\n   - Device info capture (IP, user agent, screen size)\n   - Approval/rejection with timestamp\n\n5. **Integration with Invoice**: Block invoice finalization if unapproved change orders exist that exceed threshold.\n\n6. **Views**: Change order creation form, approval page (public), change order history on work order detail.\n\nReference: claude_admin ChangeReport/ChangeReportItem/ChangeReportService, Gravity4 AGENTS.MD section 4.",
+        "testStrategy": "Test threshold calculations with various estimate/invoice amounts, verify server-side enforcement blocks invoice without authorization, test SMS approval link flow, test signature capture, verify token expiration, test device info capture.",
+        "priority": "high",
+        "dependencies": ["16"],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "18",
+        "title": "Implement Enhanced Financial Dashboard",
+        "description": "Create a comprehensive financial and operational dashboard with A/R aging, collections tracking, trend charts, and technician performance metrics.",
+        "details": "Build an analytics dashboard modeled after Claude_Roadside2-main's director dashboard:\n\n1. **Financial Metrics Cards**:\n   - Paid Revenue (period) — actual cash collected\n   - Outstanding A/R — unpaid invoices total\n   - Overdue A/R — invoices past due date\n   - Collections Rate — (paid / billed) × 100%\n   - Avg Ticket Value — SUM(paid) / COUNT(paid invoices)\n   - Margin Proxy % — (revenue - service_costs) / revenue × 100%\n\n2. **A/R Aging Buckets**: Current, 1-30 days, 31-60 days, 61+ days overdue. SQL CASE-based bucketing on due_date vs CURDATE().\n\n3. **14-Day Trend Charts**: Jobs received, jobs completed, revenue received day-by-day. Use Chart.js.\n\n4. **Service Mix by Type**: Top service types by volume in selected period.\n\n5. **Operational Metrics**:\n   - Completion Rate — completed / total requests\n   - Open Requests Queue — pending + assigned + in_progress counts\n   - Urgent Unassigned — urgent requests with no technician\n\n6. **Top Technicians**: Rank by completed jobs + booked revenue in period.\n\n7. **Date Range Selector**: Filter all metrics by custom date range (today, 7d, 30d, 90d, custom).\n\n8. **Stat Card UI Pattern**: Cards with colored left border (navy=default, green=good, red=attention), JetBrains Mono for values, hover lift animation.\n\nReference: Claude_Roadside2-main pages/dashboard.php SQL queries and metrics patterns. Enhances existing task #5 (Reporting Dashboard).",
+        "testStrategy": "Verify all metric calculations against manual SQL queries, test date range filtering, verify Chart.js renders correctly, test with empty data and large datasets, validate A/R aging bucket logic.",
+        "priority": "high",
+        "dependencies": ["5", "7"],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "19",
+        "title": "Implement Expense Tracking System",
+        "description": "Record and categorize operational expenses (fuel, supplies, parts, repairs) with monthly and YTD reporting.",
+        "details": "Build an expense tracking system modeled after claude_admin and claude_admin2:\n\n1. **Expense Model & Migration**: Fields: expense_number (auto-generated), date, vendor, description, category (enum: fuel, supplies, parts, vehicle_repair, insurance, licensing, tools, marketing, office, other), amount, payment_method (cash/card/check/transfer), reference_number, receipt_path (file upload), notes, created_by.\n\n2. **ExpenseItem Model** (optional for itemized receipts): expense_id, description, quantity, unit_price, amount.\n\n3. **ExpenseController**: Full CRUD with list filtering by category, date range, vendor. Create/edit forms with receipt upload.\n\n4. **Expense Dashboard Widgets**:\n   - Total expenses this month vs last month\n   - YTD expenses total\n   - Expenses by category (pie/bar chart)\n   - Top vendors by spend\n\n5. **Receipt Storage**: Store uploaded receipt images/PDFs in storage/app/expenses/, link via receipt_path field.\n\n6. **Reporting Integration**: Feed into financial dashboard (task #18) for margin proxy calculation.\n\n7. **Views**: Expense list with filters and search, create/edit form with receipt upload, category summary view.\n\nReference: claude_admin ExpenseController/ExpenseService, claude_admin2 expense pages.",
+        "testStrategy": "Test CRUD operations, verify category filtering and date range queries, test receipt file upload and storage, validate expense totals and category breakdowns, test reporting integration.",
+        "priority": "high",
+        "dependencies": ["7"],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "20",
+        "title": "Implement Double-Entry Accounting / General Ledger",
+        "description": "Add a proper chart of accounts, journal entries, and automated GL posting for invoices, payments, and expenses to enable accurate P&L and balance sheet reports.",
+        "details": "Build a double-entry accounting system modeled after claude_admin's GL implementation:\n\n1. **Account Model & Migration**: Chart of accounts with standard codes:\n   - 1100 Cash, 1200 Accounts Receivable\n   - 2100 Accounts Payable, 2200 Sales Tax Payable\n   - 3000 Owner's Equity\n   - 4000 Service Revenue\n   - 5100 Cost of Goods Sold\n   - 6100 Salaries, 6200 Vehicle Expenses, 6300 Insurance, 6400 Supplies\n   Fields: code, name, type (asset/liability/equity/revenue/cogs/expense), is_active, description.\n\n2. **JournalEntry Model**: Fields: entry_number (JE-YYYYMM-XXX), entry_date, memo, reference, source_type (invoice/payment/expense), source_id, status (draft/posted/void), created_by, posted_by, posted_at, voided_by, void_reason.\n\n3. **JournalLine Model**: Fields: journal_entry_id, account_id, debit, credit, description. Must always balance (SUM debits = SUM credits).\n\n4. **FinancialPostingService**: Auto-post on business events:\n   - Invoice created: Debit A/R, Credit Service Revenue (+ Credit Sales Tax Payable if tax)\n   - Payment recorded: Debit Cash, Credit A/R\n   - Expense recorded: Debit Expense Account, Credit Cash/A/P\n\n5. **FinancialReportingService**: Generate reports:\n   - Profit & Loss (Revenue - COGS - Expenses = Net Income)\n   - Balance Sheet (Assets = Liabilities + Equity)\n   - Trial Balance (verify debits = credits)\n   - General Ledger (all postings per account)\n\n6. **Views**: Chart of accounts management, journal entry viewer, P&L report, balance sheet report. Date range filterable.\n\n7. **Seeder**: Seed default chart of accounts on installation.\n\nReference: claude_admin Account/JournalEntry/JournalLine models, FinancialPostingService, FinancialReportingService, AccountingReportController.",
+        "testStrategy": "Verify journal entries always balance (debits = credits), test auto-posting for invoices/payments/expenses, verify P&L calculations, test balance sheet equation (A = L + E), validate trial balance, test void/reversal entries.",
+        "priority": "medium",
+        "dependencies": ["19", "18"],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "21",
+        "title": "Add Technician Compliance Tracking",
+        "description": "Track technician license expirations, insurance status, background checks, and certifications with automated expiry alerts.",
+        "details": "Enhance technician/user management with compliance tracking modeled after Gravity3's driver roster:\n\n1. **Migration**: Add compliance columns to users or create TechnicianProfile model:\n   - drivers_license_number, drivers_license_expiry (date)\n   - insurance_policy_number, insurance_expiry (date)\n   - background_check_date, background_check_status (clear/pending/failed)\n   - drug_screen_date, drug_screen_status\n   - certifications (JSON array of {name, issued_date, expiry_date})\n   - emergency_contact_name, emergency_contact_phone\n   - vehicle_info (year, make, model, plate for service vehicle)\n\n2. **Compliance Status Logic**:\n   - Expired: date < today\n   - Expiring Soon: date < today + 30 days\n   - Valid: date >= today + 30 days\n   - Use scopes: `scopeExpiring()`, `scopeExpired()`, `scopeCompliant()`\n\n3. **Dashboard Integration**: Add compliance alert widget showing technicians with expiring/expired credentials. Red badge for expired, amber for expiring soon.\n\n4. **Technician Profile View**: Display all compliance fields with visual status indicators (green/amber/red badges).\n\n5. **Optional Notification**: Send SMS/email reminder 30 days before license or insurance expiry.\n\nReference: Gravity3 drivers table schema with compliance fields.",
+        "testStrategy": "Test compliance status calculations for expired/expiring/valid states, verify dashboard alerts trigger correctly, test profile creation and editing, validate date-based filtering scopes.",
+        "priority": "medium",
+        "dependencies": ["6"],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "22",
+        "title": "Implement Document Versioning and Immutability",
+        "description": "Add version bumping for estimates and invoices so edits create new versions while preserving locked historical snapshots for audit trail.",
+        "details": "Implement document versioning modeled after claude_admin2's immutable document system:\n\n1. **Version Tracking**: Add version fields to estimates and invoices:\n   - version (integer, starts at 1)\n   - is_locked (boolean, default false)\n   - locked_at (timestamp)\n   - parent_version_id (self-referential FK for version chain)\n\n2. **Document Number with Version**: Append version suffix: EST-012026-1-**V1**, EST-012026-1-**V2**. Date portion locked at V1 creation.\n\n3. **Edit Creates New Version**:\n   - When editing an approved/sent estimate: lock current version, create new version with incremented number\n   - Previous versions become read-only snapshots\n   - New version inherits all data but is editable\n\n4. **Version History View**: Show all versions of a document with diffs highlighting what changed between versions.\n\n5. **Locking Rules**:\n   - Draft: fully editable (no versioning needed)\n   - Sent/Pending: edits create V2 (V1 locked)\n   - Approved: locked permanently (new estimate required for changes)\n\n6. **Audit Trail**: Log version creation events to service_logs.\n\nReference: claude_admin2 includes/id_helpers.php document numbering, version bumping patterns.",
+        "testStrategy": "Test that editing a sent estimate creates V2 and locks V1, verify version history displays correctly, test that approved documents cannot be edited, validate document numbering with version suffix.",
+        "priority": "medium",
+        "dependencies": ["7"],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "23",
+        "title": "Implement Estimate Approval Threshold Enforcement",
+        "description": "Enforce business rules requiring customer signatures for estimates over $200, with server-side validation preventing invoice finalization without proper authorization.",
+        "details": "Add approval threshold enforcement modeled after Gravity4's business rules:\n\n1. **Threshold Configuration**: Add settings:\n   - estimate_signature_threshold (default: 200.00) — estimates above this require signature\n   - overage_threshold_type: MIN(fixed_amount, percentage_of_estimate)\n   - overage_fixed_amount (default: 200.00)\n   - overage_percentage (default: 0.10 = 10%)\n\n2. **Estimate Approval Rules**:\n   - Total > $200: customer signature REQUIRED (existing signature system)\n   - Total <= $200: acceptance recorded (signature optional but allowed)\n   - Status flow: draft → sent → pending_approval → approved/rejected/expired\n\n3. **Approved Total Locking**: When estimate is approved, lock the total. Store approved_total separately that cannot be modified.\n\n4. **Invoice Overage Check**: Before invoice finalization:\n   - delta = ABS(invoice_total - approved_estimate_total)\n   - threshold = MIN(overage_fixed_amount, approved_estimate_total * overage_percentage)\n   - If delta > threshold AND no approved change order exists: BLOCK finalization\n   - Display clear error: 'Invoice total differs from approved estimate by $X. Change authorization required.'\n\n5. **Server-Side Enforcement**: Middleware or service layer validation — not just UI checks. InvoiceFinalizationService validates all rules before allowing status change to 'sent'.\n\nReference: Gravity4 AGENTS.MD sections 4 and 7 for exact threshold logic and workflow definitions.",
+        "testStrategy": "Test signature requirement triggers correctly at $200 threshold, test estimate locking after approval, test invoice overage blocking with various delta amounts, verify server-side enforcement cannot be bypassed, test change order integration.",
+        "priority": "medium",
+        "dependencies": ["17"],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "24",
+        "title": "Implement Correspondence Log",
+        "description": "Create a structured audit trail of ALL customer interactions across channels (SMS, phone calls, email, in-person) beyond just SMS messages.",
+        "details": "Build a correspondence log modeled after Gravity5's interaction tracking:\n\n1. **Correspondence Model & Migration**: Fields: customer_id, service_request_id (nullable), channel (enum: sms/phone/email/in_person/other), direction (inbound/outbound), subject (nullable), body, logged_by (user_id), logged_at, duration_minutes (for phone calls), outcome (nullable, e.g., 'left voicemail', 'confirmed appointment', 'declined service').\n\n2. **Auto-Logging**: Automatically create correspondence entries when:\n   - SMS messages sent/received (integrate with existing Message model)\n   - Estimate sent for approval\n   - Signature requested\n   - Location request sent\n\n3. **Manual Entry**: Allow adding phone call notes, email summaries, in-person interaction records via a quick-add form.\n\n4. **Timeline View**: Display all correspondence for a customer or service request in chronological order, with channel icons and direction indicators.\n\n5. **Integration**: Show correspondence timeline on service request detail page and customer profile page.\n\nReference: Gravity5 Correspondence model schema, claude_admin SmsMessage model for auto-logging patterns.",
+        "testStrategy": "Test auto-logging integration with existing SMS system, test manual entry for all channels, verify timeline displays chronologically, test filtering by channel and date range.",
+        "priority": "medium",
+        "dependencies": ["3"],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "25",
+        "title": "Implement Rapid Dispatch Mode",
+        "description": "Add a quick-entry shorthand mode for creating service requests rapidly during high-volume periods, using a simplified form with auto-population.",
+        "details": "Build a rapid dispatch mode modeled after claude_admin2's shorthand parser:\n\n1. **Simplified Intake Form**: Stripped-down service request creation with only essential fields:\n   - Customer phone (auto-lookup existing customer)\n   - Service type (dropdown with auto-cost)\n   - Location (address field)\n   - Priority (default: normal, one-click urgent toggle)\n   - Notes (optional)\n\n2. **Shorthand Parser**: Text input that recognizes common patterns:\n   - 'jump start' → Battery/Jump Start category, default price\n   - 'flat tire' or 'tire change' → Tire Service category\n   - 'lockout' → Lockout Service category\n   - 'tow' → Towing category\n   - 'fuel' → Fuel Delivery category\n   Maps to catalog items with pre-filled pricing.\n\n3. **Auto-Population**: When service type selected:\n   - Auto-fill estimated cost from service type default_price\n   - Auto-suggest closest available technician (optional)\n\n4. **Quick Customer Lookup**: Type phone number → instant customer match with name display. If no match, minimal inline customer creation (name + phone only).\n\n5. **One-Click Dispatch**: Create request + auto-assign technician + send dispatch SMS in a single action.\n\n6. **Toggle**: Add 'Rapid Mode' toggle button on service request list page that switches between full form and rapid form.\n\nReference: claude_admin2 service intake rapid dispatch mode, shorthand parser implementation.",
+        "testStrategy": "Test shorthand parser recognizes all common service types, test auto-population of costs, test customer phone lookup, test one-click dispatch creates request + assigns + sends SMS, verify rapid mode toggle works.",
+        "priority": "low",
+        "dependencies": ["3", "4"],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "26",
+        "title": "Implement Broker/Motor Club Support",
+        "description": "Add optional broker detail tracking for motor-club-dispatched jobs with PO numbers, dispatch contacts, and SLA tracking.",
+        "details": "Build broker support modeled after Gravity5's BrokerDetail model:\n\n1. **BrokerDetail Model & Migration**: 1-to-1 with ServiceRequest (only for broker jobs). Fields: service_request_id, broker_name (e.g., 'AAA', 'Agero', 'Urgently'), po_number, dispatch_contact_name, dispatch_contact_phone, sla_minutes (response time SLA), dispatched_at (when broker dispatched), broker_rate (what broker pays), broker_invoice_number, broker_payment_status (pending/invoiced/paid), notes.\n\n2. **Service Request Enhancement**: Add is_broker (boolean) flag to service_requests. When true, show broker details section in form.\n\n3. **Conditional UI**: On service request create/edit:\n   - Toggle: 'Is this a broker/motor club job?'\n   - When toggled on: show broker fields section\n   - When toggled off: hide broker fields\n\n4. **Broker Reporting**: Filter service requests by broker, track revenue by broker, SLA compliance rate.\n\n5. **Broker Invoice Tracking**: Track whether the broker has been invoiced and paid separately from customer invoicing.\n\nReference: Gravity5 BrokerDetail Prisma model schema.",
+        "testStrategy": "Test broker detail creation with service request, verify is_broker toggle shows/hides fields, test broker filtering on service request list, validate broker payment tracking.",
+        "priority": "low",
+        "dependencies": ["3"],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "27",
+        "title": "Implement API Health Monitoring",
+        "description": "Add automated health checking for external API integrations (Telnyx, Google Maps) with status tracking and alerting.",
+        "details": "Build an API monitoring system modeled after claude_admin's API monitor:\n\n1. **ApiMonitorEndpoint Model & Migration**: Fields: name, url, method (GET/POST), headers (JSON), expected_status_code, check_interval_minutes, is_active, last_checked_at, last_status (healthy/degraded/down), last_response_time_ms, last_error, consecutive_failures.\n\n2. **ApiMonitorRun Model**: Historical log. Fields: endpoint_id, status_code, response_time_ms, is_success, error_message, checked_at.\n\n3. **Default Endpoints**: Auto-create monitoring for:\n   - Telnyx SMS API (if configured)\n   - Google Maps API (if configured)\n\n4. **Artisan Command**: `php artisan api:monitor` — runs health checks on all active endpoints. Suitable for cron scheduling.\n\n5. **Dashboard Widget**: Show API health status on dashboard. Green/amber/red indicators per endpoint.\n\n6. **Settings Integration**: Manage monitored endpoints from settings page.\n\nReference: claude_admin ApiMonitorEndpoint model, api-monitor-cli.php patterns.",
+        "testStrategy": "Test endpoint health check execution, verify status tracking updates correctly, test failure detection and consecutive failure counting, verify artisan command runs successfully.",
+        "priority": "low",
+        "dependencies": ["14"],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "lastModified": "2026-02-26T04:30:00.000Z",
+      "taskCount": 27,
+      "completedCount": 9,
+      "tags": [
+        "master"
+      ]
+    }
+  }
+}

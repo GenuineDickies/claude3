@@ -70,7 +70,7 @@ class ServiceRequestController extends Controller
             $this->syncLocationFromCapture($serviceRequest);
         }
 
-        $serviceRequest->load(['customer', 'serviceType', 'messages', 'estimates.items', 'statusLogs.user', 'receipts', 'photos', 'signatures', 'paymentRecords', 'serviceLogs.user']);
+        $serviceRequest->load(['customer', 'serviceType', 'messages', 'estimates.items', 'statusLogs.user', 'receipts', 'photos', 'signatures', 'paymentRecords', 'serviceLogs.user', 'workOrders.items']);
 
         $messageTemplates = MessageTemplate::active()
             ->whereNotIn('category', ['compliance'])
@@ -254,6 +254,10 @@ class ServiceRequestController extends Controller
     {
         $customer = $serviceRequest->customer;
         if (! $customer || ! $customer->hasSmsConsent()) {
+            return;
+        }
+
+        if (! $customer->wantsNotification('status_updates')) {
             return;
         }
 

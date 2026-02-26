@@ -10,7 +10,7 @@
     </a>
 
     {{-- Header --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded-lg shadow p-6">
         <div class="flex justify-between items-start">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">
@@ -33,7 +33,7 @@
                     <input type="hidden" name="notes" x-bind:value="$refs.notesField?.value || ''">
                     <input type="hidden" name="notify_customer" x-bind:value="$refs.notifyCheckbox?.checked ? '1' : '0'">
                     <button type="submit"
-                            class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-md hover:bg-green-700 transition">
+                            class="inline-flex items-center px-4 py-2 min-h-[44px] bg-green-600 text-white text-sm font-semibold rounded-md hover:bg-green-700 transition">
                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                         Mark as {{ \App\Models\ServiceRequest::STATUS_LABELS[$serviceRequest->nextStatus()] }}
                     </button>
@@ -47,7 +47,7 @@
                     <input type="hidden" name="notes" x-bind:value="$refs.notesField?.value || ''">
                     <input type="hidden" name="notify_customer" x-bind:value="$refs.notifyCheckbox?.checked ? '1' : '0'">
                     <button type="submit"
-                            class="inline-flex items-center px-3 py-2 border border-red-300 text-red-600 text-sm font-medium rounded-md hover:bg-red-50 transition"
+                            class="inline-flex items-center px-3 py-2 min-h-[44px] border border-red-300 text-red-600 text-sm font-medium rounded-md hover:bg-red-50 transition"
                             onclick="return confirm('Cancel this service request?')">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                         Cancel
@@ -66,10 +66,10 @@
                           rows="2"
                           maxlength="1000"
                           placeholder="Optional note about this status change…"
-                          class="w-full text-sm border-gray-300 rounded-md shadow-xs focus:border-blue-500 focus:ring-blue-500 resize-none"></textarea>
+                          class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 resize-none"></textarea>
                 <label class="flex items-center gap-2 text-sm text-gray-600">
                     <input type="checkbox" x-ref="notifyCheckbox" value="1"
-                           class="rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500"
+                           class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                            {{ $serviceRequest->customer?->hasSmsConsent() ? 'checked' : '' }}>
                     Notify customer via SMS
                 </label>
@@ -80,7 +80,7 @@
 
     {{-- Customer --}}
     @if ($serviceRequest->customer)
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded-lg shadow p-6">
         <h2 class="text-lg font-semibold text-gray-700 mb-3">Customer</h2>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
             <div>
@@ -105,7 +105,7 @@
 
     {{-- Vehicle & Service --}}
     @if ($serviceRequest->vehicle_make || $serviceRequest->serviceType)
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded-lg shadow p-6">
         <h2 class="text-lg font-semibold text-gray-700 mb-3">Vehicle & Service</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             @if ($serviceRequest->vehicle_make)
@@ -142,7 +142,7 @@
     @endif
 
     {{-- Location --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded-lg shadow p-6">
         <div class="flex justify-between items-center mb-3">
             <h2 class="text-lg font-semibold text-gray-700">Location</h2>
             @if (! $serviceRequest->location_shared_at)
@@ -255,7 +255,7 @@
     </div>
 
     {{-- Estimates --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded-lg shadow p-6">
         <div class="flex justify-between items-center mb-3">
             <h2 class="text-lg font-semibold text-gray-700">Estimates</h2>
             <a href="{{ route('estimates.create', $serviceRequest) }}"
@@ -304,8 +304,67 @@
         @endif
     </div>
 
+    {{-- Work Orders --}}
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex justify-between items-center mb-3">
+            <h2 class="text-lg font-semibold text-gray-700">Work Orders</h2>
+            <a href="{{ route('work-orders.create', $serviceRequest) }}"
+               class="bg-amber-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-amber-700 transition inline-flex items-center">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Create Work Order
+            </a>
+        </div>
+
+        @if ($serviceRequest->workOrders->isNotEmpty())
+            <div class="space-y-3">
+                @foreach ($serviceRequest->workOrders->sortByDesc('created_at') as $workOrder)
+                    <a href="{{ route('work-orders.show', [$serviceRequest, $workOrder]) }}"
+                       class="block border border-gray-200 rounded-md p-4 hover:border-amber-300 hover:bg-amber-50/40 transition">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <span class="font-semibold text-gray-800">{{ $workOrder->work_order_number }}</span>
+                                <span class="text-lg font-bold text-gray-900">${{ number_format($workOrder->total, 2) }}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                @php
+                                    $woStatusColors = [
+                                        'pending'     => 'bg-amber-100 text-amber-700',
+                                        'in_progress' => 'bg-blue-100 text-blue-800',
+                                        'completed'   => 'bg-green-100 text-green-800',
+                                        'cancelled'   => 'bg-gray-100 text-gray-600',
+                                    ];
+                                    $woPriorityColors = [
+                                        'low'    => 'bg-gray-100 text-gray-600',
+                                        'normal' => 'bg-blue-50 text-blue-600',
+                                        'high'   => 'bg-amber-100 text-amber-700',
+                                        'urgent' => 'bg-red-100 text-red-700',
+                                    ];
+                                @endphp
+                                <span class="px-2 py-0.5 rounded-full text-xs font-semibold {{ $woPriorityColors[$workOrder->priority] ?? 'bg-gray-100 text-gray-600' }}">
+                                    {{ \App\Models\WorkOrder::PRIORITY_LABELS[$workOrder->priority] ?? ucfirst($workOrder->priority) }}
+                                </span>
+                                <span class="px-2 py-0.5 rounded-full text-xs font-semibold {{ $woStatusColors[$workOrder->status] ?? 'bg-gray-100 text-gray-600' }}">
+                                    {{ \App\Models\WorkOrder::STATUS_LABELS[$workOrder->status] ?? ucfirst($workOrder->status) }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">
+                            {{ $workOrder->items->count() }} item(s)
+                            @if($workOrder->assigned_to)
+                                &middot; Assigned: {{ $workOrder->assigned_to }}
+                            @endif
+                            &middot; {{ $workOrder->created_at->format('M j, Y') }}
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+        @else
+            <p class="text-sm text-gray-400 italic">No work orders yet.</p>
+        @endif
+    </div>
+
     {{-- Receipts --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded-lg shadow p-6">
         <div class="flex justify-between items-center mb-3">
             <h2 class="text-lg font-semibold text-gray-700">Receipts</h2>
             @if ($serviceRequest->receipts->isEmpty())
@@ -344,7 +403,7 @@
     </div>
 
     {{-- Photos --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded-lg shadow p-6">
         <div class="flex justify-between items-center mb-3">
             <h2 class="text-lg font-semibold text-gray-700">Photos</h2>
         </div>
@@ -394,7 +453,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
-                    <select name="type" class="text-sm rounded-md border-gray-300 shadow-xs focus:border-blue-500 focus:ring-blue-500">
+                    <select name="type" class="text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="before">Before</option>
                         <option value="during" selected>During</option>
                         <option value="after">After</option>
@@ -403,7 +462,7 @@
                 <div class="flex-1 min-w-[120px]">
                     <label class="block text-xs font-medium text-gray-600 mb-1">Caption</label>
                     <input type="text" name="caption" maxlength="500" placeholder="Optional"
-                           class="w-full text-sm rounded-md border-gray-300 shadow-xs focus:border-blue-500 focus:ring-blue-500">
+                           class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
                 <button type="submit" class="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-blue-700 transition">Upload</button>
             </div>
@@ -412,7 +471,7 @@
     </div>
 
     {{-- Signature --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded-lg shadow p-6">
         <div class="flex justify-between items-center mb-3">
             <h2 class="text-lg font-semibold text-gray-700">Customer Signature</h2>
         </div>
@@ -434,7 +493,7 @@
                 @csrf
                 <label class="flex items-center gap-2 text-sm text-gray-600">
                     <input type="checkbox" name="send_sms" value="1"
-                           class="rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500"
+                           class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                            {{ $serviceRequest->customer?->hasSmsConsent() ? 'checked' : '' }}>
                     Send signing link via SMS
                 </label>
@@ -446,7 +505,7 @@
     </div>
 
     {{-- Payments --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded-lg shadow p-6">
         <div class="flex justify-between items-center mb-3">
             <h2 class="text-lg font-semibold text-gray-700">Payments</h2>
             @php
@@ -496,7 +555,7 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Method <span class="text-red-500">*</span></label>
-                    <select name="method" required class="w-full text-sm rounded-md border-gray-300 shadow-xs focus:border-blue-500 focus:ring-blue-500">
+                    <select name="method" required class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         @foreach (\App\Models\PaymentRecord::METHOD_LABELS as $val => $label)
                             <option value="{{ $val }}">{{ $label }}</option>
                         @endforeach
@@ -505,12 +564,12 @@
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Amount <span class="text-red-500">*</span></label>
                     <input type="number" name="amount" step="0.01" min="0.01" required
-                           class="w-full text-sm rounded-md border-gray-300 shadow-xs focus:border-blue-500 focus:ring-blue-500">
+                           class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Reference</label>
                     <input type="text" name="reference" maxlength="200" placeholder="Transaction ID"
-                           class="w-full text-sm rounded-md border-gray-300 shadow-xs focus:border-blue-500 focus:ring-blue-500">
+                           class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
                 <div class="flex items-end">
                     <button type="submit" class="w-full bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-green-700 transition">Record Payment</button>
@@ -522,7 +581,7 @@
     </div>
 
     {{-- Service Log --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded-lg shadow p-6">
         <div class="flex justify-between items-center mb-3">
             <h2 class="text-lg font-semibold text-gray-700">Activity Log</h2>
             <a href="{{ route('service-requests.evidence', $serviceRequest) }}"
@@ -533,7 +592,7 @@
             <div class="space-y-2 max-h-64 overflow-y-auto">
                 @foreach ($serviceRequest->serviceLogs as $log)
                     <div class="flex items-start gap-3 text-sm border-b border-gray-50 pb-2">
-                        <div class="shrink-0 mt-1">
+                        <div class="flex-shrink-0 mt-1">
                             <div @class([
                                 'w-2 h-2 rounded-full',
                                 'bg-blue-400' => $log->event === 'status_change',
@@ -575,7 +634,7 @@
     </div>
 
     {{-- Messages --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded-lg shadow p-6">
         <h2 class="text-lg font-semibold text-gray-700 mb-3">Messages</h2>
 
         {{-- Conversation thread (chronological) --}}
@@ -624,7 +683,7 @@
                     <div class="mb-3">
                         <select x-model="selectedTemplateId"
                                 @change="loadTemplate()"
-                                class="w-full text-sm border-gray-300 rounded-md shadow-xs focus:border-blue-500 focus:ring-blue-500">
+                                class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="">Write a custom message&hellip;</option>
                             @foreach ($messageTemplates->groupBy('category') as $category => $templates)
                                 <optgroup label="{{ ucfirst(str_replace('_', ' ', $category)) }}">
@@ -645,7 +704,7 @@
                                   rows="2"
                                   maxlength="1600"
                                   placeholder="Type a message&hellip;"
-                                  class="flex-1 text-sm border-gray-300 rounded-md shadow-xs focus:border-blue-500 focus:ring-blue-500 resize-none"
+                                  class="flex-1 text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 resize-none"
                                   required></textarea>
                         <button type="submit"
                                 class="self-end bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-blue-700 transition whitespace-nowrap">
@@ -709,12 +768,12 @@
 
     {{-- Status History --}}
     @if ($serviceRequest->statusLogs->isNotEmpty())
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="bg-white rounded-lg shadow p-6">
         <h2 class="text-lg font-semibold text-gray-700 mb-3">Status History</h2>
         <div class="space-y-3">
             @foreach ($serviceRequest->statusLogs->sortByDesc('created_at') as $log)
             <div class="flex items-start gap-3 text-sm">
-                <div class="shrink-0 mt-0.5">
+                <div class="flex-shrink-0 mt-0.5">
                     <div class="w-2 h-2 rounded-full bg-gray-400"></div>
                 </div>
                 <div class="flex-1">

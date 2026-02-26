@@ -4,6 +4,7 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EstimateController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\LocationShareController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\MessageTemplateController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SignatureController;
 use App\Http\Controllers\StateTaxRateController;
 use App\Http\Controllers\WarrantyController;
+use App\Http\Controllers\WorkOrderController;
 use App\Models\Customer;
 use App\Models\MessageTemplate;
 use App\Models\ServiceRequest;
@@ -155,6 +157,22 @@ Route::middleware('auth')->group(function () {
     Route::post('/service-requests/{serviceRequest}/receipts', [ReceiptController::class, 'store'])->name('receipts.store');
     Route::get('/service-requests/{serviceRequest}/receipts/{receipt}', [ReceiptController::class, 'show'])->name('receipts.show');
     Route::get('/service-requests/{serviceRequest}/receipts/{receipt}/pdf', [ReceiptController::class, 'pdf'])->name('receipts.pdf');
+
+    // Invoices
+    Route::get('/service-requests/{serviceRequest}/invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
+    Route::post('/service-requests/{serviceRequest}/invoices', [InvoiceController::class, 'store'])->name('invoices.store');
+    Route::get('/service-requests/{serviceRequest}/invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
+    Route::patch('/service-requests/{serviceRequest}/invoices/{invoice}/status', [InvoiceController::class, 'updateStatus'])->name('invoices.update-status');
+    Route::get('/service-requests/{serviceRequest}/invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
+
+    // Work Orders
+    Route::get('/service-requests/{serviceRequest}/work-orders/create', [WorkOrderController::class, 'create'])->name('work-orders.create');
+    Route::post('/service-requests/{serviceRequest}/work-orders', [WorkOrderController::class, 'store'])->name('work-orders.store');
+    Route::get('/service-requests/{serviceRequest}/work-orders/{workOrder}', [WorkOrderController::class, 'show'])->name('work-orders.show');
+    Route::get('/service-requests/{serviceRequest}/work-orders/{workOrder}/edit', [WorkOrderController::class, 'edit'])->name('work-orders.edit');
+    Route::put('/service-requests/{serviceRequest}/work-orders/{workOrder}', [WorkOrderController::class, 'update'])->name('work-orders.update');
+    Route::patch('/service-requests/{serviceRequest}/work-orders/{workOrder}/status', [WorkOrderController::class, 'updateStatus'])->name('work-orders.update-status');
+    Route::get('/service-requests/{serviceRequest}/work-orders/{workOrder}/pdf', [WorkOrderController::class, 'pdf'])->name('work-orders.pdf');
 
     // AJAX endpoints (same-origin, session-auth)
     Route::get('/api/customers/search', [CustomerController::class, 'search'])->name('api.customers.search');

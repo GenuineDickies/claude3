@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PaymentRecord;
 use App\Models\ServiceLog;
 use App\Models\ServiceRequest;
+use App\Services\StatusAutomationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -36,6 +37,8 @@ class PaymentRecordController extends Controller
             'amount'     => $payment->amount,
             'reference'  => $payment->reference,
         ], Auth::id());
+
+        app(StatusAutomationService::class)->handle($serviceRequest, 'payment_collected');
 
         return redirect()->route('service-requests.show', $serviceRequest)
             ->with('success', 'Payment of $' . number_format($payment->amount, 2) . ' recorded.');

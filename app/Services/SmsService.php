@@ -58,7 +58,7 @@ class SmsService implements SmsServiceInterface
             ];
         } catch (APIException $e) {
             Log::error('Telnyx SMS send failed', [
-                'to'    => $to,
+                'to'    => '***' . substr($to, -4),
                 'error' => $e->getMessage(),
                 'code'  => $e->getCode(),
             ]);

@@ -204,6 +204,16 @@ class ServiceRequest extends Model
         return $this->hasMany(Receipt::class);
     }
 
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    public function workOrders(): HasMany
+    {
+        return $this->hasMany(WorkOrder::class);
+    }
+
     public function photos(): HasMany
     {
         return $this->hasMany(ServicePhoto::class);

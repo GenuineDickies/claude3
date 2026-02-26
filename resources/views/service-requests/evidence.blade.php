@@ -4,16 +4,16 @@
 <div class="max-w-4xl mx-auto space-y-6">
 
     {{-- Header --}}
-    <div class="flex justify-between items-start">
+    <div class="flex flex-col sm:flex-row justify-between items-start gap-3">
         <div>
             <a href="{{ route('service-requests.show', $serviceRequest) }}" class="inline-flex items-center text-sm text-gray-500 hover:text-blue-600 mb-2">
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                 Ticket #{{ $serviceRequest->id }}
             </a>
-            <h1 class="text-2xl font-bold text-gray-900">Evidence Package</h1>
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Evidence Package</h1>
             <p class="text-sm text-gray-500">Service Request #{{ $serviceRequest->id }} &middot; {{ $serviceRequest->created_at->format('M j, Y') }}</p>
         </div>
-        <button onclick="window.print()" class="bg-gray-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-gray-700 transition print:hidden">
+        <button onclick="window.print()" class="bg-gray-600 text-white text-sm font-medium px-4 py-2 min-h-[44px] rounded-md hover:bg-gray-700 transition print:hidden">
             Print / Save PDF
         </button>
     </div>
@@ -21,7 +21,7 @@
     {{-- Service Details --}}
     <div class="bg-white rounded-lg shadow-sm p-6">
         <h2 class="text-lg font-semibold text-gray-700 mb-3">Service Details</h2>
-        <div class="grid grid-cols-2 gap-4 text-sm">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
                 <span class="block text-gray-500">Customer</span>
                 <span class="font-medium">{{ $serviceRequest->customer?->first_name }} {{ $serviceRequest->customer?->last_name }}</span>
