@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ $companyName ?? config('app.name') }}</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <style>
+        [x-cloak] { display: none !important; }
+        .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+        .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background: rgb(55 65 81); border-radius: 2px; }
+        .sidebar-scroll { scrollbar-width: thin; scrollbar-color: rgb(55 65 81) transparent; }
+    </style>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+<body class="bg-gray-100 text-gray-900 font-sans antialiased">
+
+    @auth
+    <div x-data="{ sidebarOpen: false }">
+
+        {{-- ── Desktop sidebar (always visible ≥ lg) ───────── --}}
+        <aside class="hidden lg:fixed lg:inset-y-0 lg:z-30 lg:flex lg:w-64 lg:flex-col">
+            <x-sidebar />
+        </aside>
+
+        {{-- ── Mobile top bar (< lg) ───────────────────────── --}}
+        <div class="sticky top-0 z-40 flex items-center gap-x-3 h-14 bg-gray-900 px-4 shadow-md lg:hidden">
+            <button type="button"
+                    @click="sidebarOpen = true"
+                    :aria-expanded="sidebarOpen.toString()"
+                    aria-controls="mobile-sidebar"
+                    class="-m-2.5 p-2.5 text-gray-400 hover:text-white">
+                <span class="sr-only">Open sidebar</span>
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+            </button>
+            <span class="text-lg font-semibold text-white">{{ $companyName ?? config('app.name') }}</span>
+        </div>
+
+        {{-- ── Mobile sidebar overlay (< lg) ───────────────── --}}
+        <div x-show="sidebarOpen"
+             x-cloak
+             class="relative z-50 lg:hidden"
+             role="dialog"
+             aria-modal="true">
+
+            {{-- Backdrop --}}
+            <div x-show="sidebarOpen"
+                 x-transition:enter="transition-opacity ease-linear duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition-opacity ease-linear duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 @click="sidebarOpen = false"
+                 class="fixed inset-0 bg-gray-900/80"></div>
+
+            {{-- Sidebar drawer --}}
+            <div class="fixed inset-0 flex">
+                <div x-show="sidebarOpen"
+                     x-transition:enter="transition ease-in-out duration-200 transform"
+                     x-transition:enter-start="-translate-x-full"
+                     x-transition:enter-end="translate-x-0"
+                     x-transition:leave="transition ease-in-out duration-200 transform"
+                     x-transition:leave-start="translate-x-0"
+                     x-transition:leave-end="-translate-x-full"
+                     id="mobile-sidebar"
+                     class="relative mr-16 flex w-full max-w-64 flex-1">
+
+                    {{-- Close button --}}
+                    <div x-show="sidebarOpen"
+                         x-transition:enter="ease-in-out duration-200"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         x-transition:leave="ease-in-out duration-200"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0"
+                         class="absolute left-full top-0 flex w-16 justify-center pt-5">
+                        <button type="button" @click="sidebarOpen = false" class="-m-2.5 p-2.5">
+                            <span class="sr-only">Close sidebar</span>
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <x-sidebar />
+                </div>
+            </div>
+        </div>
+
+        {{-- ── Main content ────────────────────────────────── --}}
+        <main class="lg:pl-64">
+            <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                @yield('content')
+            </div>
+        </main>
+    </div>
+    @else
+        {{-- Guest layout (no sidebar) --}}
+        <main class="min-h-screen">
+            <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                @yield('content')
+            </div>
+        </main>
+    @endauth
+
+    @stack('scripts')
+</body>
+</html>

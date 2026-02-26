@@ -1,0 +1,358 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\StoreServiceRequestRequest;
+use App\Jobs\SendSmsJob;
+use App\Models\Customer;
+use App\Models\MessageTemplate;
+use App\Models\ServiceLog;
+use App\Models\ServiceRequest;
+use App\Models\ServiceRequestStatusLog;
+use App\Models\Setting;
+use App\Models\ServiceType;
+use App\Services\SmsServiceInterface;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
+class ServiceRequestController extends Controller
+{
+    public function index()
+    {
+        $query = ServiceRequest::with(['customer', 'serviceType'])
+            ->latest();
+
+        if ($status = request('status')) {
+            $query->where('status', $status);
+        }
+
+        if ($search = request('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('location', 'like', "%{$search}%")
+                  ->orWhere('notes', 'like', "%{$search}%")
+                  ->orWhereHas('customer', function ($cq) use ($search) {
+                      $cq->where('first_name', 'like', "%{$search}%")
+                         ->orWhere('last_name', 'like', "%{$search}%")
+                         ->orWhere('phone', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $serviceRequests = $query->paginate(15);
+
+        return view('service-requests.index', [
+            'serviceRequests' => $serviceRequests,
+            'currentStatus' => $status,
+            'currentSearch' => $search,
+        ]);
+    }
+
+    public function create()
+    {
+        $serviceTypes = ServiceType::where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+
+        return view('service-requests.create', compact('serviceTypes'));
+    }
+
+    public function show(ServiceRequest $serviceRequest)
+    {
+        // If a location token is pending and no coordinates yet, try to sync
+        // from the standalone capture file on the hosting server.
+        if (
+            $serviceRequest->location_token
+            && is_null($serviceRequest->latitude)
+            && is_null($serviceRequest->location_shared_at)
+        ) {
+            $this->syncLocationFromCapture($serviceRequest);
+        }
+
+        $serviceRequest->load(['customer', 'serviceType', 'messages', 'estimates.items', 'statusLogs.user', 'receipts', 'photos', 'signatures', 'paymentRecords', 'serviceLogs.user']);
+
+        $messageTemplates = MessageTemplate::active()
+            ->whereNotIn('category', ['compliance'])
+            ->orderBy('sort_order')
+            ->get(['id', 'name', 'category', 'body']);
+
+        return view('service-requests.show', compact('serviceRequest', 'messageTemplates'));
+    }
+
+    public function store(StoreServiceRequestRequest $request)
+    {
+        $validated = $request->validated();
+
+        // Normalize phone to digits for consistent DB lookups
+        $phone = preg_replace('/\D/', '', $validated['phone']);
+
+        $serviceRequest = DB::transaction(function () use ($validated, $phone) {
+            if ($validated['customer_action'] === 'use_existing') {
+                $customer = Customer::where('phone', $phone)
+                    ->where('is_active', true)
+                    ->first();
+
+                if ($customer) {
+                    $customer->update([
+                        'first_name' => $validated['first_name'],
+                        'last_name' => $validated['last_name'],
+                    ]);
+                } else {
+                    // Fallback if active customer was deleted between AJAX lookup and form submit
+                    $customer = Customer::create([
+                        'first_name' => $validated['first_name'],
+                        'last_name' => $validated['last_name'],
+                        'phone' => $phone,
+                        'is_active' => true,
+                    ]);
+                }
+            } else {
+                // Deactivate existing active customers with this phone
+                Customer::where('phone', $phone)
+                    ->where('is_active', true)
+                    ->update(['is_active' => false]);
+
+                $customer = Customer::create([
+                    'first_name' => $validated['first_name'],
+                    'last_name' => $validated['last_name'],
+                    'phone' => $phone,
+                    'is_active' => true,
+                ]);
+            }
+
+            return ServiceRequest::create([
+                'customer_id' => $customer->id,
+                'vehicle_year' => $validated['vehicle_year'],
+                'vehicle_make' => $validated['vehicle_make'],
+                'vehicle_model' => $validated['vehicle_model'],
+                'vehicle_color' => $validated['vehicle_color'] ?? null,
+                'service_type_id' => $validated['service_type_id'],
+                'quoted_price' => $validated['quoted_price'],
+                'location' => $validated['location'] ?? null,
+                'notes' => $validated['notes'] ?? null,
+                'status' => 'new',
+            ]);
+        });
+
+        // ── Verbal opt-in: grant consent immediately ──────────────
+        if ($request->boolean('verbal_opt_in')) {
+            $customer = $serviceRequest->customer;
+            if (! $customer->hasSmsConsent()) {
+                $customer->grantSmsConsent();
+            }
+        }
+
+        // ── Optional: send location request SMS ──────────────────────
+        if ($request->boolean('send_location_request')) {
+            $customer = $serviceRequest->customer;
+            $sms = app(SmsServiceInterface::class);
+
+            if (! $customer->hasSmsConsent()) {
+                // Send opt-in message first
+                $optInTemplate = MessageTemplate::where('slug', 'welcome-message')->first();
+                if ($optInTemplate) {
+                    $sms->sendTemplate(
+                        template: $optInTemplate,
+                        to: $customer->phone,
+                        customer: $customer,
+                        serviceRequest: $serviceRequest,
+                    );
+                }
+
+                return redirect()->route('service-requests.show', $serviceRequest)
+                    ->with('success', 'Service request #' . $serviceRequest->id . ' created.')
+                    ->with('warning', 'Customer has not opted in to SMS. An opt-in message was sent to ' . $customer->phone . '. Once they reply START, you can request their location from the detail page.');
+            }
+
+            $serviceRequest->generateLocationToken();
+
+            $template = MessageTemplate::where('slug', 'location-request')->first();
+            if ($template) {
+                $sms->sendTemplate(
+                    template: $template,
+                    to: $customer->phone,
+                    customer: $customer,
+                    serviceRequest: $serviceRequest,
+                    overrides: ['location_link' => $serviceRequest->locationShareUrl()],
+                );
+            } else {
+                $companyName = \App\Models\Setting::getValue('company_name', config('app.name'));
+                $sms->sendRaw(
+                    $customer->phone,
+                    $companyName . ': Hi ' . $customer->first_name . ', please tap this link so we can locate you: ' . $serviceRequest->locationShareUrl() . ' Reply STOP to opt out.',
+                );
+            }
+
+            return redirect()->route('service-requests.show', $serviceRequest)
+                ->with('success', 'Service request #' . $serviceRequest->id . ' created for ' . $validated['first_name'] . ' ' . $validated['last_name'] . '. Location request SMS sent.');
+        }
+
+        return redirect()->route('service-requests.show', $serviceRequest)
+            ->with('success', 'Service request #' . $serviceRequest->id . ' created for ' . $validated['first_name'] . ' ' . $validated['last_name'] . '.');
+    }
+
+    public function evidence(ServiceRequest $serviceRequest)
+    {
+        $serviceRequest->load([
+            'customer', 'serviceType', 'photos', 'signatures',
+            'paymentRecords', 'serviceLogs.user', 'receipts', 'statusLogs.user',
+        ]);
+
+        $companyName = Setting::getValue('company_name', config('app.name'));
+
+        return view('service-requests.evidence', compact('serviceRequest', 'companyName'));
+    }
+
+    public function update(Request $request, ServiceRequest $serviceRequest)
+    {
+        $request->validate([
+            'status' => 'required|string|in:' . implode(',', ServiceRequest::STATUSES),
+            'notes'  => 'nullable|string|max:1000',
+        ]);
+
+        $newStatus = $request->input('status');
+
+        if (! $serviceRequest->canTransitionTo($newStatus)) {
+            return back()->with('error', 'Cannot transition from "' . $serviceRequest->statusLabel() . '" to "' . (ServiceRequest::STATUS_LABELS[$newStatus] ?? $newStatus) . '".');
+        }
+
+        $oldStatus = $serviceRequest->status;
+
+        DB::transaction(function () use ($serviceRequest, $oldStatus, $newStatus, $request) {
+            $serviceRequest->update(['status' => $newStatus]);
+
+            ServiceRequestStatusLog::create([
+                'service_request_id' => $serviceRequest->id,
+                'old_status'         => $oldStatus,
+                'new_status'         => $newStatus,
+                'changed_by'         => Auth::id(),
+                'notes'              => $request->input('notes'),
+            ]);
+
+            // Auto-log status change to service log
+            ServiceLog::log($serviceRequest, 'status_change', [
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus,
+                'notes'      => $request->input('notes'),
+            ], Auth::id());
+        });
+
+        // Optional SMS notification
+        if ($request->boolean('notify_customer')) {
+            $this->sendStatusSms($serviceRequest, $newStatus);
+        }
+
+        return redirect()->route('service-requests.show', $serviceRequest)
+            ->with('success', 'Status updated to "' . (ServiceRequest::STATUS_LABELS[$newStatus] ?? $newStatus) . '".');
+    }
+
+    /**
+     * Send an SMS for a status change if a matching template exists.
+     */
+    private function sendStatusSms(ServiceRequest $serviceRequest, string $newStatus): void
+    {
+        $customer = $serviceRequest->customer;
+        if (! $customer || ! $customer->hasSmsConsent()) {
+            return;
+        }
+
+        // Map statuses to existing template slugs
+        $slugMap = [
+            'dispatched' => 'dispatch-confirmation',
+            'en_route'   => 'technician-en-route',
+            'on_scene'   => 'technician-arrived',
+            'completed'  => 'service-completed',
+            'cancelled'  => 'cancellation-confirmation',
+        ];
+
+        $slug = $slugMap[$newStatus] ?? null;
+        if (! $slug) {
+            return;
+        }
+
+        $template = MessageTemplate::where('slug', $slug)->first();
+        if (! $template) {
+            return;
+        }
+
+        $serviceRequest->loadMissing(['customer', 'serviceType']);
+
+        $sms = app(SmsServiceInterface::class);
+        $sms->sendTemplate(
+            template: $template,
+            to: $customer->phone,
+            customer: $customer,
+            serviceRequest: $serviceRequest,
+        );
+    }
+
+    /**
+     * Pull GPS data from the remote capture JSON and update the local DB.
+     *
+     * During local dev the standalone locate.php writes to the hosting DB
+     * (not ours), so we bridge the gap by fetching the publicly-accessible
+     * capture file.  In production this is a no-op because locate.php
+     * already writes to the same database.
+     */
+    private function syncLocationFromCapture(ServiceRequest $serviceRequest): void
+    {
+        $base = Setting::getValue('location_base_url', config('services.location.base_url'));
+
+        if (! $base || ! $serviceRequest->location_token) {
+            return;
+        }
+
+        // Build capture URL:  …/locate.php → …/captures/{sanitized_token}.json
+        $sanitizedToken = preg_replace('/[^a-zA-Z0-9]/', '', $serviceRequest->location_token);
+        $captureUrl = preg_replace('#/[^/]+$#', '/captures/' . $sanitizedToken . '.json', $base);
+
+        try {
+            $ctx = stream_context_create([
+                'http' => [
+                    'timeout' => 3,
+                    'ignore_errors' => true,
+                ],
+                'ssl' => [
+                    'verify_peer' => true,
+                ],
+            ]);
+
+            $json = @file_get_contents($captureUrl, false, $ctx);
+
+            if ($json === false) {
+                return; // File doesn't exist yet — customer hasn't shared location
+            }
+
+            $data = json_decode($json, true);
+
+            if (
+                ! is_array($data)
+                || ! isset($data['latitude'], $data['longitude'])
+                || ! is_numeric($data['latitude'])
+                || ! is_numeric($data['longitude'])
+            ) {
+                return;
+            }
+
+            $serviceRequest->update([
+                'latitude'          => (float) $data['latitude'],
+                'longitude'         => (float) $data['longitude'],
+                'location_shared_at' => now(),
+            ]);
+
+            Log::info('Location synced from remote capture file', [
+                'service_request_id' => $serviceRequest->id,
+                'lat'                => $data['latitude'],
+                'lng'                => $data['longitude'],
+                'capture_time'       => $data['time'] ?? null,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Failed to sync location from capture file', [
+                'service_request_id' => $serviceRequest->id,
+                'url'                => $captureUrl,
+                'error'              => $e->getMessage(),
+            ]);
+        }
+    }
+}
