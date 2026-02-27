@@ -117,9 +117,9 @@
                         @endif
                     </div>
                 @endif
-                @if ($workOrder->serviceRequest->serviceType)
+                @if ($workOrder->serviceRequest->catalogItem)
                     <div class="info-label">Service Type</div>
-                    <div class="info-value">{{ $workOrder->serviceRequest->serviceType->name }}</div>
+                    <div class="info-value">{{ $workOrder->serviceRequest->catalogItem->name }}</div>
                 @endif
                 @if ($workOrder->serviceRequest->location_address)
                     <div class="info-label">Location</div>

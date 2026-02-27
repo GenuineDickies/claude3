@@ -3,25 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreServiceRequestRequest;
-use App\Jobs\SendSmsJob;
 use App\Models\Customer;
 use App\Models\MessageTemplate;
 use App\Models\ServiceLog;
 use App\Models\ServiceRequest;
 use App\Models\ServiceRequestStatusLog;
 use App\Models\Setting;
-use App\Models\ServiceType;
+use App\Models\CatalogCategory;
 use App\Services\SmsServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class ServiceRequestController extends Controller
 {
     public function index()
     {
-        $query = ServiceRequest::with(['customer', 'serviceType'])
+        $query = ServiceRequest::with(['customer', 'catalogItem'])
             ->latest();
 
         if ($status = request('status')) {
@@ -51,11 +51,13 @@ class ServiceRequestController extends Controller
 
     public function create()
     {
-        $serviceTypes = ServiceType::where('is_active', true)
+        $serviceCategories = CatalogCategory::where('type', 'service')
+            ->where('is_active', true)
+            ->with(['items' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order')])
             ->orderBy('sort_order')
             ->get();
 
-        return view('service-requests.create', compact('serviceTypes'));
+        return view('service-requests.create', compact('serviceCategories'));
     }
 
     public function show(ServiceRequest $serviceRequest)
@@ -70,7 +72,7 @@ class ServiceRequestController extends Controller
             $this->syncLocationFromCapture($serviceRequest);
         }
 
-        $serviceRequest->load(['customer', 'serviceType', 'messages', 'estimates.items', 'statusLogs.user', 'receipts', 'photos', 'signatures', 'paymentRecords', 'serviceLogs.user', 'workOrders.items']);
+        $serviceRequest->load(['customer', 'catalogItem', 'messages', 'estimates.items', 'statusLogs.user', 'receipts', 'photos', 'signatures', 'paymentRecords', 'serviceLogs.user', 'workOrders.items', 'correspondences.logger']);
 
         $messageTemplates = MessageTemplate::active()
             ->whereNotIn('category', ['compliance'])
@@ -127,7 +129,7 @@ class ServiceRequestController extends Controller
                 'vehicle_make' => $validated['vehicle_make'],
                 'vehicle_model' => $validated['vehicle_model'],
                 'vehicle_color' => $validated['vehicle_color'] ?? null,
-                'service_type_id' => $validated['service_type_id'],
+                'catalog_item_id' => $validated['catalog_item_id'],
                 'quoted_price' => $validated['quoted_price'],
                 'location' => $validated['location'] ?? null,
                 'notes' => $validated['notes'] ?? null,
@@ -195,7 +197,7 @@ class ServiceRequestController extends Controller
     public function evidence(ServiceRequest $serviceRequest)
     {
         $serviceRequest->load([
-            'customer', 'serviceType', 'photos', 'signatures',
+            'customer', 'catalogItem', 'photos', 'signatures',
             'paymentRecords', 'serviceLogs.user', 'receipts', 'statusLogs.user',
         ]);
 
@@ -280,7 +282,7 @@ class ServiceRequestController extends Controller
             return;
         }
 
-        $serviceRequest->loadMissing(['customer', 'serviceType']);
+        $serviceRequest->loadMissing(['customer', 'catalogItem']);
 
         $sms = app(SmsServiceInterface::class);
         $sms->sendTemplate(
@@ -307,28 +309,21 @@ class ServiceRequestController extends Controller
             return;
         }
 
-        // Build capture URL:  …/locate.php → …/captures/{sanitized_token}.json
+        // Build capture URL: strip trailing path segment + append captures/{token}.json
         $sanitizedToken = preg_replace('/[^a-zA-Z0-9]/', '', $serviceRequest->location_token);
-        $captureUrl = preg_replace('#/[^/]+$#', '/captures/' . $sanitizedToken . '.json', $base);
+        $baseDir = preg_replace('#[?#].*$#', '', $base);  // strip query/fragment
+        $baseDir = rtrim($baseDir, '/');
+        $baseDir = substr($baseDir, 0, strrpos($baseDir, '/'));
+        $captureUrl = $baseDir . '/captures/' . $sanitizedToken . '.json';
 
         try {
-            $ctx = stream_context_create([
-                'http' => [
-                    'timeout' => 3,
-                    'ignore_errors' => true,
-                ],
-                'ssl' => [
-                    'verify_peer' => true,
-                ],
-            ]);
+            $response = Http::timeout(3)->get($captureUrl);
 
-            $json = @file_get_contents($captureUrl, false, $ctx);
-
-            if ($json === false) {
+            if ($response->failed()) {
                 return; // File doesn't exist yet — customer hasn't shared location
             }
 
-            $data = json_decode($json, true);
+            $data = $response->json();
 
             if (
                 ! is_array($data)

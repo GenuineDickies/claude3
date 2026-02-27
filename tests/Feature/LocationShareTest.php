@@ -84,7 +84,7 @@ final class LocationShareTest extends TestCase
         [$customer, $sr] = $this->createCustomerWithRequest(optedIn: true);
 
         $smsMock = $this->mock(SmsServiceInterface::class);
-        $smsMock->shouldReceive('sendRaw')
+        $smsMock->shouldReceive('sendRawWithLog')
             ->once()
             ->andReturn(['success' => true, 'message_id' => 'msg-2', 'error' => null]);
 

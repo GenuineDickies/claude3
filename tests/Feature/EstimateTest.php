@@ -7,11 +7,11 @@ use App\Models\CatalogItem;
 use App\Models\Customer;
 use App\Models\Estimate;
 use App\Models\ServiceRequest;
-use App\Models\ServiceType;
 use App\Models\Setting;
 use App\Models\StateTaxRate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 final class EstimateTest extends TestCase
@@ -32,15 +32,26 @@ final class EstimateTest extends TestCase
             'is_active' => true,
         ]);
 
-        $serviceType = ServiceType::create([
+        $category = CatalogCategory::create([
+            'name' => 'Services',
+            'type' => 'service',
+            'sort_order' => 0,
+            'is_active' => true,
+        ]);
+
+        $catalogItem = CatalogItem::create([
+            'catalog_category_id' => $category->id,
             'name' => 'Flat Tire Change',
-            'default_price' => 75.00,
+            'unit_price' => 75.00,
+            'unit' => 'each',
+            'pricing_type' => 'fixed',
             'sort_order' => 1,
+            'is_active' => true,
         ]);
 
         return ServiceRequest::create(array_merge([
             'customer_id' => $customer->id,
-            'service_type_id' => $serviceType->id,
+            'catalog_item_id' => $catalogItem->id,
             'quoted_price' => 75.00,
             'status' => 'new',
         ], $attrs));
@@ -147,8 +158,10 @@ final class EstimateTest extends TestCase
             'longitude' => '-122.6575223',
         ]);
 
-        // We need to mock the external Google API call. Use a stream wrapper override.
-        $this->mockGoogleGeocode($googleResponse);
+        // Mock the external Google API call via Http::fake
+        Http::fake([
+            'maps.googleapis.com/*' => Http::response(json_decode($googleResponse, true)),
+        ]);
 
         $response = $this->actingAs($this->authenticatedUser())
             ->get("/service-requests/{$sr->id}/estimates/create");
@@ -299,63 +312,4 @@ final class EstimateTest extends TestCase
     // ------------------------------------------------------------------
     // Helper: mock Google Geocode API via stream wrapper
     // ------------------------------------------------------------------
-
-    /**
-     * Override file_get_contents for Google Maps API calls by using
-     * a temporary stream wrapper. Restores automatically after the test.
-     */
-    private function mockGoogleGeocode(string $responseBody): void
-    {
-        $wrapper = new class {
-            public static string $response = '';
-            /** @var resource|null */
-            public $context;
-            private int $position = 0;
-
-            public function stream_open(string $path, string $mode, int $options, ?string &$opened_path): bool
-            {
-                $this->position = 0;
-                return true;
-            }
-
-            /** @return string|false */
-            public function stream_read(int $count)
-            {
-                $chunk = substr(static::$response, $this->position, $count);
-                $this->position += strlen($chunk);
-                return $chunk;
-            }
-
-            public function stream_eof(): bool
-            {
-                return $this->position >= strlen(static::$response);
-            }
-
-            /** @return array<string, mixed> */
-            public function stream_stat(): array
-            {
-                return [];
-            }
-        };
-
-        $wrapperClass = get_class($wrapper);
-        $wrapperClass::$response = $responseBody;
-
-        // Unregister https wrapper, register our mock
-        stream_wrapper_unregister('https');
-        stream_wrapper_register('https', $wrapperClass);
-
-        // Re-register on teardown
-        $this->afterTest(function () {
-            stream_wrapper_restore('https');
-        });
-    }
-
-    /**
-     * Register a callback to run after this test completes.
-     */
-    private function afterTest(callable $callback): void
-    {
-        $this->beforeApplicationDestroyed($callback);
-    }
 }

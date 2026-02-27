@@ -14,7 +14,18 @@
         <div class="flex justify-between items-start">
             <div>
                 <div class="flex items-center gap-3">
-                    <h1 class="text-2xl font-bold text-gray-800">Invoice {{ $invoice->invoice_number }}</h1>
+                    <h1 class="text-2xl font-bold text-gray-800">Invoice {{ $invoice->displayNumber() }}</h1>
+                    @if($invoice->version > 1)
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-700">
+                            V{{ $invoice->version }}
+                        </span>
+                    @endif
+                    @if($invoice->is_locked)
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-gray-200 text-gray-600">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
+                            Locked
+                        </span>
+                    @endif
                     @php
                         $statusColors = [
                             'draft'     => 'bg-gray-100 text-gray-700',
@@ -34,6 +45,24 @@
                 @endif
             </div>
             <div class="flex gap-2">
+                {{-- Edit (draft only) --}}
+                @if (!$invoice->is_locked && $invoice->status === 'draft')
+                <a href="{{ route('invoices.edit', [$serviceRequest, $invoice]) }}"
+                   class="inline-flex items-center px-3 py-2 bg-gray-200 text-gray-700 text-sm font-semibold rounded-md hover:bg-gray-300 transition">
+                    Edit
+                </a>
+                @endif
+
+                {{-- Revise (sent only) --}}
+                @if (!$invoice->is_locked && $invoice->status === 'sent')
+                <form method="POST" action="{{ route('invoices.revise', [$serviceRequest, $invoice]) }}" class="inline">
+                    @csrf
+                    <button type="submit" class="inline-flex items-center px-3 py-2 bg-purple-600 text-white text-sm font-semibold rounded-md hover:bg-purple-700 transition">
+                        Revise (V{{ $invoice->version + 1 }})
+                    </button>
+                </form>
+                @endif
+
                 {{-- Status update --}}
                 @if ($invoice->status !== 'paid' && $invoice->status !== 'cancelled')
                 <form method="POST" action="{{ route('invoices.update-status', [$serviceRequest, $invoice]) }}" class="inline">
@@ -58,6 +87,15 @@
                     <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     Download PDF
                 </a>
+
+                {{-- Issue Receipt (available when invoice is paid) --}}
+                @if ($invoice->status === 'paid')
+                    <a href="{{ route('receipts.create', [$serviceRequest, $invoice]) }}"
+                       class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-md hover:bg-emerald-700 transition">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Issue Receipt
+                    </a>
+                @endif
             </div>
         </div>
     </div>
@@ -156,6 +194,37 @@
     <div class="bg-white rounded-lg shadow-sm p-6">
         <h2 class="text-lg font-semibold text-gray-700 mb-2">Notes</h2>
         <p class="text-sm text-gray-600 whitespace-pre-line">{{ $invoice->notes }}</p>
+    </div>
+    @endif
+
+    {{-- Version History --}}
+    @if($versions->count() > 1)
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-gray-700 mb-3">Version History</h2>
+        <div class="space-y-2">
+            @foreach($versions as $v)
+                <div @class([
+                    'flex items-center justify-between px-4 py-2.5 rounded-lg text-sm',
+                    'bg-blue-50 border border-blue-200' => $v->id === $invoice->id,
+                    'bg-gray-50' => $v->id !== $invoice->id,
+                ])>
+                    <div class="flex items-center gap-3">
+                        <span class="font-semibold text-gray-700">V{{ $v->version }}</span>
+                        @php $sc = ['draft'=>'bg-gray-100 text-gray-700','sent'=>'bg-blue-100 text-blue-700','paid'=>'bg-green-100 text-green-700','overdue'=>'bg-red-100 text-red-700','cancelled'=>'bg-gray-100 text-gray-500']; @endphp
+                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold {{ $sc[$v->status] ?? 'bg-gray-100 text-gray-700' }}">{{ ucfirst($v->status) }}</span>
+                        @if($v->is_locked)
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
+                        @endif
+                        <span class="text-gray-400">{{ $v->created_at->format('M j, Y g:i A') }}</span>
+                    </div>
+                    @if($v->id !== $invoice->id)
+                        <a href="{{ route('invoices.show', [$serviceRequest, $v]) }}" class="text-blue-600 hover:text-blue-800 text-xs font-medium">View</a>
+                    @else
+                        <span class="text-xs text-blue-600 font-medium">Current</span>
+                    @endif
+                </div>
+            @endforeach
+        </div>
     </div>
     @endif
 

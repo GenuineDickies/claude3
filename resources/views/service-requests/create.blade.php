@@ -4,7 +4,14 @@
 <div class="max-w-3xl mx-auto bg-white p-4 sm:p-8 rounded-lg shadow-md">
     <div class="flex justify-between items-center mb-6 border-b pb-4">
         <h2 class="text-xl sm:text-2xl font-bold text-gray-800">New Service Request (Dispatch)</h2>
-        <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded hidden sm:inline">Internal Use Only</span>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('rapid-dispatch.create') }}"
+               class="inline-flex items-center px-3 py-1.5 bg-amber-500 text-white text-xs font-medium rounded-md hover:bg-amber-600 transition-colors">
+                <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z"/></svg>
+                Rapid Mode
+            </a>
+            <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded hidden sm:inline">Internal Use Only</span>
+        </div>
     </div>
 
     @if (session('success'))
@@ -109,13 +116,17 @@
                 <h3 class="text-lg font-semibold text-gray-700 mb-4">Service</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label for="service_type_id" class="block text-sm font-medium text-gray-700">Service Type <span class="text-red-500">*</span></label>
-                        <select name="service_type_id" id="service_type_id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border bg-white">
+                        <label for="catalog_item_id" class="block text-sm font-medium text-gray-700">Service Type <span class="text-red-500">*</span></label>
+                        <select name="catalog_item_id" id="catalog_item_id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border bg-white">
                             <option value="">Select a service...</option>
-                            @foreach ($serviceTypes as $type)
-                                <option value="{{ $type->id }}" data-price="{{ $type->default_price }}" {{ old('service_type_id') == $type->id ? 'selected' : '' }}>
-                                    {{ $type->name }}
-                                </option>
+                            @foreach ($serviceCategories as $category)
+                                <optgroup label="{{ $category->name }}">
+                                    @foreach ($category->items as $item)
+                                        <option value="{{ $item->id }}" data-price="{{ $item->unit_price }}" {{ old('catalog_item_id') == $item->id ? 'selected' : '' }}>
+                                            {{ $item->name }}
+                                        </option>
+                                    @endforeach
+                                </optgroup>
                             @endforeach
                         </select>
                     </div>

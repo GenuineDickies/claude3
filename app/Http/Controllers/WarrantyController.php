@@ -14,7 +14,7 @@ class WarrantyController extends Controller
     /** Standalone warranties index with expiry filter. */
     public function index(Request $request)
     {
-        $query = Warranty::with(['serviceRequest.customer', 'serviceRequest.serviceType']);
+        $query = Warranty::with(['serviceRequest.customer', 'serviceRequest.catalogItem']);
 
         if ($filter = $request->input('filter')) {
             $today = today();
@@ -59,8 +59,7 @@ class WarrantyController extends Controller
 
         $warranty = Warranty::create($validated);
 
-        ServiceLog::log($serviceRequest, 'note_added', [
-            'action' => 'warranty_added',
+        ServiceLog::log($serviceRequest, 'warranty_added', [
             'warranty_id' => $warranty->id,
             'part_name' => $warranty->part_name,
         ], Auth::id());
@@ -108,6 +107,11 @@ class WarrantyController extends Controller
 
         $warranty->update($validated);
 
+        ServiceLog::log($serviceRequest, 'warranty_updated', [
+            'warranty_id' => $warranty->id,
+            'part_name' => $warranty->part_name,
+        ], Auth::id());
+
         return redirect()->route('warranties.show', [$serviceRequest, $warranty])
             ->with('success', 'Warranty updated.');
     }
@@ -117,8 +121,7 @@ class WarrantyController extends Controller
     {
         abort_unless($warranty->service_request_id === $serviceRequest->id, 404);
 
-        ServiceLog::log($serviceRequest, 'note_added', [
-            'action' => 'warranty_deleted',
+        ServiceLog::log($serviceRequest, 'warranty_deleted', [
             'warranty_id' => $warranty->id,
             'part_name' => $warranty->part_name,
         ], Auth::id());

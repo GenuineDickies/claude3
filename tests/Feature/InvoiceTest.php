@@ -9,6 +9,8 @@ use App\Models\Invoice;
 use App\Models\ServiceRequest;
 use App\Models\Setting;
 use App\Models\User;
+use App\Models\WorkOrder;
+use App\Models\WorkOrderItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -91,15 +93,50 @@ class InvoiceTest extends TestCase
         ], $overrides));
     }
 
+    private function createWorkOrder(ServiceRequest $sr): WorkOrder
+    {
+        $wo = WorkOrder::create([
+            'service_request_id' => $sr->id,
+            'work_order_number'  => WorkOrder::generateWorkOrderNumber(),
+            'status'             => WorkOrder::STATUS_COMPLETED,
+            'priority'           => 'normal',
+            'subtotal'           => 100,
+            'tax_rate'           => 0,
+            'tax_amount'         => 0,
+            'total'              => 100,
+        ]);
+
+        WorkOrderItem::create([
+            'work_order_id' => $wo->id,
+            'name'          => 'Tire Change',
+            'description'   => 'Replace flat tire',
+            'unit_price'    => 75.00,
+            'quantity'      => 1,
+            'unit'          => 'ea',
+            'sort_order'    => 0,
+        ]);
+
+        WorkOrderItem::create([
+            'work_order_id' => $wo->id,
+            'name'          => 'Service Fee',
+            'unit_price'    => 25.00,
+            'quantity'      => 1,
+            'unit'          => 'ea',
+            'sort_order'    => 1,
+        ]);
+
+        return $wo;
+    }
+
     // ── Create page ────────────────────────────────────────────
 
     public function test_create_page_loads_with_auto_populated_data(): void
     {
         $user = $this->createUser();
         $sr = $this->createServiceRequest();
-        $this->createEstimateForSr($sr);
+        $wo = $this->createWorkOrder($sr);
 
-        $response = $this->actingAs($user)->get(route('invoices.create', $sr));
+        $response = $this->actingAs($user)->get(route('invoices.create', [$sr, $wo]));
 
         $response->assertOk();
         $response->assertSee('Create Invoice');
@@ -108,12 +145,22 @@ class InvoiceTest extends TestCase
         $response->assertSee('Blue 2020 Toyota Camry');
     }
 
-    public function test_create_page_loads_without_estimate(): void
+    public function test_create_page_loads_without_work_order_items(): void
     {
         $user = $this->createUser();
         $sr = $this->createServiceRequest();
+        $wo = WorkOrder::create([
+            'service_request_id' => $sr->id,
+            'work_order_number'  => WorkOrder::generateWorkOrderNumber(),
+            'status'             => WorkOrder::STATUS_COMPLETED,
+            'priority'           => 'normal',
+            'subtotal'           => 0,
+            'tax_rate'           => 0,
+            'tax_amount'         => 0,
+            'total'              => 0,
+        ]);
 
-        $response = $this->actingAs($user)->get(route('invoices.create', $sr));
+        $response = $this->actingAs($user)->get(route('invoices.create', [$sr, $wo]));
 
         $response->assertOk();
     }
@@ -124,11 +171,12 @@ class InvoiceTest extends TestCase
     {
         $user = $this->createUser();
         $sr = $this->createServiceRequest();
+        $wo = $this->createWorkOrder($sr);
 
         Setting::setValue('company_name', 'Test Company');
         Setting::setValue('company_phone', '555-0000');
 
-        $response = $this->actingAs($user)->post(route('invoices.store', $sr), [
+        $response = $this->actingAs($user)->post(route('invoices.store', [$sr, $wo]), [
             'customer_name'       => 'Jane Doe',
             'customer_phone'      => '5559876543',
             'vehicle_description' => 'Blue 2020 Toyota Camry',
@@ -164,8 +212,9 @@ class InvoiceTest extends TestCase
     {
         $user = $this->createUser();
         $sr = $this->createServiceRequest();
+        $wo = $this->createWorkOrder($sr);
 
-        $response = $this->actingAs($user)->post(route('invoices.store', $sr), []);
+        $response = $this->actingAs($user)->post(route('invoices.store', [$sr, $wo]), []);
 
         $response->assertSessionHasErrors(['customer_name', 'line_items', 'subtotal', 'tax_amount', 'total']);
     }
@@ -329,9 +378,10 @@ class InvoiceTest extends TestCase
     public function test_unauthenticated_user_cannot_access_invoices(): void
     {
         $sr = $this->createServiceRequest();
+        $wo = $this->createWorkOrder($sr);
 
-        $this->get(route('invoices.create', $sr))->assertRedirect(route('login'));
-        $this->post(route('invoices.store', $sr))->assertRedirect(route('login'));
+        $this->get(route('invoices.create', [$sr, $wo]))->assertRedirect(route('login'));
+        $this->post(route('invoices.store', [$sr, $wo]))->assertRedirect(route('login'));
     }
 
     // ── ServiceRequest relationship ───────────────────────────

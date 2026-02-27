@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Correspondence;
 use App\Models\Customer;
 use App\Models\Message;
 use App\Models\MessageTemplate;
@@ -72,6 +73,73 @@ class SmsService implements SmsServiceInterface
     }
 
     /**
+     * Send a raw SMS and log both Message + Correspondence records.
+     *
+     * @return array{success: bool, message_id: string|null, error: string|null}
+     */
+    public function sendRawWithLog(
+        string $to,
+        string $text,
+        Customer $customer,
+        ?ServiceRequest $serviceRequest = null,
+        string $subject = 'SMS',
+        ?int $loggedBy = null,
+    ): array {
+        $result = $this->sendRaw($to, $text);
+
+        Message::create([
+            'service_request_id' => $serviceRequest?->id,
+            'customer_id'        => $customer->id,
+            'direction'          => 'outbound',
+            'body'               => $text,
+            'telnyx_message_id'  => $result['message_id'],
+            'status'             => $result['success'] ? 'sent' : 'failed',
+        ]);
+
+        Correspondence::create([
+            'customer_id'        => $customer->id,
+            'service_request_id' => $serviceRequest?->id,
+            'channel'            => Correspondence::CHANNEL_SMS,
+            'direction'          => Correspondence::DIRECTION_OUTBOUND,
+            'subject'            => $subject,
+            'body'               => $text,
+            'logged_by'          => $loggedBy,
+            'logged_at'          => now(),
+        ]);
+
+        return $result;
+    }
+
+    /**
+     * Log an inbound SMS as both Message + Correspondence records.
+     */
+    public function logInbound(
+        Customer $customer,
+        string $body,
+        ?string $telnyxMessageId = null,
+        ?ServiceRequest $serviceRequest = null,
+    ): void {
+        Message::create([
+            'customer_id'        => $customer->id,
+            'service_request_id' => $serviceRequest?->id,
+            'direction'          => 'inbound',
+            'body'               => $body,
+            'telnyx_message_id'  => $telnyxMessageId,
+            'status'             => 'received',
+        ]);
+
+        Correspondence::create([
+            'customer_id'        => $customer->id,
+            'service_request_id' => $serviceRequest?->id,
+            'channel'            => Correspondence::CHANNEL_SMS,
+            'direction'          => Correspondence::DIRECTION_INBOUND,
+            'subject'            => 'Inbound SMS',
+            'body'               => $body,
+            'logged_at'          => now(),
+        ]);
+    }
+
+    /**
      * Send a template-based SMS, auto-resolving variables from context.
      *
      * For non-compliance templates, the customer must have active SMS consent.
@@ -126,6 +194,16 @@ class SmsService implements SmsServiceInterface
                 'body'               => $renderedText,
                 'telnyx_message_id'  => $result['message_id'],
                 'status'             => $result['success'] ? 'sent' : 'failed',
+            ]);
+
+            Correspondence::create([
+                'customer_id'        => $customer->id,
+                'service_request_id' => $serviceRequest?->id,
+                'channel'            => Correspondence::CHANNEL_SMS,
+                'direction'          => Correspondence::DIRECTION_OUTBOUND,
+                'subject'            => 'SMS: ' . $template->name,
+                'body'               => $renderedText,
+                'logged_at'          => now(),
             ]);
         }
 

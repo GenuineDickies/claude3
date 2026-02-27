@@ -5,6 +5,30 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $service_request_id
+ * @property string $event
+ * @property array<array-key, mixed>|null $details
+ * @property int|null $logged_by
+ * @property \Illuminate\Support\Carbon $logged_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\ServiceRequest $serviceRequest
+ * @property-read \App\Models\User|null $user
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceLog newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceLog newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceLog query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceLog whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceLog whereDetails($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceLog whereEvent($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceLog whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceLog whereLoggedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceLog whereLoggedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceLog whereServiceRequestId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceLog whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 class ServiceLog extends Model
 {
     protected $fillable = [
@@ -39,6 +63,14 @@ class ServiceLog extends Model
         'work_order_updated',
         'work_order_completed',
         'work_order_cancelled',
+        'estimate_revised',
+        'estimate_approval_requested',
+        'estimate_approved',
+        'estimate_declined',
+        'invoice_revised',
+        'warranty_added',
+        'warranty_updated',
+        'warranty_deleted',
     ];
 
     /** Human-readable labels. */
@@ -57,6 +89,14 @@ class ServiceLog extends Model
         'work_order_updated'    => 'Work Order Updated',
         'work_order_completed'  => 'Work Order Completed',
         'work_order_cancelled'  => 'Work Order Cancelled',
+        'estimate_revised'      => 'Estimate Revised',
+        'estimate_approval_requested' => 'Estimate Approval Requested',
+        'estimate_approved'    => 'Estimate Approved',
+        'estimate_declined'    => 'Estimate Declined',
+        'invoice_revised'      => 'Invoice Revised',
+        'warranty_added'       => 'Warranty Added',
+        'warranty_updated'     => 'Warranty Updated',
+        'warranty_deleted'     => 'Warranty Deleted',
     ];
 
     public function serviceRequest(): BelongsTo

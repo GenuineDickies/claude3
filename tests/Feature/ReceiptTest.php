@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Customer;
 use App\Models\Estimate;
 use App\Models\EstimateItem;
+use App\Models\Invoice;
 use App\Models\Receipt;
 use App\Models\ServiceRequest;
 use App\Models\Setting;
@@ -75,15 +76,38 @@ class ReceiptTest extends TestCase
         return $estimate;
     }
 
+    private function createInvoiceForSr(ServiceRequest $sr): Invoice
+    {
+        return Invoice::create([
+            'service_request_id' => $sr->id,
+            'invoice_number'     => Invoice::generateInvoiceNumber(),
+            'status'             => Invoice::STATUS_PAID,
+            'customer_name'      => 'Jane Doe',
+            'customer_phone'     => '5559876543',
+            'vehicle_description' => 'Blue 2020 Toyota Camry',
+            'service_description' => 'Tire Change',
+            'line_items'         => [
+                ['name' => 'Tire Change', 'description' => 'Replace flat tire', 'quantity' => 1, 'unit' => 'ea', 'unit_price' => 75],
+                ['name' => 'Service Fee', 'quantity' => 1, 'unit' => 'ea', 'unit_price' => 25],
+            ],
+            'subtotal'           => 100,
+            'tax_rate'           => 7,
+            'tax_amount'         => 7,
+            'total'              => 107,
+            'issued_by'          => null,
+            'company_snapshot'   => ['name' => 'Test Co', 'address' => '', 'phone' => '', 'email' => ''],
+        ]);
+    }
+
     // ── Create page ────────────────────────────────────────────
 
     public function test_create_page_loads_with_auto_populated_data(): void
     {
         $user = $this->createUser();
         $sr = $this->createServiceRequest();
-        $this->createEstimateForSr($sr);
+        $invoice = $this->createInvoiceForSr($sr);
 
-        $response = $this->actingAs($user)->get(route('receipts.create', $sr));
+        $response = $this->actingAs($user)->get(route('receipts.create', [$sr, $invoice]));
 
         $response->assertOk();
         $response->assertSee('Issue Receipt');
@@ -92,12 +116,23 @@ class ReceiptTest extends TestCase
         $response->assertSee('Blue 2020 Toyota Camry');
     }
 
-    public function test_create_page_loads_without_estimate(): void
+    public function test_create_page_loads_without_line_items(): void
     {
         $user = $this->createUser();
         $sr = $this->createServiceRequest();
+        $invoice = Invoice::create([
+            'service_request_id' => $sr->id,
+            'invoice_number'     => Invoice::generateInvoiceNumber(),
+            'status'             => Invoice::STATUS_PAID,
+            'customer_name'      => 'Jane Doe',
+            'line_items'         => [],
+            'subtotal'           => 0,
+            'tax_amount'         => 0,
+            'total'              => 0,
+            'company_snapshot'   => ['name' => 'Test Co'],
+        ]);
 
-        $response = $this->actingAs($user)->get(route('receipts.create', $sr));
+        $response = $this->actingAs($user)->get(route('receipts.create', [$sr, $invoice]));
 
         $response->assertOk();
     }
@@ -108,11 +143,12 @@ class ReceiptTest extends TestCase
     {
         $user = $this->createUser();
         $sr = $this->createServiceRequest();
+        $invoice = $this->createInvoiceForSr($sr);
 
         Setting::setValue('company_name', 'Test Company');
         Setting::setValue('company_phone', '555-0000');
 
-        $response = $this->actingAs($user)->post(route('receipts.store', $sr), [
+        $response = $this->actingAs($user)->post(route('receipts.store', [$sr, $invoice]), [
             'customer_name'      => 'Jane Doe',
             'customer_phone'     => '5559876543',
             'vehicle_description' => 'Blue 2020 Toyota Camry',
@@ -146,8 +182,9 @@ class ReceiptTest extends TestCase
     {
         $user = $this->createUser();
         $sr = $this->createServiceRequest();
+        $invoice = $this->createInvoiceForSr($sr);
 
-        $response = $this->actingAs($user)->post(route('receipts.store', $sr), []);
+        $response = $this->actingAs($user)->post(route('receipts.store', [$sr, $invoice]), []);
 
         $response->assertSessionHasErrors(['customer_name', 'line_items', 'subtotal', 'tax_amount', 'total']);
     }
@@ -288,7 +325,7 @@ class ReceiptTest extends TestCase
 
         $response = $this->actingAs($user)->get(route('service-requests.show', $sr));
         $response->assertOk();
-        $response->assertSee('Issue Receipt');
+        $response->assertSee('Receipts');
     }
 
     public function test_sr_show_page_shows_existing_receipt(): void
@@ -318,8 +355,9 @@ class ReceiptTest extends TestCase
     public function test_receipt_routes_require_authentication(): void
     {
         $sr = $this->createServiceRequest();
+        $invoice = $this->createInvoiceForSr($sr);
 
-        $this->get(route('receipts.create', $sr))->assertRedirect(route('login'));
-        $this->post(route('receipts.store', $sr))->assertRedirect(route('login'));
+        $this->get(route('receipts.create', [$sr, $invoice]))->assertRedirect(route('login'));
+        $this->post(route('receipts.store', [$sr, $invoice]))->assertRedirect(route('login'));
     }
 }

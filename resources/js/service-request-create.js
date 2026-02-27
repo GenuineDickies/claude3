@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const vehicleColor = document.getElementById('vehicle_color');
 
     // Service fields
-    const serviceTypeSelect = document.getElementById('service_type_id');
+    const serviceTypeSelect = document.getElementById('catalog_item_id');
     const quotedPriceInput = document.getElementById('quoted_price');
 
     // Wizard buttons

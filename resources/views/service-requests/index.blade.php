@@ -6,13 +6,20 @@
     {{-- Header --}}
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold text-gray-900">All Tickets</h1>
-        <a href="{{ route('service-requests.create') }}"
-           class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-            </svg>
-            New Ticket
-        </a>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('rapid-dispatch.create') }}"
+               class="inline-flex items-center px-3 py-2 bg-amber-500 text-white text-sm font-medium rounded-md hover:bg-amber-600 transition-colors">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z"/></svg>
+                Rapid
+            </a>
+            <a href="{{ route('service-requests.create') }}"
+               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                </svg>
+                New Ticket
+            </a>
+        </div>
     </div>
 
     {{-- Filters --}}
@@ -86,7 +93,7 @@
                                     {{ $sr->customer?->phone }}
                                 </td>
                                 <td class="px-4 py-3 text-sm text-gray-600">
-                                    {{ $sr->serviceType?->name ?? '—' }}
+                                    {{ $sr->catalogItem?->name ?? '—' }}
                                 </td>
                                 <td class="px-4 py-3 text-sm">
                                     <x-status-badge :status="$sr->status" />

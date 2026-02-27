@@ -131,7 +131,8 @@ final class TelnyxWebhookTest extends TestCase
 
     public function test_webhook_logs_inbound_message_from_known_customer(): void
     {
-        $this->mock(SmsServiceInterface::class);
+        $smsMock = $this->mock(SmsServiceInterface::class);
+        $smsMock->shouldReceive('logInbound')->once();
 
         $customer = $this->createOptedInCustomer();
 
@@ -140,13 +141,8 @@ final class TelnyxWebhookTest extends TestCase
         );
 
         $response->assertOk();
-        $this->assertDatabaseHas('messages', [
-            'customer_id'       => $customer->id,
-            'direction'         => 'inbound',
-            'body'              => 'I need help with my car',
-            'telnyx_message_id' => 'msg-abc-123',
-            'status'            => 'received',
-        ]);
+        // Message + Correspondence creation now happens inside SmsService::logInbound,
+        // verified by the mock expectation above (->once()).
     }
 
     public function test_webhook_does_not_crash_for_unknown_number(): void
@@ -184,6 +180,7 @@ final class TelnyxWebhookTest extends TestCase
             ->once()
             ->withArgs(fn ($template) => $template->slug === 'keyword-opt-in')
             ->andReturn(['success' => true, 'message_id' => null, 'rendered_text' => '', 'error' => null]);
+        $smsMock->shouldReceive('logInbound')->once();
 
         $response = $this->postSignedWebhook(
             $this->inboundPayload('+15551234567', 'START'),
@@ -213,6 +210,7 @@ final class TelnyxWebhookTest extends TestCase
             ->once()
             ->withArgs(fn ($template) => $template->slug === 'keyword-opt-out')
             ->andReturn(['success' => true, 'message_id' => null, 'rendered_text' => '', 'error' => null]);
+        $smsMock->shouldReceive('logInbound')->once();
 
         $response = $this->postSignedWebhook(
             $this->inboundPayload('+15551234567', 'STOP'),
@@ -239,6 +237,7 @@ final class TelnyxWebhookTest extends TestCase
             ->once()
             ->withArgs(fn ($template) => $template->slug === 'keyword-help')
             ->andReturn(['success' => true, 'message_id' => null, 'rendered_text' => '', 'error' => null]);
+        $smsMock->shouldReceive('logInbound')->once();
 
         $response = $this->postSignedWebhook(
             $this->inboundPayload('+15551234567', 'HELP'),
@@ -267,6 +266,7 @@ final class TelnyxWebhookTest extends TestCase
         $smsMock->shouldReceive('sendTemplate')
             ->once()
             ->andReturn(['success' => true, 'message_id' => null, 'rendered_text' => '', 'error' => null]);
+        $smsMock->shouldReceive('logInbound')->once();
 
         $response = $this->postSignedWebhook(
             $this->inboundPayload('+15551234567', 'start'),
@@ -295,6 +295,7 @@ final class TelnyxWebhookTest extends TestCase
             ->once()
             ->withArgs(fn ($template) => $template->slug === 'inbound-auto-reply')
             ->andReturn(['success' => true, 'message_id' => null, 'rendered_text' => '', 'error' => null]);
+        $smsMock->shouldReceive('logInbound')->once();
 
         $response = $this->postSignedWebhook(
             $this->inboundPayload('+15551234567', 'Where is my technician?'),
@@ -321,6 +322,7 @@ final class TelnyxWebhookTest extends TestCase
 
         $smsMock = $this->mock(SmsServiceInterface::class);
         $smsMock->shouldNotReceive('sendTemplate');
+        $smsMock->shouldReceive('logInbound')->once();
 
         $response = $this->postSignedWebhook(
             $this->inboundPayload('+15551234567', 'Hello?'),

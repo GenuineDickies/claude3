@@ -5,8 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Correspondence;
 use App\Models\Vehicle;
-use App\Models\ServiceType;
+use App\Models\CatalogItem;
 use App\Models\ServiceRequestStatusLog;
 use App\Models\Setting;
 
@@ -18,7 +19,7 @@ use App\Models\Setting;
  * @property string|null $vehicle_make
  * @property string|null $vehicle_model
  * @property string|null $vehicle_color
- * @property int|null $service_type_id
+ * @property int|null $catalog_item_id
  * @property numeric|null $quoted_price
  * @property string $status
  * @property string|null $location
@@ -30,17 +31,39 @@ use App\Models\Setting;
  * @property string|null $notes
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read CatalogItem|null $catalogItem
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Correspondence> $correspondences
+ * @property-read int|null $correspondences_count
  * @property-read \App\Models\Customer $customer
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Estimate> $estimates
  * @property-read int|null $estimates_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Invoice> $invoices
+ * @property-read int|null $invoices_count
  * @property-read \App\Models\Estimate|null $latestEstimate
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Message> $messages
  * @property-read int|null $messages_count
- * @property-read ServiceType|null $serviceType
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PaymentRecord> $paymentRecords
+ * @property-read int|null $payment_records_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ServicePhoto> $photos
+ * @property-read int|null $photos_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Receipt> $receipts
+ * @property-read int|null $receipts_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ServiceLog> $serviceLogs
+ * @property-read int|null $service_logs_count
+ * @property-read CatalogItem|null $serviceType
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ServiceSignature> $signatures
+ * @property-read int|null $signatures_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ServiceRequestStatusLog> $statusLogs
+ * @property-read int|null $status_logs_count
  * @property-read Vehicle|null $vehicle
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Warranty> $warranties
+ * @property-read int|null $warranties_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\WorkOrder> $workOrders
+ * @property-read int|null $work_orders_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceRequest newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceRequest newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceRequest query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceRequest whereCatalogItemId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceRequest whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceRequest whereCustomerId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceRequest whereId($value)
@@ -52,7 +75,6 @@ use App\Models\Setting;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceRequest whereLongitude($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceRequest whereNotes($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceRequest whereQuotedPrice($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceRequest whereServiceTypeId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceRequest whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceRequest whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceRequest whereVehicleColor($value)
@@ -97,7 +119,7 @@ class ServiceRequest extends Model
         'vehicle_make',
         'vehicle_model',
         'vehicle_color',
-        'service_type_id',
+        'catalog_item_id',
         'quoted_price',
         'status',
         'location',
@@ -184,14 +206,27 @@ class ServiceRequest extends Model
         return $this->belongsTo(Vehicle::class);
     }
 
+    public function catalogItem(): BelongsTo
+    {
+        return $this->belongsTo(CatalogItem::class);
+    }
+
+    /**
+     * @deprecated Use catalogItem() instead. Kept for backward compatibility.
+     */
     public function serviceType(): BelongsTo
     {
-        return $this->belongsTo(ServiceType::class);
+        return $this->catalogItem();
     }
 
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class);
+    }
+
+    public function correspondences(): HasMany
+    {
+        return $this->hasMany(Correspondence::class);
     }
 
     public function estimates(): HasMany
@@ -290,7 +325,20 @@ class ServiceRequest extends Model
         if ($paid <= 0) {
             return 'unpaid';
         }
-        $expected = (float) ($this->latestEstimate?->total ?? $this->quoted_price ?? 0);
+
+        // Prefer the latest active invoice total (the authoritative billed amount),
+        // then fall back to work order total (includes change orders), then estimate/quoted_price.
+        $invoice = $this->invoices()
+            ->whereNotIn('status', ['cancelled', 'draft'])
+            ->latest()
+            ->first();
+
+        $expected = (float) ($invoice?->total
+            ?? $this->workOrders()->latest()->value('total')
+            ?? $this->latestEstimate?->total
+            ?? $this->quoted_price
+            ?? 0);
+
         if ($expected > 0 && $paid >= $expected) {
             return 'paid';
         }

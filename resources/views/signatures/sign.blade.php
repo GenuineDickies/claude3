@@ -39,8 +39,8 @@
             @if ($serviceRequest->customer)
                 <strong>Customer:</strong> {{ $serviceRequest->customer->first_name }} {{ $serviceRequest->customer->last_name }}<br>
             @endif
-            @if ($serviceRequest->serviceType)
-                <strong>Service:</strong> {{ $serviceRequest->serviceType->name }}<br>
+            @if ($serviceRequest->catalogItem)
+                <strong>Service:</strong> {{ $serviceRequest->catalogItem->name }}<br>
             @endif
             @if ($serviceRequest->location)
                 <strong>Location:</strong> {{ $serviceRequest->location }}<br>

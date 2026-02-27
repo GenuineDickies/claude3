@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Message;
 use App\Models\MessageTemplate;
 use App\Models\ServiceRequest;
 use App\Services\SmsServiceInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class MessageController extends Controller
 {
@@ -46,16 +46,14 @@ class MessageController extends Controller
         }
 
         // Free-text message
-        $result = $sms->sendRaw($customer->phone, $validated['body']);
-
-        Message::create([
-            'service_request_id' => $serviceRequest->id,
-            'customer_id'        => $customer->id,
-            'direction'          => 'outbound',
-            'body'               => $validated['body'],
-            'telnyx_message_id'  => $result['message_id'],
-            'status'             => $result['success'] ? 'sent' : 'failed',
-        ]);
+        $result = $sms->sendRawWithLog(
+            to: $customer->phone,
+            text: $validated['body'],
+            customer: $customer,
+            serviceRequest: $serviceRequest,
+            subject: 'SMS (free-text)',
+            loggedBy: Auth::id(),
+        );
 
         if (! $result['success']) {
             return back()->with('error', 'SMS failed: ' . ($result['error'] ?? 'unknown'));

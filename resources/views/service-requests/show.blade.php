@@ -104,7 +104,7 @@
     @endif
 
     {{-- Vehicle & Service --}}
-    @if ($serviceRequest->vehicle_make || $serviceRequest->serviceType)
+    @if ($serviceRequest->vehicle_make || $serviceRequest->catalogItem)
     <div class="bg-white rounded-lg shadow p-6">
         <h2 class="text-lg font-semibold text-gray-700 mb-3">Vehicle & Service</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
@@ -119,10 +119,10 @@
                 </span>
             </div>
             @endif
-            @if ($serviceRequest->serviceType)
+            @if ($serviceRequest->catalogItem)
             <div>
                 <span class="block text-gray-500">Service Type</span>
-                <span class="font-medium">{{ $serviceRequest->serviceType->name }}</span>
+                <span class="font-medium">{{ $serviceRequest->catalogItem->name }}</span>
             </div>
             @endif
             @if ($serviceRequest->quoted_price)
@@ -367,13 +367,6 @@
     <div class="bg-white rounded-lg shadow p-6">
         <div class="flex justify-between items-center mb-3">
             <h2 class="text-lg font-semibold text-gray-700">Receipts</h2>
-            @if ($serviceRequest->receipts->isEmpty())
-                <a href="{{ route('receipts.create', $serviceRequest) }}"
-                   class="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-green-700 transition inline-flex items-center">
-                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    Issue Receipt
-                </a>
-            @endif
         </div>
 
         @if ($serviceRequest->receipts->isNotEmpty())
@@ -631,6 +624,11 @@
         @else
             <p class="text-sm text-gray-400 italic">No activity logged yet.</p>
         @endif
+    </div>
+
+    {{-- Correspondence Log --}}
+    <div x-data="{ showCorrespondenceForm: false }">
+        @include('partials.correspondence-timeline')
     </div>
 
     {{-- Messages --}}

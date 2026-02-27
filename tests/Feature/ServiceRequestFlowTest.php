@@ -2,9 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\CatalogCategory;
+use App\Models\CatalogItem;
 use App\Models\Customer;
 use App\Models\ServiceRequest;
-use App\Models\ServiceType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -23,11 +24,23 @@ final class ServiceRequestFlowTest extends TestCase
      */
     private function validPayload(array $overrides = []): array
     {
-        $serviceType = ServiceType::first() ?? ServiceType::create([
-            'name' => 'Flat Tire Change',
-            'default_price' => 75.00,
-            'sort_order' => 1,
+        $category = CatalogCategory::first() ?? CatalogCategory::create([
+            'name' => 'Services',
+            'type' => 'service',
+            'sort_order' => 0,
+            'is_active' => true,
         ]);
+
+        $catalogItem = CatalogItem::where('catalog_category_id', $category->id)->first()
+            ?? CatalogItem::create([
+                'catalog_category_id' => $category->id,
+                'name' => 'Flat Tire Change',
+                'unit_price' => 75.00,
+                'unit' => 'each',
+                'pricing_type' => 'fixed',
+                'sort_order' => 1,
+                'is_active' => true,
+            ]);
 
         return array_merge([
             'first_name' => 'John',
@@ -38,7 +51,7 @@ final class ServiceRequestFlowTest extends TestCase
             'vehicle_make' => 'Toyota',
             'vehicle_model' => 'Camry',
             'vehicle_color' => 'Silver',
-            'service_type_id' => $serviceType->id,
+            'catalog_item_id' => $catalogItem->id,
             'quoted_price' => '75.00',
             'location' => 'I-95 mile marker 42',
             'notes' => 'Flat tire, driver side rear',
@@ -118,7 +131,7 @@ final class ServiceRequestFlowTest extends TestCase
         $this->assertSame('2024', $sr->vehicle_year);
         $this->assertSame('Toyota', $sr->vehicle_make);
         $this->assertSame('Camry', $sr->vehicle_model);
-        $this->assertNotNull($sr->service_type_id);
+        $this->assertNotNull($sr->catalog_item_id);
         $this->assertSame('75.00', $sr->quoted_price);
     }
 
@@ -207,7 +220,7 @@ final class ServiceRequestFlowTest extends TestCase
         $response->assertSessionHasErrors([
             'first_name', 'last_name', 'phone', 'customer_action',
             'vehicle_year', 'vehicle_make', 'vehicle_model',
-            'service_type_id', 'quoted_price',
+            'catalog_item_id', 'quoted_price',
         ]);
     }
 

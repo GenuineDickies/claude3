@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Correspondence;
 use App\Models\ServiceLog;
 use App\Models\ServiceRequest;
 use App\Models\ServiceSignature;
 use App\Models\Setting;
-use App\Jobs\SendSmsJob;
-use App\Models\MessageTemplate;
 use App\Services\SmsServiceInterface;
 use App\Services\StatusAutomationService;
 use Illuminate\Http\Request;
@@ -27,7 +26,7 @@ class SignatureController extends Controller
             'service_request_id' => $serviceRequest->id,
             'signature_data'     => '',
             'signer_name'        => '',
-            'signed_at'          => now(),
+            'signed_at'          => null,
             'token'              => Str::random(48),
             'token_expires_at'   => now()->addHours($hours ?: 4),
         ]);
@@ -48,6 +47,17 @@ class SignatureController extends Controller
                 $serviceRequest->customer->phone,
                 $companyName . ': Please sign to confirm service completion: ' . $signUrl . ' Reply STOP to opt out.',
             );
+
+            Correspondence::create([
+                'customer_id'        => $serviceRequest->customer->id,
+                'service_request_id' => $serviceRequest->id,
+                'channel'            => Correspondence::CHANNEL_SMS,
+                'direction'          => Correspondence::DIRECTION_OUTBOUND,
+                'subject'            => 'Signature request',
+                'body'               => $companyName . ': Please sign to confirm service completion: ' . $signUrl,
+                'logged_by'          => Auth::id(),
+                'logged_at'          => now(),
+            ]);
         }
 
         return redirect()->route('service-requests.show', $serviceRequest)
@@ -72,7 +82,7 @@ class SignatureController extends Controller
             return response()->view('signatures.expired', [], 410);
         }
 
-        $serviceRequest = $signature->serviceRequest()->with(['customer', 'serviceType'])->first();
+        $serviceRequest = $signature->serviceRequest()->with(['customer', 'catalogItem'])->first();
         $companyName = Setting::getValue('company_name', config('app.name'));
 
         return view('signatures.sign', compact('signature', 'serviceRequest', 'companyName'));

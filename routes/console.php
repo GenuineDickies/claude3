@@ -12,6 +12,9 @@ Artisan::command('inspire', function () {
 // Run via cron: * * * * * php /path/to/artisan schedule:run >> /dev/null 2>&1
 
 Schedule::command('tokens:prune')->daily();
+Schedule::command('api:monitor')->everyFiveMinutes()
+    ->withoutOverlapping()
+    ->runInBackground();
 Schedule::command('queue:work --stop-when-empty --tries=3')->everyFiveMinutes()
     ->withoutOverlapping()
     ->runInBackground();

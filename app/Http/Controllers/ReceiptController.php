@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Invoice;
 use App\Models\Receipt;
 use App\Models\ServiceRequest;
 use App\Models\Setting;
@@ -11,31 +12,31 @@ use Illuminate\Support\Facades\Auth;
 
 class ReceiptController extends Controller
 {
-    public function create(ServiceRequest $serviceRequest)
+    /**
+     * Show the form to issue a receipt from an invoice.
+     */
+    public function create(ServiceRequest $serviceRequest, Invoice $invoice)
     {
-        $serviceRequest->load(['customer', 'serviceType', 'latestEstimate.items']);
+        abort_if($invoice->service_request_id !== $serviceRequest->id, 404);
 
-        $estimate = $serviceRequest->latestEstimate;
+        $serviceRequest->load(['customer', 'catalogItem']);
 
-        $estimateItems = $estimate
-            ? $estimate->items->map(fn ($i) => [
-                'name'        => $i->name,
-                'description' => $i->description ?? '',
-                'quantity'    => (float) $i->quantity,
-                'unit'        => $i->unit ?? 'ea',
-                'unit_price'  => (float) $i->unit_price,
-            ])->values()->all()
-            : [];
+        $invoiceItems = is_array($invoice->line_items) ? $invoice->line_items : [];
 
         return view('receipts.create', [
             'serviceRequest' => $serviceRequest,
-            'estimate'       => $estimate,
-            'estimateItems'  => $estimateItems,
+            'invoice'        => $invoice,
+            'invoiceItems'   => $invoiceItems,
         ]);
     }
 
-    public function store(Request $request, ServiceRequest $serviceRequest)
+    /**
+     * Persist a new receipt sourced from an invoice.
+     */
+    public function store(Request $request, ServiceRequest $serviceRequest, Invoice $invoice)
     {
+        abort_if($invoice->service_request_id !== $serviceRequest->id, 404);
+
         $validated = $request->validate([
             'customer_name'     => 'required|string|max:200',
             'customer_phone'    => 'nullable|string|max:20',
@@ -60,6 +61,7 @@ class ReceiptController extends Controller
 
         $receipt = Receipt::create([
             'service_request_id' => $serviceRequest->id,
+            'invoice_id'         => $invoice->id,
             'receipt_number'     => Receipt::generateReceiptNumber(),
             'customer_name'      => $validated['customer_name'],
             'customer_phone'     => $validated['customer_phone'] ?? null,

@@ -7,7 +7,6 @@ use App\Models\Estimate;
 use App\Models\ServiceLog;
 use App\Models\ServiceRequest;
 use App\Models\Setting;
-use App\Models\StateTaxRate;
 use App\Models\WorkOrder;
 use App\Models\WorkOrderItem;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -23,7 +22,7 @@ class WorkOrderController extends Controller
      */
     public function create(ServiceRequest $serviceRequest)
     {
-        $serviceRequest->load(['customer', 'serviceType', 'estimates.items']);
+        $serviceRequest->load(['customer', 'catalogItem', 'estimates.items']);
 
         $categories = CatalogCategory::active()
             ->with(['items' => fn ($q) => $q->active()->orderBy('sort_order')])
@@ -49,18 +48,21 @@ class WorkOrderController extends Controller
 
         $stateCode = null;
         $taxRate = 0;
+        $approvalRequired = false;
         if ($estimate) {
             $stateCode = $estimate->state_code;
+            $approvalRequired = $estimate->requiresApproval() && ! $estimate->isApproved();
             $taxRate = (float) $estimate->tax_rate;
         }
 
         return view('work-orders.create', [
-            'serviceRequest' => $serviceRequest,
-            'estimate'       => $estimate,
-            'estimateItems'  => $estimateItems,
-            'categories'     => $categories,
-            'stateCode'      => $stateCode,
-            'taxRate'         => $taxRate,
+            'serviceRequest'   => $serviceRequest,
+            'estimate'         => $estimate,
+            'estimateItems'    => $estimateItems,
+            'categories'       => $categories,
+            'stateCode'        => $stateCode,
+            'taxRate'          => $taxRate,
+            'approvalRequired' => $approvalRequired,
         ]);
     }
 
@@ -86,6 +88,14 @@ class WorkOrderController extends Controller
         ]);
 
         $workOrder = DB::transaction(function () use ($validated, $serviceRequest) {
+            // Gate: if estimate requires approval, it must be approved before WO creation
+            if (! empty($validated['estimate_id'])) {
+                $estimate = Estimate::find($validated['estimate_id']);
+                if ($estimate && $estimate->requiresApproval() && ! $estimate->isApproved()) {
+                    abort(403, 'This estimate requires customer approval before a work order can be created.');
+                }
+            }
+
             $workOrder = WorkOrder::create([
                 'service_request_id' => $serviceRequest->id,
                 'estimate_id'        => $validated['estimate_id'] ?? null,
@@ -134,8 +144,8 @@ class WorkOrderController extends Controller
     {
         abort_if($workOrder->service_request_id !== $serviceRequest->id, 404);
 
-        $workOrder->load('items');
-        $serviceRequest->load(['customer', 'serviceType']);
+        $workOrder->load(['items', 'changeOrders']);
+        $serviceRequest->load(['customer', 'catalogItem']);
 
         return view('work-orders.show', [
             'serviceRequest' => $serviceRequest,
@@ -157,7 +167,7 @@ class WorkOrderController extends Controller
         }
 
         $workOrder->load('items');
-        $serviceRequest->load(['customer', 'serviceType']);
+        $serviceRequest->load(['customer', 'catalogItem']);
 
         $categories = CatalogCategory::active()
             ->with(['items' => fn ($q) => $q->active()->orderBy('sort_order')])
@@ -290,7 +300,7 @@ class WorkOrderController extends Controller
         abort_if($workOrder->service_request_id !== $serviceRequest->id, 404);
 
         $workOrder->load('items');
-        $serviceRequest->load(['customer', 'serviceType']);
+        $serviceRequest->load(['customer', 'catalogItem']);
 
         $company = [
             'name'    => Setting::getValue('company_name', config('app.name')),

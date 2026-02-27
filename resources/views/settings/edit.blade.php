@@ -45,6 +45,9 @@
 
             <div class="divide-y divide-gray-100">
                 @foreach($section['fields'] as $key => $field)
+                    @if(!empty($field['hidden']))
+                        @continue
+                    @endif
                     @php
                         $currentValue = $values[$key]['raw'] ?? null;
                         $isConfigured = $currentValue !== null && $currentValue !== '';
@@ -54,6 +57,67 @@
                         $inputType = ($field['type'] ?? '') === 'number' ? 'number' : 'text';
                     @endphp
 
+                    @if(($field['type'] ?? '') === 'approval_mode')
+                        {{-- Estimate Approval Mode — three-way radio --}}
+                        @php
+                            $mode = $currentValue ?? 'none';
+                            $thresholdValue = $values['estimate_signature_threshold']['raw'] ?? '';
+                        @endphp
+                        <form action="{{ route('settings.update-approval-mode') }}" method="POST" autocomplete="off" class="px-6 py-5">
+                            @csrf
+                            @method('PUT')
+
+                            <div class="mb-1">
+                                <span class="block text-sm font-medium text-gray-800">{{ $field['label'] }}</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mb-3">{{ $field['help'] }}</p>
+
+                            <div class="space-y-3">
+                                <label class="flex items-center gap-3 cursor-pointer">
+                                    <input type="radio" name="approval_mode" value="all"
+                                        {{ $mode === 'all' ? 'checked' : '' }}
+                                        class="text-blue-600 focus:ring-blue-500"
+                                        onchange="document.getElementById('threshold_input').classList.add('hidden')">
+                                    <span class="text-sm text-gray-700">All estimates require approval</span>
+                                </label>
+
+                                <label class="flex items-center gap-3 cursor-pointer">
+                                    <input type="radio" name="approval_mode" value="none"
+                                        {{ $mode === 'none' ? 'checked' : '' }}
+                                        class="text-blue-600 focus:ring-blue-500"
+                                        onchange="document.getElementById('threshold_input').classList.add('hidden')">
+                                    <span class="text-sm text-gray-700">No estimates require approval</span>
+                                </label>
+
+                                <label class="flex items-center gap-3 cursor-pointer">
+                                    <input type="radio" name="approval_mode" value="threshold"
+                                        {{ $mode === 'threshold' ? 'checked' : '' }}
+                                        class="text-blue-600 focus:ring-blue-500"
+                                        onchange="document.getElementById('threshold_input').classList.remove('hidden')">
+                                    <span class="text-sm text-gray-700">Estimates require approval if they are more than</span>
+                                </label>
+
+                                <div id="threshold_input" class="ml-8 {{ $mode === 'threshold' ? '' : 'hidden' }}">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm text-gray-600">$</span>
+                                        <input type="number" name="threshold_amount" value="{{ $thresholdValue }}"
+                                            placeholder="200.00" step="0.01" min="0.01"
+                                            class="w-32 border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <button type="submit"
+                                    class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    Save
+                                </button>
+                            </div>
+                        </form>
+                    @else
                     <form action="{{ route('settings.update-single', $key) }}" method="POST" autocomplete="off" class="px-6 py-5">
                         @csrf
                         @method('PUT')
@@ -118,6 +182,7 @@
                             <p class="text-[11px] text-gray-400 mt-1">Value is stored encrypted. Click the field and type a new value to replace it, or leave the dots to keep the current value.</p>
                         @endif
                     </form>
+                    @endif
                 @endforeach
             </div>
         </div>
@@ -127,6 +192,7 @@
         <div class="flex gap-4">
             <a href="/" class="text-sm text-gray-500 hover:text-gray-700">&larr; Back to dashboard</a>
             <a href="{{ route('settings.tax-rates') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">Manage State Tax Rates &rarr;</a>
+            <a href="{{ route('settings.api-monitor.index') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">Manage API Monitoring &rarr;</a>
         </div>
     </div>
 </div>

@@ -92,6 +92,27 @@ class Setting extends Model
                         'placeholder' => '4',
                         'type'      => 'number',
                     ],
+                    'compliance_tracking_enabled' => [
+                        'label'     => 'Compliance Tracking',
+                        'help'      => 'Enable technician compliance tracking (license, insurance, background checks). Enter "1" to enable or leave blank to disable.',
+                        'encrypted' => false,
+                        'placeholder' => '1',
+                        'type'      => 'text',
+                    ],
+                    'estimate_approval_mode' => [
+                        'label'     => 'Estimate Approval Requirement',
+                        'help'      => 'At what dollar amount do customers need to approve estimates before work can begin?',
+                        'encrypted' => false,
+                        'type'      => 'approval_mode',
+                    ],
+                    'estimate_signature_threshold' => [
+                        'label'     => 'Estimate Approval Threshold ($)',
+                        'help'      => 'Estimates over this amount require customer approval. Only used when approval mode is set to threshold.',
+                        'encrypted' => false,
+                        'placeholder' => '200.00',
+                        'type'      => 'number',
+                        'hidden'    => true,
+                    ],
                 ],
             ],
             'google' => [

@@ -32,7 +32,7 @@
             </div>
             <div>
                 <span class="block text-gray-500">Service Type</span>
-                <span class="font-medium">{{ $serviceRequest->serviceType?->name ?? '—' }}</span>
+                <span class="font-medium">{{ $serviceRequest->catalogItem?->name ?? '—' }}</span>
             </div>
             <div>
                 <span class="block text-gray-500">Status</span>

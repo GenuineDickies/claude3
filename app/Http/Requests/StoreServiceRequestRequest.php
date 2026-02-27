@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class StoreServiceRequestRequest extends FormRequest
 {
@@ -11,7 +12,7 @@ class StoreServiceRequestRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->check();
+        return Auth::check();
     }
 
     /**
@@ -30,7 +31,7 @@ class StoreServiceRequestRequest extends FormRequest
             'vehicle_make' => 'required|string|max:100',
             'vehicle_model' => 'required|string|max:100',
             'vehicle_color' => 'nullable|string|max:50',
-            'service_type_id' => 'required|exists:service_types,id',
+            'catalog_item_id' => 'required|exists:catalog_items,id',
             'quoted_price' => 'required|numeric|min:0',
             'location' => 'nullable|string|max:500',
             'notes' => 'nullable|string|max:1000',
@@ -43,8 +44,8 @@ class StoreServiceRequestRequest extends FormRequest
     {
         return [
             'vehicle_year.digits' => 'Vehicle year must be 4 digits.',
-            'service_type_id.required' => 'Please select a service type.',
-            'service_type_id.exists' => 'The selected service type is invalid.',
+            'catalog_item_id.required' => 'Please select a service type.',
+            'catalog_item_id.exists' => 'The selected service type is invalid.',
         ];
     }
 }

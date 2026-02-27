@@ -94,6 +94,15 @@
                     <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     Download PDF
                 </a>
+
+                {{-- Create Invoice (only when work order is completed) --}}
+                @if($workOrder->status === 'completed')
+                    <a href="{{ route('invoices.create', [$serviceRequest, $workOrder]) }}"
+                       class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-md hover:bg-emerald-700 transition">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Create Invoice
+                    </a>
+                @endif
             </div>
         </div>
     </div>
@@ -224,6 +233,107 @@
             @endif
         </div>
     @endif
+
+    {{-- Change Orders --}}
+    <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 space-y-5">
+        <div>
+            <h2 class="text-lg font-semibold text-gray-900">Change Orders</h2>
+            <p class="text-sm text-gray-500 mt-1">Track scope/cost changes and customer approval requirements.</p>
+        </div>
+
+        @if($errors->any())
+            <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
+                {{ $errors->first() }}
+            </div>
+        @endif
+
+        <form method="POST" action="{{ route('change-orders.store', [$serviceRequest, $workOrder]) }}" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            @csrf
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Change Type</label>
+                <select name="change_type" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" required>
+                    <option value="add_item">Add Item</option>
+                    <option value="remove_item">Remove Item</option>
+                    <option value="modify_item">Modify Item</option>
+                    <option value="informational">Informational</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Price Impact</label>
+                <input type="number" step="0.01" name="price_impact" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="0.00" required>
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Description</label>
+                <textarea name="description" rows="2" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" required></textarea>
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Technician Notes</label>
+                <textarea name="technician_notes" rows="2" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"></textarea>
+            </div>
+            <div class="md:col-span-2 flex items-center justify-between">
+                <label class="inline-flex items-center text-sm text-gray-700">
+                    <input type="checkbox" name="send_sms" value="1" class="rounded border-gray-300 text-blue-600 mr-2">
+                    Send approval SMS when required
+                </label>
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-blue-700">Create Change Order</button>
+            </div>
+        </form>
+
+        @if($workOrder->changeOrders->isEmpty())
+            <p class="text-sm text-gray-500">No change orders yet.</p>
+        @else
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b text-left text-gray-500">
+                            <th class="pb-2 pr-4">Created</th>
+                            <th class="pb-2 pr-4">Type</th>
+                            <th class="pb-2 pr-4">Impact</th>
+                            <th class="pb-2 pr-4">Approval</th>
+                            <th class="pb-2">Description</th>
+                            <th class="pb-2 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($workOrder->changeOrders as $changeOrder)
+                            <tr class="border-b last:border-0">
+                                <td class="py-2 pr-4 text-gray-500">{{ $changeOrder->created_at->format('Y-m-d H:i') }}</td>
+                                <td class="py-2 pr-4 text-gray-700">{{ str_replace('_', ' ', ucfirst($changeOrder->change_type)) }}</td>
+                                <td class="py-2 pr-4 font-mono {{ (float) $changeOrder->price_impact >= 0 ? 'text-red-700' : 'text-green-700' }}">
+                                    ${{ number_format((float) $changeOrder->price_impact, 2) }}
+                                </td>
+                                <td class="py-2 pr-4">
+                                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold
+                                        @if($changeOrder->approval_status === 'approved') bg-green-100 text-green-700
+                                        @elseif($changeOrder->approval_status === 'rejected') bg-red-100 text-red-700
+                                        @elseif($changeOrder->approval_status === 'cancelled') bg-gray-100 text-gray-700
+                                        @elseif($changeOrder->approval_status === 'pending') bg-amber-100 text-amber-700
+                                        @else bg-gray-100 text-gray-600 @endif">
+                                        {{ str_replace('_', ' ', ucfirst($changeOrder->approval_status)) }}
+                                    </span>
+                                </td>
+                                <td class="py-2 text-gray-700">{{ $changeOrder->description }}</td>
+                                <td class="py-2 text-right">
+                                    @if($changeOrder->approval_status === 'pending')
+                                        <form method="POST" action="{{ route('change-orders.cancel', [$serviceRequest, $workOrder, $changeOrder]) }}" class="inline">
+                                            @csrf
+                                            <button
+                                                type="submit"
+                                                class="inline-flex items-center px-2.5 py-1.5 rounded text-xs font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                                onclick="return confirm('Cancel this pending change order?')"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </form>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+    </div>
 
     {{-- Back link --}}
     <div class="flex justify-start">

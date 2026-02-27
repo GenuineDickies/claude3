@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Events\LocationShared;
 use App\Jobs\ReverseGeocodeJob;
-use App\Models\Customer;
 use App\Models\MessageTemplate;
 use App\Models\ServiceRequest;
 use App\Models\Setting;
@@ -12,6 +11,7 @@ use App\Services\SmsServiceInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class LocationShareController extends Controller
 {
@@ -59,9 +59,14 @@ class LocationShareController extends Controller
             // Fallback if template hasn't been seeded
             $link = $serviceRequest->locationShareUrl();
             $companyName = Setting::getValue('company_name', config('app.name'));
-            $sms->sendRaw(
-                $customer->phone,
-                $companyName . ': Hi ' . $customer->first_name . ', please tap this link so we can locate you: ' . $link . ' Reply STOP to opt out.',
+            $rawText = $companyName . ': Hi ' . $customer->first_name . ', please tap this link so we can locate you: ' . $link . ' Reply STOP to opt out.';
+            $sms->sendRawWithLog(
+                to: $customer->phone,
+                text: $rawText,
+                customer: $customer,
+                serviceRequest: $serviceRequest,
+                subject: 'Location request',
+                loggedBy: Auth::id(),
             );
         } else {
             $sms->sendTemplate(

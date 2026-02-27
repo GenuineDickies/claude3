@@ -2,10 +2,68 @@
 
 namespace App\Models;
 
+use App\Models\ChangeOrder;
+use App\Models\Estimate;
+use App\Models\ServiceRequest;
+use App\Models\User;
+use App\Models\WorkOrderItem;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $service_request_id
+ * @property int|null $estimate_id
+ * @property string $work_order_number
+ * @property string $status
+ * @property string $priority
+ * @property string|null $description
+ * @property string|null $notes
+ * @property string|null $technician_notes
+ * @property string|null $assigned_to
+ * @property \Illuminate\Support\Carbon|null $started_at
+ * @property \Illuminate\Support\Carbon|null $completed_at
+ * @property numeric $subtotal
+ * @property numeric $tax_rate
+ * @property numeric $tax_amount
+ * @property numeric $total
+ * @property int|null $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ChangeOrder> $changeOrders
+ * @property-read int|null $change_orders_count
+ * @property-read User|null $creator
+ * @property-read Estimate|null $estimate
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Invoice> $invoices
+ * @property-read int|null $invoices_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, WorkOrderItem> $items
+ * @property-read int|null $items_count
+ * @property-read ServiceRequest $serviceRequest
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WorkOrder newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WorkOrder newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WorkOrder query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WorkOrder whereAssignedTo($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WorkOrder whereCompletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WorkOrder whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WorkOrder whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WorkOrder whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WorkOrder whereEstimateId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WorkOrder whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WorkOrder whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WorkOrder wherePriority($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WorkOrder whereServiceRequestId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WorkOrder whereStartedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WorkOrder whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WorkOrder whereSubtotal($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WorkOrder whereTaxAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WorkOrder whereTaxRate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WorkOrder whereTechnicianNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WorkOrder whereTotal($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WorkOrder whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WorkOrder whereWorkOrderNumber($value)
+ * @mixin \Eloquent
+ */
 class WorkOrder extends Model
 {
     public const STATUS_PENDING     = 'pending';
@@ -114,6 +172,16 @@ class WorkOrder extends Model
     public function items(): HasMany
     {
         return $this->hasMany(WorkOrderItem::class)->orderBy('sort_order');
+    }
+
+    public function changeOrders(): HasMany
+    {
+        return $this->hasMany(ChangeOrder::class)->latest();
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
     }
 
     public function creator(): BelongsTo

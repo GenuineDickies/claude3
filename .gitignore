@@ -46,12 +46,12 @@ node_modules/
 *.sw?
 # OS specific
 
-# Task files
-# tasks.json
-# tasks/ 
-
 # Task Master
 .taskmaster/
 
 # VS Code instructions
 .github/instructions/
+
+# Task files
+# tasks.json
+# tasks/ 

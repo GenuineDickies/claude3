@@ -3,15 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\CatalogCategory;
-use App\Models\CatalogItem;
+use App\Models\Correspondence;
 use App\Models\Estimate;
 use App\Models\EstimateItem;
+use App\Models\ServiceLog;
 use App\Models\ServiceRequest;
 use App\Models\Setting;
 use App\Models\StateTaxRate;
+use App\Services\SmsServiceInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class EstimateController extends Controller
@@ -21,7 +25,7 @@ class EstimateController extends Controller
      */
     public function create(ServiceRequest $serviceRequest)
     {
-        $serviceRequest->load(['customer', 'serviceType']);
+        $serviceRequest->load(['customer', 'catalogItem']);
 
         $categories = CatalogCategory::active()
             ->with(['items' => fn ($q) => $q->active()->orderBy('sort_order')])
@@ -63,6 +67,7 @@ class EstimateController extends Controller
         $estimate = DB::transaction(function () use ($validated, $serviceRequest) {
             $estimate = Estimate::create([
                 'service_request_id' => $serviceRequest->id,
+                'estimate_number' => Estimate::generateEstimateNumber(),
                 'state_code' => $validated['state_code'] ? strtoupper($validated['state_code']) : null,
                 'tax_rate' => $validated['tax_rate'],
                 'notes' => $validated['notes'] ?? null,
@@ -100,9 +105,10 @@ class EstimateController extends Controller
         abort_if($estimate->service_request_id !== $serviceRequest->id, 404);
 
         $estimate->load('items');
-        $serviceRequest->load(['customer', 'serviceType']);
+        $serviceRequest->load(['customer', 'catalogItem']);
+        $versions = $estimate->allVersions();
 
-        return view('estimates.show', compact('serviceRequest', 'estimate'));
+        return view('estimates.show', compact('serviceRequest', 'estimate', 'versions'));
     }
 
     /**
@@ -111,9 +117,10 @@ class EstimateController extends Controller
     public function edit(ServiceRequest $serviceRequest, Estimate $estimate)
     {
         abort_if($estimate->service_request_id !== $serviceRequest->id, 404);
+        abort_if($estimate->is_locked, 403, 'This estimate version is locked.');
 
         $estimate->load('items');
-        $serviceRequest->load(['customer', 'serviceType']);
+        $serviceRequest->load(['customer', 'catalogItem']);
 
         $categories = CatalogCategory::active()
             ->with(['items' => fn ($q) => $q->active()->orderBy('sort_order')])
@@ -133,12 +140,13 @@ class EstimateController extends Controller
     public function update(Request $request, ServiceRequest $serviceRequest, Estimate $estimate): RedirectResponse
     {
         abort_if($estimate->service_request_id !== $serviceRequest->id, 404);
+        abort_if($estimate->is_locked, 403, 'This estimate version is locked.');
 
         $validated = $request->validate([
             'state_code' => 'nullable|string|size:2',
             'tax_rate' => 'required|numeric|min:0|max:100',
             'notes' => 'nullable|string|max:2000',
-            'status' => 'nullable|string|in:draft,sent,accepted,declined',
+            'status' => 'nullable|string|in:draft,sent,pending_approval,accepted,declined',
             'items' => 'required|array|min:1',
             'items.*.catalog_item_id' => 'nullable|integer|exists:catalog_items,id',
             'items.*.name' => 'required|string|max:255',
@@ -186,12 +194,85 @@ class EstimateController extends Controller
     public function destroy(ServiceRequest $serviceRequest, Estimate $estimate): RedirectResponse
     {
         abort_if($estimate->service_request_id !== $serviceRequest->id, 404);
+        abort_if($estimate->is_locked, 403, 'Locked estimate versions cannot be deleted.');
 
         $estimate->delete();
 
         return redirect()
             ->route('service-requests.show', $serviceRequest)
             ->with('success', 'Estimate deleted.');
+    }
+
+    /**
+     * POST /service-requests/{serviceRequest}/estimates/{estimate}/revise
+     * Create a new draft version from a sent estimate.
+     */
+    public function revise(ServiceRequest $serviceRequest, Estimate $estimate): RedirectResponse
+    {
+        abort_if($estimate->service_request_id !== $serviceRequest->id, 404);
+        abort_if($estimate->is_locked, 403, 'This version is already locked.');
+        abort_unless(in_array($estimate->status, Estimate::REVISABLE_STATUSES, true), 403, 'This estimate cannot be revised in its current status.');
+
+        $newVersion = DB::transaction(fn () => $estimate->createNewVersion());
+
+        ServiceLog::log($serviceRequest, 'estimate_revised', [
+            'old_version'  => $estimate->version,
+            'new_version'  => $newVersion->version,
+            'estimate_id'  => $newVersion->id,
+            'estimate_number' => $newVersion->estimate_number,
+        ], Auth::id());
+
+        return redirect()
+            ->route('estimates.edit', [$serviceRequest, $newVersion])
+            ->with('success', "Revision V{$newVersion->version} created from locked V{$estimate->version}.");
+    }
+
+    /**
+     * POST /service-requests/{serviceRequest}/estimates/{estimate}/request-approval
+     * Generate approval token, SMS the customer, and set status to pending_approval.
+     */
+    public function requestApproval(ServiceRequest $serviceRequest, Estimate $estimate): RedirectResponse
+    {
+        abort_if($estimate->service_request_id !== $serviceRequest->id, 404);
+        abort_unless(in_array($estimate->status, ['sent', 'pending_approval']), 403, 'Only sent estimates can be sent for approval.');
+
+        $serviceRequest->loadMissing('customer');
+        $token = $estimate->generateApprovalToken();
+
+        ServiceLog::log($serviceRequest, 'estimate_approval_requested', [
+            'estimate_id'     => $estimate->id,
+            'estimate_number' => $estimate->displayNumber(),
+            'total'           => $estimate->total,
+        ], Auth::id());
+
+        // Send SMS if customer has a phone number
+        $customer = $serviceRequest->customer;
+        if ($customer && $customer->phone) {
+            $companyName = Setting::getValue('company_name', config('app.name'));
+            $approvalUrl = route('estimate-approval.show', $token);
+            $text = "{$companyName}: Please review and approve your estimate for \${$estimate->total}. {$approvalUrl}";
+
+            try {
+                app(SmsServiceInterface::class)->sendRaw($customer->phone, $text);
+
+                Correspondence::create([
+                    'customer_id'        => $customer->id,
+                    'service_request_id' => $serviceRequest->id,
+                    'channel'            => Correspondence::CHANNEL_SMS,
+                    'direction'          => Correspondence::DIRECTION_OUTBOUND,
+                    'subject'            => 'Estimate approval request',
+                    'body'               => $text,
+                    'logged_by'          => Auth::id(),
+                    'logged_at'          => now(),
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning('Failed to send estimate approval SMS', ['error' => $e->getMessage()]);
+            }
+        }
+
+        return redirect()
+            ->route('estimates.show', [$serviceRequest, $estimate])
+            ->with('success', 'Approval request sent. Customer will receive an SMS with a link to review and sign.');
     }
 
     /**
@@ -267,13 +348,13 @@ class EstimateController extends Controller
                 urlencode($apiKey),
             );
 
-            $response = file_get_contents($url);
+            $response = Http::timeout(5)->get($url);
 
-            if ($response === false) {
+            if ($response->failed()) {
                 return null;
             }
 
-            $data = json_decode($response, true);
+            $data = $response->json();
 
             if (($data['status'] ?? '') !== 'OK' || empty($data['results'])) {
                 return null;

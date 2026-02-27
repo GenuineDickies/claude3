@@ -1,9 +1,15 @@
 <?php
 
+use App\Http\Controllers\AccountingController;
 use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\ApiMonitorController;
+use App\Http\Controllers\CorrespondenceController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\ChangeOrderController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\EstimateApprovalController;
 use App\Http\Controllers\EstimateController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\LocationShareController;
 use App\Http\Controllers\MessageController;
@@ -11,16 +17,19 @@ use App\Http\Controllers\MessageTemplateController;
 use App\Http\Controllers\PaymentRecordController;
 use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RapidDispatchController;
 use App\Http\Controllers\ReceiptController;
+use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\ServiceLogController;
 use App\Http\Controllers\ServiceRequestController;
-use App\Http\Controllers\ServiceTypeController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SignatureController;
 use App\Http\Controllers\StateTaxRateController;
+use App\Http\Controllers\TechnicianProfileController;
 use App\Http\Controllers\WarrantyController;
 use App\Http\Controllers\WorkOrderController;
 use App\Models\Customer;
+use App\Models\ApiMonitorEndpoint;
 use App\Models\MessageTemplate;
 use App\Models\ServiceRequest;
 use App\Services\SmsServiceInterface;
@@ -43,6 +52,14 @@ Route::get('/locate/{token}', [LocationShareController::class, 'show'])->name('l
 Route::get('/sign/{token}', [SignatureController::class, 'show'])->name('signature.show');
 Route::post('/sign/{token}', [SignatureController::class, 'store'])->name('signature.store');
 
+// Public change order approval page (customer facing — token-based, no auth)
+Route::get('/change-orders/{token}', [ChangeOrderController::class, 'show'])->name('change-orders.show');
+Route::post('/change-orders/{token}', [ChangeOrderController::class, 'approve'])->name('change-orders.approve');
+
+// Public estimate approval page (customer facing — token-based, no auth)
+Route::get('/estimates/approve/{token}', [EstimateApprovalController::class, 'show'])->name('estimate-approval.show');
+Route::post('/estimates/approve/{token}', [EstimateApprovalController::class, 'store'])->name('estimate-approval.store');
+
 // ── Authenticated routes ──────────────────────────────────────
 Route::middleware('auth')->group(function () {
 
@@ -51,13 +68,44 @@ Route::middleware('auth')->group(function () {
         $open      = ServiceRequest::where('status', 'new')->count();
         $today     = ServiceRequest::whereDate('created_at', today())->count();
         $customers = Customer::where('is_active', true)->count();
-        $recent    = ServiceRequest::with('customer', 'serviceType')
+        $recent    = ServiceRequest::with('customer', 'catalogItem')
                         ->latest()
                         ->take(5)
                         ->get();
 
-        return view('welcome', compact('open', 'today', 'customers', 'recent'));
+        $apiHealth = ApiMonitorEndpoint::query()
+            ->where('is_active', true)
+            ->selectRaw('count(*) as total')
+            ->selectRaw("sum(case when last_status = 'healthy' then 1 else 0 end) as healthy")
+            ->selectRaw("sum(case when last_status = 'degraded' then 1 else 0 end) as degraded")
+            ->selectRaw("sum(case when last_status = 'down' then 1 else 0 end) as down")
+            ->first();
+
+        // Compliance widget (only when feature enabled)
+        $complianceEnabled = (bool) \App\Models\Setting::getValue('compliance_tracking_enabled');
+        $compliance = null;
+        if ($complianceEnabled) {
+            $compliance = (object) [
+                'expired'  => \App\Models\TechnicianProfile::expired()->count(),
+                'expiring' => \App\Models\TechnicianProfile::expiring()->count(),
+                'total'    => \App\Models\TechnicianProfile::count(),
+            ];
+        }
+
+        return view('welcome', compact('open', 'today', 'customers', 'recent', 'apiHealth', 'complianceEnabled', 'compliance'));
     })->name('dashboard');
+
+    // Reports
+    Route::get('/reports', [ReportsController::class, 'dashboard'])->name('reports.dashboard');
+    Route::get('/reports/financial', [ReportsController::class, 'financial'])->name('reports.financial');
+
+    // Accounting
+    Route::get('/accounting/chart-of-accounts', [AccountingController::class, 'chartOfAccounts'])->name('accounting.chart-of-accounts');
+    Route::get('/accounting/journal', [AccountingController::class, 'journal'])->name('accounting.journal');
+    Route::get('/accounting/trial-balance', [AccountingController::class, 'trialBalance'])->name('accounting.trial-balance');
+    Route::get('/accounting/profit-loss', [AccountingController::class, 'profitAndLoss'])->name('accounting.profit-loss');
+    Route::get('/accounting/balance-sheet', [AccountingController::class, 'balanceSheet'])->name('accounting.balance-sheet');
+    Route::get('/accounting/general-ledger/{account}', [AccountingController::class, 'generalLedger'])->name('accounting.general-ledger');
 
     // Profile (Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -70,19 +118,20 @@ Route::middleware('auth')->group(function () {
     // Customers
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
 
-    // Service Types
-    Route::get('/service-types', [ServiceTypeController::class, 'index'])->name('service-types.index');
-    Route::post('/service-types', [ServiceTypeController::class, 'store'])->name('service-types.store');
-    Route::put('/service-types/{serviceType}', [ServiceTypeController::class, 'update'])->name('service-types.update');
-    Route::patch('/service-types/{serviceType}/toggle', [ServiceTypeController::class, 'toggle'])->name('service-types.toggle');
-    Route::post('/service-types/reorder', [ServiceTypeController::class, 'reorder'])->name('service-types.reorder');
+    // Service Types (removed — consolidated into Service Catalog)
 
     Route::get('/service-requests/create', [ServiceRequestController::class, 'create'])->name('service-requests.create');
     Route::post('/service-requests', [ServiceRequestController::class, 'store'])->name('service-requests.store');
+
+    // Rapid Dispatch
+    Route::get('/rapid-dispatch', [RapidDispatchController::class, 'create'])->name('rapid-dispatch.create');
+    Route::post('/rapid-dispatch', [RapidDispatchController::class, 'store'])->name('rapid-dispatch.store');
+    Route::get('/rapid-dispatch/parse', [RapidDispatchController::class, 'parse'])->name('rapid-dispatch.parse');
     Route::get('/service-requests/{serviceRequest}', [ServiceRequestController::class, 'show'])->name('service-requests.show');
     Route::patch('/service-requests/{serviceRequest}', [ServiceRequestController::class, 'update'])->name('service-requests.update');
     Route::post('/service-requests/{serviceRequest}/request-location', [LocationShareController::class, 'request'])->name('service-requests.request-location');
     Route::post('/service-requests/{serviceRequest}/messages', [MessageController::class, 'store'])->name('service-requests.messages.store');
+    Route::post('/service-requests/{serviceRequest}/correspondence', [CorrespondenceController::class, 'store'])->name('service-requests.correspondence.store');
 
     // Message Templates
     Route::resource('message-templates', MessageTemplateController::class);
@@ -109,6 +158,13 @@ Route::middleware('auth')->group(function () {
     // State Tax Rates (must be before /settings/{key} to avoid catch-all match)
     Route::get('/settings/tax-rates', [StateTaxRateController::class, 'index'])->name('settings.tax-rates');
     Route::put('/settings/tax-rates', [StateTaxRateController::class, 'update'])->name('settings.tax-rates.update');
+    Route::put('/settings/approval-mode', [SettingsController::class, 'updateApprovalMode'])->name('settings.update-approval-mode');
+
+    // API Monitoring settings
+    Route::get('/settings/api-monitor', [ApiMonitorController::class, 'index'])->name('settings.api-monitor.index');
+    Route::post('/settings/api-monitor', [ApiMonitorController::class, 'store'])->name('settings.api-monitor.store');
+    Route::put('/settings/api-monitor/{endpoint}', [ApiMonitorController::class, 'update'])->name('settings.api-monitor.update');
+    Route::post('/settings/api-monitor/{endpoint}/run', [ApiMonitorController::class, 'run'])->name('settings.api-monitor.run');
 
     Route::put('/settings/{key}', [SettingsController::class, 'updateSingle'])->name('settings.update-single');
 
@@ -119,6 +175,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/service-requests/{serviceRequest}/estimates/{estimate}/edit', [EstimateController::class, 'edit'])->name('estimates.edit');
     Route::put('/service-requests/{serviceRequest}/estimates/{estimate}', [EstimateController::class, 'update'])->name('estimates.update');
     Route::delete('/service-requests/{serviceRequest}/estimates/{estimate}', [EstimateController::class, 'destroy'])->name('estimates.destroy');
+    Route::post('/service-requests/{serviceRequest}/estimates/{estimate}/revise', [EstimateController::class, 'revise'])->name('estimates.revise');
+    Route::post('/service-requests/{serviceRequest}/estimates/{estimate}/request-approval', [EstimateController::class, 'requestApproval'])->name('estimates.request-approval');
 
     // Photos
     Route::post('/service-requests/{serviceRequest}/photos', [PhotoController::class, 'store'])->name('photos.store');
@@ -152,16 +210,19 @@ Route::middleware('auth')->group(function () {
     Route::get('/documents/{document}', [DocumentController::class, 'show'])->name('documents.show');
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
 
-    // Receipts
-    Route::get('/service-requests/{serviceRequest}/receipts/create', [ReceiptController::class, 'create'])->name('receipts.create');
-    Route::post('/service-requests/{serviceRequest}/receipts', [ReceiptController::class, 'store'])->name('receipts.store');
+    // Receipts (issued from an invoice)
+    Route::get('/service-requests/{serviceRequest}/invoices/{invoice}/receipts/create', [ReceiptController::class, 'create'])->name('receipts.create');
+    Route::post('/service-requests/{serviceRequest}/invoices/{invoice}/receipts', [ReceiptController::class, 'store'])->name('receipts.store');
     Route::get('/service-requests/{serviceRequest}/receipts/{receipt}', [ReceiptController::class, 'show'])->name('receipts.show');
     Route::get('/service-requests/{serviceRequest}/receipts/{receipt}/pdf', [ReceiptController::class, 'pdf'])->name('receipts.pdf');
 
-    // Invoices
-    Route::get('/service-requests/{serviceRequest}/invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
-    Route::post('/service-requests/{serviceRequest}/invoices', [InvoiceController::class, 'store'])->name('invoices.store');
+    // Invoices (created from a completed work order)
+    Route::get('/service-requests/{serviceRequest}/work-orders/{workOrder}/invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
+    Route::post('/service-requests/{serviceRequest}/work-orders/{workOrder}/invoices', [InvoiceController::class, 'store'])->name('invoices.store');
     Route::get('/service-requests/{serviceRequest}/invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
+    Route::get('/service-requests/{serviceRequest}/invoices/{invoice}/edit', [InvoiceController::class, 'edit'])->name('invoices.edit');
+    Route::put('/service-requests/{serviceRequest}/invoices/{invoice}', [InvoiceController::class, 'update'])->name('invoices.update');
+    Route::post('/service-requests/{serviceRequest}/invoices/{invoice}/revise', [InvoiceController::class, 'revise'])->name('invoices.revise');
     Route::patch('/service-requests/{serviceRequest}/invoices/{invoice}/status', [InvoiceController::class, 'updateStatus'])->name('invoices.update-status');
     Route::get('/service-requests/{serviceRequest}/invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
 
@@ -173,11 +234,32 @@ Route::middleware('auth')->group(function () {
     Route::put('/service-requests/{serviceRequest}/work-orders/{workOrder}', [WorkOrderController::class, 'update'])->name('work-orders.update');
     Route::patch('/service-requests/{serviceRequest}/work-orders/{workOrder}/status', [WorkOrderController::class, 'updateStatus'])->name('work-orders.update-status');
     Route::get('/service-requests/{serviceRequest}/work-orders/{workOrder}/pdf', [WorkOrderController::class, 'pdf'])->name('work-orders.pdf');
+    Route::post('/service-requests/{serviceRequest}/work-orders/{workOrder}/change-orders', [ChangeOrderController::class, 'store'])->name('change-orders.store');
+    Route::post('/service-requests/{serviceRequest}/work-orders/{workOrder}/change-orders/{changeOrder}/cancel', [ChangeOrderController::class, 'cancel'])->name('change-orders.cancel');
+
+    // Technician Compliance Profiles (optional feature)
+    Route::get('/technician-profiles', [TechnicianProfileController::class, 'index'])->name('technician-profiles.index');
+    Route::get('/technician-profiles/{user}', [TechnicianProfileController::class, 'show'])->name('technician-profiles.show');
+    Route::get('/technician-profiles/{user}/edit', [TechnicianProfileController::class, 'edit'])->name('technician-profiles.edit');
+    Route::put('/technician-profiles/{user}', [TechnicianProfileController::class, 'update'])->name('technician-profiles.update');
+
+    // Expenses (standalone — not nested under service requests)
+    Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
+    Route::get('/expenses/create', [ExpenseController::class, 'create'])->name('expenses.create');
+    Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+    Route::get('/expenses/{expense}', [ExpenseController::class, 'show'])->name('expenses.show');
+    Route::get('/expenses/{expense}/edit', [ExpenseController::class, 'edit'])->name('expenses.edit');
+    Route::put('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
+    Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
+    Route::get('/expenses/{expense}/receipt', [ExpenseController::class, 'receipt'])->name('expenses.receipt');
 
     // AJAX endpoints (same-origin, session-auth)
     Route::get('/api/customers/search', [CustomerController::class, 'search'])->name('api.customers.search');
     Route::get('/api/service-types', function () {
-        return \App\Models\ServiceType::where('is_active', true)->orderBy('sort_order')->get();
+        return \App\Models\CatalogItem::whereHas('category', fn ($q) => $q->where('type', 'service')->where('is_active', true))
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get(['id', 'name', 'unit_price as default_price', 'is_active', 'sort_order']);
     });
     Route::get('/api/state-tax-rate/{stateCode}', [EstimateController::class, 'taxRateForState'])->name('api.state-tax-rate');
     Route::get('/api/message-templates', function () {
@@ -192,7 +274,7 @@ Route::middleware('auth')->group(function () {
             'service_request_id' => 'required|integer|exists:service_requests,id',
         ]);
         $template = \App\Models\MessageTemplate::findOrFail($request->input('template_id'));
-        $sr = \App\Models\ServiceRequest::with(['customer', 'serviceType'])->findOrFail($request->input('service_request_id'));
+        $sr = \App\Models\ServiceRequest::with(['customer', 'catalogItem'])->findOrFail($request->input('service_request_id'));
         return response()->json(['rendered' => $template->renderWith($sr->customer, $sr)]);
     })->name('api.message-templates.render');
 

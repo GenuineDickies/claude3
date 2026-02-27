@@ -11,7 +11,7 @@
 
     <h1 class="text-2xl font-bold text-gray-900">Create Invoice</h1>
 
-    <form method="POST" action="{{ route('invoices.store', $serviceRequest) }}" class="space-y-6" x-data="invoiceForm()">
+    <form method="POST" action="{{ route('invoices.store', [$serviceRequest, $workOrder]) }}" class="space-y-6" x-data="invoiceForm()">
         @csrf
 
         {{-- Customer info --}}
@@ -47,7 +47,7 @@
                 <div>
                     <label for="service_description" class="block text-sm font-medium text-gray-700 mb-1">Service Type</label>
                     <input type="text" name="service_description" id="service_description"
-                           value="{{ old('service_description', $serviceRequest->serviceType?->name) }}"
+                           value="{{ old('service_description', $serviceRequest->catalogItem?->name) }}"
                            class="w-full rounded-md border-gray-300 shadow-xs text-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
                 <div class="sm:col-span-2">
@@ -186,11 +186,11 @@
 @push('scripts')
 <script>
 function invoiceForm() {
-    const estimateItems = @json($estimateItems);
+    const workOrderItems = @json($workOrderItems);
 
     return {
-        items: estimateItems.length ? estimateItems : [{ name: '', description: '', quantity: 1, unit: 'ea', unit_price: 0 }],
-        taxRate: {{ $estimate?->tax_rate ?? 0 }},
+        items: workOrderItems.length ? workOrderItems : [{ name: '', description: '', quantity: 1, unit: 'ea', unit_price: 0 }],
+        taxRate: 0,
         subtotal: 0,
         taxAmount: 0,
         total: 0,

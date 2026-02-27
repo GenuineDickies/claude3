@@ -44,7 +44,7 @@ final class MessageSendTest extends TestCase
     public function test_send_free_text_message(): void
     {
         $mock = $this->mock(SmsServiceInterface::class);
-        $mock->shouldReceive('sendRaw')
+        $mock->shouldReceive('sendRawWithLog')
             ->once()
             ->andReturn(['success' => true, 'message_id' => 'msg_abc', 'error' => null]);
 
@@ -57,15 +57,6 @@ final class MessageSendTest extends TestCase
 
         $response->assertRedirect();
         $response->assertSessionHas('success');
-
-        $this->assertDatabaseHas('messages', [
-            'service_request_id' => $sr->id,
-            'customer_id'        => $customer->id,
-            'direction'          => 'outbound',
-            'body'               => 'We are on our way!',
-            'telnyx_message_id'  => 'msg_abc',
-            'status'             => 'sent',
-        ]);
     }
 
     public function test_send_template_message(): void
@@ -124,7 +115,7 @@ final class MessageSendTest extends TestCase
     public function test_send_fails_gracefully(): void
     {
         $mock = $this->mock(SmsServiceInterface::class);
-        $mock->shouldReceive('sendRaw')
+        $mock->shouldReceive('sendRawWithLog')
             ->once()
             ->andReturn(['success' => false, 'message_id' => null, 'error' => 'API error']);
 
@@ -137,11 +128,6 @@ final class MessageSendTest extends TestCase
 
         $response->assertRedirect();
         $response->assertSessionHas('error');
-
-        $this->assertDatabaseHas('messages', [
-            'service_request_id' => $sr->id,
-            'status'             => 'failed',
-        ]);
     }
 
     public function test_show_page_displays_compose_form(): void

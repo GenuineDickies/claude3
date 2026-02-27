@@ -30,9 +30,9 @@ class ServiceRequestResource extends JsonResource
                 'phone'      => $this->customer->phone,
             ]),
 
-            'service_type' => $this->whenLoaded('serviceType', fn () => [
-                'id'   => $this->serviceType->id,
-                'name' => $this->serviceType->name,
+            'service_type' => $this->whenLoaded('catalogItem', fn () => [
+                'id'   => $this->catalogItem->id,
+                'name' => $this->catalogItem->name,
             ]),
 
             'vehicle' => $this->whenLoaded('vehicle', fn () => [

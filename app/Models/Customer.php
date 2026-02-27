@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Events\CustomerOptedIn;
 use App\Events\CustomerOptedOut;
+use App\Models\Correspondence;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -15,8 +16,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property bool $is_active
  * @property \Illuminate\Support\Carbon|null $sms_consent_at
  * @property \Illuminate\Support\Carbon|null $sms_opt_out_at
+ * @property array<array-key, mixed>|null $notification_preferences
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Correspondence> $correspondences
+ * @property-read int|null $correspondences_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Message> $messages
  * @property-read int|null $messages_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ServiceRequest> $serviceRequests
@@ -31,6 +35,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Customer whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Customer whereIsActive($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Customer whereLastName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Customer whereNotificationPreferences($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Customer wherePhone($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Customer whereSmsConsentAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Customer whereSmsOptOutAt($value)
@@ -141,5 +146,10 @@ class Customer extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class);
+    }
+
+    public function correspondences(): HasMany
+    {
+        return $this->hasMany(Correspondence::class);
     }
 }

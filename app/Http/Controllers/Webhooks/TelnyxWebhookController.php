@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Webhooks;
 
 use App\Models\Customer;
-use App\Models\Message;
 use App\Models\MessageTemplate;
 use App\Models\Setting;
 use App\Services\SmsServiceInterface;
@@ -84,15 +83,16 @@ final class TelnyxWebhookController
             ->first();
 
         // Log inbound message
+        $serviceRequestId = $customer?->serviceRequests()->latest()->value('id');
+        $serviceRequest = $serviceRequestId ? \App\Models\ServiceRequest::find($serviceRequestId) : null;
+
         if ($customer) {
-            Message::create([
-                'customer_id'       => $customer->id,
-                'service_request_id' => $customer->serviceRequests()->latest()->value('id'),
-                'direction'         => 'inbound',
-                'body'              => $body,
-                'telnyx_message_id' => $telnyxMessageId,
-                'status'            => 'received',
-            ]);
+            app(SmsServiceInterface::class)->logInbound(
+                customer: $customer,
+                body: $body,
+                telnyxMessageId: $telnyxMessageId,
+                serviceRequest: $serviceRequest,
+            );
         }
 
         // Check for compliance keywords

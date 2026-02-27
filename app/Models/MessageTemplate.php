@@ -120,7 +120,7 @@ class MessageTemplate extends Model
             'service_type' => [
                 'label'  => 'Service Type',
                 'source' => 'service_request',
-                'field'  => 'serviceType.name',
+                'field'  => 'catalogItem.name',
             ],
             'quoted_price' => [
                 'label'  => 'Quoted Price',

@@ -7,6 +7,13 @@ wsl -e bash -c "cd /var/www/html/claude3 && <command> 2>&1"
 ```
 Never run `php`, `composer`, `npm`, or `artisan` directly from PowerShell — always wrap in `wsl -e bash -c`.
 
+## MCP pathing
+- For Taskmaster MCP tools that require `projectRoot`, always pass the workspace UNC path exactly:
+  - `\\wsl.localhost\Ubuntu\var\www\html\claude3`
+- Do not pass Linux-only paths (for example, `/var/www/html/claude3`) to MCP `projectRoot` parameters.
+- Do not pass converted Windows-local variants (for example, `C:\var\www\html\claude3`) to MCP `projectRoot` parameters.
+- If uncertain, reuse the path shown in VS Code workspace info rather than reconstructing it manually.
+
 ## Project
 Internal roadside-assistance app.
 Stack: **Laravel (PHP) + MySQL**. Deploy target: **Shared hosting (cPanel/FTP)**.

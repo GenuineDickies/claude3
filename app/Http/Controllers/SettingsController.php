@@ -108,6 +108,32 @@ class SettingsController extends Controller
     }
 
     /**
+     * PUT /settings/approval-mode — save the estimate approval mode + threshold together.
+     */
+    public function updateApprovalMode(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'approval_mode'    => 'required|string|in:all,none,threshold',
+            'threshold_amount' => 'nullable|numeric|min:0.01|max:10000',
+        ]);
+
+        $mode = $request->input('approval_mode');
+
+        Setting::setValue('estimate_approval_mode', $mode);
+
+        if ($mode === 'threshold') {
+            $amount = $request->input('threshold_amount');
+            if ($amount === null || $amount === '') {
+                return redirect()->route('settings.edit')
+                    ->withErrors(['threshold_amount' => 'Please enter a dollar amount for the threshold.']);
+            }
+            Setting::setValue('estimate_signature_threshold', $amount);
+        }
+
+        return redirect()->route('settings.edit')->with('success', 'Estimate approval setting saved.');
+    }
+
+    /**
      * Build validation rules for a field definition.
      */
     private function validationRulesFor(array $field): array
