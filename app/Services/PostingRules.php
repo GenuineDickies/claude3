@@ -12,19 +12,19 @@ namespace App\Services;
 final class PostingRules
 {
     // ── Asset accounts ──────────────────────────────────
-    public const CASH                = '1100';
-    public const CHECKING            = '1110';
+    public const CASH                = '1000';
+    public const CHECKING            = '1010';
     public const SAVINGS             = '1120';
-    public const SQUARE_CLEARING     = '1150';
-    public const ACCOUNTS_RECEIVABLE = '1200';
-    public const PARTS_INVENTORY     = '1400';
+    public const SQUARE_CLEARING     = '1050';
+    public const ACCOUNTS_RECEIVABLE = '1100';
+    public const PARTS_INVENTORY     = '1200';
 
     // ── Liability accounts ──────────────────────────────
-    public const ACCOUNTS_PAYABLE       = '2100';
-    public const SALES_TAX_PAYABLE      = '2200';
-    public const CORE_DEPOSITS_PAYABLE  = '2350';
-    public const CUSTOMER_REFUNDS       = '2360';
-    public const CREDIT_CARD_PAYABLE    = '2400';
+    public const ACCOUNTS_PAYABLE       = '2000';
+    public const CREDIT_CARD_PAYABLE    = '2010';
+    public const SALES_TAX_PAYABLE      = '2020';
+    public const CORE_DEPOSITS_PAYABLE  = '2050';
+    public const CUSTOMER_REFUNDS       = '2060';
 
     // ── Revenue accounts ────────────────────────────────
     public const REVENUE_DEFAULT        = '4000'; // Roadside Service Revenue
@@ -36,25 +36,25 @@ final class PostingRules
     public const REVENUE_PARTS_SALES    = '4100';
     public const REVENUE_BATTERY_SALES  = '4110';
     public const REVENUE_STARTER_SALES  = '4120';
-    public const REVENUE_FUEL_DELIVERY  = '4150';
-    public const REVENUE_TOWING         = '4200';
+    public const REVENUE_FUEL_DELIVERY  = '4200';
+    public const REVENUE_TOWING         = '4250';
 
     // ── COGS accounts ───────────────────────────────────
     public const COGS_PARTS             = '5000';
     public const COGS_BATTERY           = '5010';
     public const COGS_STARTER           = '5020';
-    public const COGS_FUEL              = '5050';
-    public const COGS_PARTS_MATERIALS   = '5100';
-    public const COGS_SHOP_SUPPLIES     = '5150';
+    public const COGS_FUEL              = '5100';
+    public const COGS_PARTS_MATERIALS   = '5300';
+    public const COGS_SHOP_SUPPLIES     = '5200';
 
     // ── Expense accounts ────────────────────────────────
-    public const EXPENSE_FUEL           = '6150';
-    public const EXPENSE_VEHICLE_REPAIR = '6200';
+    public const EXPENSE_FUEL           = '6000';
+    public const EXPENSE_VEHICLE_REPAIR = '6020';
     public const EXPENSE_INSURANCE      = '6300';
     public const EXPENSE_SUPPLIES       = '6400';
     public const EXPENSE_LICENSING      = '6500';
     public const EXPENSE_TOOLS          = '6600';
-    public const EXPENSE_MARKETING      = '6700';
+    public const EXPENSE_MARKETING      = '6100';
     public const EXPENSE_OFFICE         = '6800';
     public const EXPENSE_OTHER          = '6900';
 

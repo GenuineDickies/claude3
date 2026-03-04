@@ -12,19 +12,19 @@ class FinancialPostingService
 {
     /**
      * Map expense categories to GL account codes.
-     * Categories not listed here fall back to 6800 (Other Expenses).
+     * Categories not listed here fall back to Other Expenses.
      */
     private const EXPENSE_ACCOUNT_MAP = [
-        'fuel'           => '6200', // Vehicle Expenses
-        'vehicle_repair' => '6200', // Vehicle Expenses
-        'supplies'       => '6400', // Supplies
-        'parts'          => '5100', // Cost of Goods Sold
-        'insurance'      => '6300', // Insurance
-        'licensing'      => '6500', // Licensing & Permits
-        'tools'          => '6600', // Tools & Equipment
-        'marketing'      => '6700', // Marketing
-        'office'         => '6800', // Office Expenses
-        'other'          => '6900', // Other Expenses
+        'fuel'           => PostingRules::EXPENSE_FUEL,
+        'vehicle_repair' => PostingRules::EXPENSE_VEHICLE_REPAIR,
+        'supplies'       => PostingRules::EXPENSE_SUPPLIES,
+        'parts'          => PostingRules::COGS_PARTS_MATERIALS,
+        'insurance'      => PostingRules::EXPENSE_INSURANCE,
+        'licensing'      => PostingRules::EXPENSE_LICENSING,
+        'tools'          => PostingRules::EXPENSE_TOOLS,
+        'marketing'      => PostingRules::EXPENSE_MARKETING,
+        'office'         => PostingRules::EXPENSE_OFFICE,
+        'other'          => PostingRules::EXPENSE_OTHER,
     ];
 
     // ── Invoice sent → Debit A/R, Credit Revenue (+Tax) ──
@@ -39,9 +39,9 @@ class FinancialPostingService
             return null;
         }
 
-        $ar      = $this->account('1200'); // Accounts Receivable
-        $revenue = $this->account('4000'); // Service Revenue
-        $taxPayable = $this->account('2200'); // Sales Tax Payable
+        $ar      = $this->account(PostingRules::ACCOUNTS_RECEIVABLE);
+        $revenue = $this->account(PostingRules::REVENUE_DEFAULT);
+        $taxPayable = $this->account(PostingRules::SALES_TAX_PAYABLE);
 
         if (! $ar || ! $revenue) {
             return null;
@@ -122,8 +122,8 @@ class FinancialPostingService
             return null;
         }
 
-        $cash = $this->account('1100'); // Cash
-        $ar   = $this->account('1200'); // Accounts Receivable
+        $cash = $this->account(PostingRules::CASH);
+        $ar   = $this->account(PostingRules::ACCOUNTS_RECEIVABLE);
 
         if (! $cash || ! $ar) {
             return null;
@@ -170,9 +170,9 @@ class FinancialPostingService
             return null;
         }
 
-        $expenseAccountCode = self::EXPENSE_ACCOUNT_MAP[$expense->category] ?? '6900';
+        $expenseAccountCode = self::EXPENSE_ACCOUNT_MAP[$expense->category] ?? PostingRules::EXPENSE_OTHER;
         $expenseAccount = $this->account($expenseAccountCode);
-        $cash = $this->account('1100'); // Cash
+        $cash = $this->account(PostingRules::CASH);
 
         if (! $expenseAccount || ! $cash) {
             return null;

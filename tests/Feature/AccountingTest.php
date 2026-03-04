@@ -110,10 +110,10 @@ class AccountingTest extends TestCase
     {
         $this->seedAccounts();
 
-        $this->assertDatabaseHas('accounts', ['code' => '1100', 'name' => 'Cash']);
-        $this->assertDatabaseHas('accounts', ['code' => '1200', 'name' => 'Accounts Receivable']);
+        $this->assertDatabaseHas('accounts', ['code' => '1000', 'name' => 'Cash']);
+        $this->assertDatabaseHas('accounts', ['code' => '1100', 'name' => 'Accounts Receivable']);
         $this->assertDatabaseHas('accounts', ['code' => '4000', 'name' => 'Service Revenue']);
-        $this->assertDatabaseHas('accounts', ['code' => '5100', 'name' => 'Parts & Materials']);
+        $this->assertDatabaseHas('accounts', ['code' => '5300', 'name' => 'Parts & Materials']);
 
         $this->assertGreaterThanOrEqual(17, Account::count());
     }
@@ -314,7 +314,7 @@ class AccountingTest extends TestCase
         $this->assertTrue($entry->isBalanced());
 
         // A/R debited for total
-        $arLine = $entry->lines()->where('account_id', $this->account('1200')->id)->first();
+        $arLine = $entry->lines()->where('account_id', $this->account('1100')->id)->first();
         $this->assertEquals(1080.00, (float) $arLine->debit);
 
         // Revenue credited for subtotal
@@ -322,7 +322,7 @@ class AccountingTest extends TestCase
         $this->assertEquals(1000.00, (float) $revLine->credit);
 
         // Sales tax credited
-        $taxLine = $entry->lines()->where('account_id', $this->account('2200')->id)->first();
+        $taxLine = $entry->lines()->where('account_id', $this->account('2020')->id)->first();
         $this->assertEquals(80.00, (float) $taxLine->credit);
     }
 
@@ -374,7 +374,7 @@ class AccountingTest extends TestCase
         $this->assertTrue($result);
 
         // Original entry is now void — balances should be zero
-        $this->assertEquals(0.0, $this->account('1200')->balance());
+        $this->assertEquals(0.0, $this->account('1100')->balance());
         $this->assertEquals(0.0, $this->account('4000')->balance());
     }
 
@@ -410,11 +410,11 @@ class AccountingTest extends TestCase
         $this->assertTrue($entry->isBalanced());
 
         // Cash debited
-        $cashLine = $entry->lines()->where('account_id', $this->account('1100')->id)->first();
+        $cashLine = $entry->lines()->where('account_id', $this->account('1000')->id)->first();
         $this->assertEquals(500.00, (float) $cashLine->debit);
 
         // A/R credited
-        $arLine = $entry->lines()->where('account_id', $this->account('1200')->id)->first();
+        $arLine = $entry->lines()->where('account_id', $this->account('1100')->id)->first();
         $this->assertEquals(500.00, (float) $arLine->credit);
     }
 
@@ -457,12 +457,12 @@ class AccountingTest extends TestCase
         $this->assertNotNull($entry);
         $this->assertTrue($entry->isBalanced());
 
-        // Parts → COGS account 5100
-        $expLine = $entry->lines()->where('account_id', $this->account('5100')->id)->first();
+        // Parts → COGS account 5300
+        $expLine = $entry->lines()->where('account_id', $this->account('5300')->id)->first();
         $this->assertEquals(49.99, (float) $expLine->debit);
 
         // Cash credited
-        $cashLine = $entry->lines()->where('account_id', $this->account('1100')->id)->first();
+        $cashLine = $entry->lines()->where('account_id', $this->account('1000')->id)->first();
         $this->assertEquals(49.99, (float) $cashLine->credit);
     }
 
@@ -483,9 +483,9 @@ class AccountingTest extends TestCase
         $entry = $service->postExpense($expense);
 
         $this->assertNotNull($entry);
-        // fuel → 6200 Vehicle Expenses
+        // fuel → 6000 Vehicle Fuel Expense
         $this->assertNotNull(
-            $entry->lines()->where('account_id', $this->account('6200')->id)->first()
+            $entry->lines()->where('account_id', $this->account('6000')->id)->first()
         );
     }
 
@@ -637,7 +637,7 @@ class AccountingTest extends TestCase
     public function test_general_ledger_running_balance(): void
     {
         $this->seedAccounts();
-        $cash = $this->account('1100');
+        $cash = $this->account('1000');
 
         $service = new FinancialPostingService();
 
@@ -663,7 +663,7 @@ class AccountingTest extends TestCase
     public function test_general_ledger_opening_balance(): void
     {
         $this->seedAccounts();
-        $cash = $this->account('1100');
+        $cash = $this->account('1000');
 
         $service = new FinancialPostingService();
 
@@ -733,7 +733,7 @@ class AccountingTest extends TestCase
             ->get(route('accounting.chart-of-accounts'))
             ->assertOk()
             ->assertSee('Chart of Accounts')
-            ->assertSee('1100')
+            ->assertSee('1000')
             ->assertSee('Cash');
     }
 
@@ -798,13 +798,13 @@ class AccountingTest extends TestCase
     {
         $this->seedAccounts();
         $user = $this->createUser();
-        $account = $this->account('1100');
+        $account = $this->account('1000');
 
         $this->actingAs($user)
             ->get(route('accounting.general-ledger', $account))
             ->assertOk()
             ->assertSee('General Ledger')
-            ->assertSee('1100')
+            ->assertSee('1000')
             ->assertSee('Cash');
     }
 
@@ -843,16 +843,16 @@ class AccountingTest extends TestCase
         $service->postPaymentReceived($payment);
 
         // A/R should be zero (invoiced then paid)
-        $this->assertEquals(0.0, $this->account('1200')->balance());
+        $this->assertEquals(0.0, $this->account('1100')->balance());
 
         // Cash should be $1080
-        $this->assertEquals(1080.0, $this->account('1100')->balance());
+        $this->assertEquals(1080.0, $this->account('1000')->balance());
 
         // Revenue should be $1000
         $this->assertEquals(1000.0, $this->account('4000')->balance());
 
         // Sales tax payable should be $80
-        $this->assertEquals(80.0, $this->account('2200')->balance());
+        $this->assertEquals(80.0, $this->account('2020')->balance());
 
         // Trial balance must balance
         $reporting = new FinancialReportingService();
