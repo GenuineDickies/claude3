@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\JournalLine;
 
@@ -55,6 +56,7 @@ class Account extends Model
         'scope',
         'name',
         'type',
+        'parent_account_id',
         'is_active',
         'description',
     ];
@@ -79,6 +81,16 @@ class Account extends Model
     }
 
     // ── Relationships ──────────────────────────────────
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_account_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_account_id');
+    }
 
     public function journalLines(): HasMany
     {

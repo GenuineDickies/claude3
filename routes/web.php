@@ -3,6 +3,8 @@
 use App\Http\Controllers\AccountingController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\ApiMonitorController;
+use App\Http\Controllers\VendorController;
+use App\Http\Controllers\VendorDocumentController;
 use App\Http\Controllers\CorrespondenceController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ChangeOrderController;
@@ -285,6 +287,28 @@ Route::middleware('auth')->group(function () {
     Route::put('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
     Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
     Route::get('/expenses/{expense}/receipt', [ExpenseController::class, 'receipt'])->name('expenses.receipt');
+
+    // Vendors
+    Route::get('/vendors', [VendorController::class, 'index'])->name('vendors.index');
+    Route::get('/vendors/create', [VendorController::class, 'create'])->name('vendors.create');
+    Route::post('/vendors', [VendorController::class, 'store'])->name('vendors.store');
+    Route::get('/vendors/{vendor}', [VendorController::class, 'show'])->name('vendors.show');
+    Route::get('/vendors/{vendor}/edit', [VendorController::class, 'edit'])->name('vendors.edit');
+    Route::put('/vendors/{vendor}', [VendorController::class, 'update'])->name('vendors.update');
+    Route::post('/vendors/{vendor}/toggle-active', [VendorController::class, 'toggleActive'])->name('vendors.toggle-active');
+
+    // Vendor Documents (receipts & invoices from suppliers)
+    Route::get('/vendor-documents', [VendorDocumentController::class, 'index'])->name('vendor-documents.index');
+    Route::get('/vendor-documents/create', [VendorDocumentController::class, 'create'])->name('vendor-documents.create');
+    Route::post('/vendor-documents', [VendorDocumentController::class, 'store'])->name('vendor-documents.store');
+    Route::get('/vendor-documents/{vendorDocument}', [VendorDocumentController::class, 'show'])->name('vendor-documents.show');
+    Route::get('/vendor-documents/{vendorDocument}/edit', [VendorDocumentController::class, 'edit'])->name('vendor-documents.edit');
+    Route::put('/vendor-documents/{vendorDocument}', [VendorDocumentController::class, 'update'])->name('vendor-documents.update');
+    Route::post('/vendor-documents/{vendorDocument}/post', [VendorDocumentController::class, 'post'])->name('vendor-documents.post');
+    Route::post('/vendor-documents/{vendorDocument}/void', [VendorDocumentController::class, 'void'])->name('vendor-documents.void');
+    Route::post('/vendor-documents/{vendorDocument}/pay', [VendorDocumentController::class, 'pay'])->name('vendor-documents.pay');
+    Route::delete('/vendor-documents/{vendorDocument}/attachments/{attachment}', [VendorDocumentController::class, 'deleteAttachment'])->name('vendor-documents.delete-attachment');
+    Route::get('/vendor-documents/{vendorDocument}/attachments/{attachment}/download', [VendorDocumentController::class, 'downloadAttachment'])->name('vendor-documents.download-attachment');
 
     // AJAX endpoints (same-origin, session-auth)
     Route::get('/api/customers/search', [CustomerController::class, 'search'])->name('api.customers.search');

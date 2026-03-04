@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Account;
 use App\Models\CatalogCategory;
 use App\Models\CatalogItem;
 use Illuminate\Http\RedirectResponse;
@@ -84,19 +85,26 @@ class CatalogController extends Controller
     {
         $pricingTypes = CatalogItem::pricingTypes();
         $units = CatalogItem::units();
-        return view('catalog.items.create', compact('category', 'pricingTypes', 'units'));
+        $revenueAccounts = Account::general()->where('type', 'revenue')->orderBy('code')->get();
+        $cogsAccounts = Account::general()->whereIn('type', ['cogs', 'expense'])->orderBy('code')->get();
+        return view('catalog.items.create', compact('category', 'pricingTypes', 'units', 'revenueAccounts', 'cogsAccounts'));
     }
 
     public function storeItem(Request $request, CatalogCategory $category): RedirectResponse
     {
         $validated = $request->validate([
-            'name'         => 'required|string|max:255',
-            'description'  => 'nullable|string|max:1000',
-            'base_cost'    => 'required|numeric|min:0|max:99999999.99',
-            'unit'         => ['required', 'string', Rule::in(array_keys(CatalogItem::units()))],
-            'pricing_type' => ['required', 'string', Rule::in(array_keys(CatalogItem::pricingTypes()))],
-            'sort_order'   => 'integer|min:0|max:9999',
-            'is_active'    => 'boolean',
+            'name'               => 'required|string|max:255',
+            'description'        => 'nullable|string|max:1000',
+            'base_cost'          => 'required|numeric|min:0|max:99999999.99',
+            'unit'               => ['required', 'string', Rule::in(array_keys(CatalogItem::units()))],
+            'pricing_type'       => ['required', 'string', Rule::in(array_keys(CatalogItem::pricingTypes()))],
+            'sort_order'         => 'integer|min:0|max:9999',
+            'is_active'          => 'boolean',
+            'revenue_account_id' => 'nullable|exists:accounts,id',
+            'cogs_account_id'    => 'nullable|exists:accounts,id',
+            'core_required'      => 'boolean',
+            'core_amount'        => 'nullable|numeric|min:0|max:99999.99',
+            'taxable'            => 'boolean',
         ]);
 
         $category->items()->create($validated);
@@ -109,19 +117,26 @@ class CatalogController extends Controller
     {
         $pricingTypes = CatalogItem::pricingTypes();
         $units = CatalogItem::units();
-        return view('catalog.items.edit', compact('category', 'item', 'pricingTypes', 'units'));
+        $revenueAccounts = Account::general()->where('type', 'revenue')->orderBy('code')->get();
+        $cogsAccounts = Account::general()->whereIn('type', ['cogs', 'expense'])->orderBy('code')->get();
+        return view('catalog.items.edit', compact('category', 'item', 'pricingTypes', 'units', 'revenueAccounts', 'cogsAccounts'));
     }
 
     public function updateItem(Request $request, CatalogCategory $category, CatalogItem $item): RedirectResponse
     {
         $validated = $request->validate([
-            'name'         => 'required|string|max:255',
-            'description'  => 'nullable|string|max:1000',
-            'base_cost'    => 'required|numeric|min:0|max:99999999.99',
-            'unit'         => ['required', 'string', Rule::in(array_keys(CatalogItem::units()))],
-            'pricing_type' => ['required', 'string', Rule::in(array_keys(CatalogItem::pricingTypes()))],
-            'sort_order'   => 'integer|min:0|max:9999',
-            'is_active'    => 'boolean',
+            'name'               => 'required|string|max:255',
+            'description'        => 'nullable|string|max:1000',
+            'base_cost'          => 'required|numeric|min:0|max:99999999.99',
+            'unit'               => ['required', 'string', Rule::in(array_keys(CatalogItem::units()))],
+            'pricing_type'       => ['required', 'string', Rule::in(array_keys(CatalogItem::pricingTypes()))],
+            'sort_order'         => 'integer|min:0|max:9999',
+            'is_active'          => 'boolean',
+            'revenue_account_id' => 'nullable|exists:accounts,id',
+            'cogs_account_id'    => 'nullable|exists:accounts,id',
+            'core_required'      => 'boolean',
+            'core_amount'        => 'nullable|numeric|min:0|max:99999.99',
+            'taxable'            => 'boolean',
         ]);
 
         $item->update($validated);

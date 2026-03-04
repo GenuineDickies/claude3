@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Account;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -37,19 +38,37 @@ class CatalogItem extends Model
         'pricing_type',
         'is_active',
         'sort_order',
+        'revenue_account_id',
+        'cogs_account_id',
+        'core_required',
+        'core_amount',
+        'taxable',
     ];
 
     protected function casts(): array
     {
         return [
-            'base_cost' => 'decimal:2',
-            'is_active' => 'boolean',
+            'base_cost'     => 'decimal:2',
+            'core_amount'   => 'decimal:2',
+            'is_active'     => 'boolean',
+            'core_required' => 'boolean',
+            'taxable'       => 'boolean',
         ];
     }
 
     public function category(): BelongsTo
     {
         return $this->belongsTo(CatalogCategory::class, 'catalog_category_id');
+    }
+
+    public function revenueAccount(): BelongsTo
+    {
+        return $this->belongsTo(Account::class, 'revenue_account_id');
+    }
+
+    public function cogsAccount(): BelongsTo
+    {
+        return $this->belongsTo(Account::class, 'cogs_account_id');
     }
 
     public function scopeActive($query)
