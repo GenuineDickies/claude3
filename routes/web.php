@@ -219,6 +219,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/documents/{document}/reanalyze', [DocumentController::class, 'reanalyze'])->name('documents.reanalyze');
     Route::post('/documents/{document}/accept-category', [DocumentController::class, 'acceptCategory'])->name('documents.accept-category');
 
+    // Document Line Items — per-item categorization & chart-of-accounts recording
+    Route::post('/line-items/{lineItem}/accept', [\App\Http\Controllers\DocumentLineItemController::class, 'accept'])->name('line-items.accept');
+    Route::post('/line-items/{lineItem}/reject', [\App\Http\Controllers\DocumentLineItemController::class, 'reject'])->name('line-items.reject');
+    Route::post('/documents/{document}/line-items/bulk-accept', [\App\Http\Controllers\DocumentLineItemController::class, 'bulkAccept'])->name('line-items.bulk-accept');
+    Route::post('/documents/{document}/line-items/bulk-reject', [\App\Http\Controllers\DocumentLineItemController::class, 'bulkReject'])->name('line-items.bulk-reject');
+
     // Document Inbox — bulk upload & AI-powered matching
     Route::get('/inbox', [DocumentInboxController::class, 'index'])->name('inbox.index');
     Route::post('/inbox/upload', [DocumentInboxController::class, 'upload'])->name('inbox.upload');

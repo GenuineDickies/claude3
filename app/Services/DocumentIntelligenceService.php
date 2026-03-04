@@ -79,7 +79,13 @@ You are a document analysis assistant for a roadside-assistance business. Analyz
    - invoice_number, receipt_number, policy_number, contract_number
    - vin, license_plate, vehicle_make, vehicle_model, vehicle_year
    - address, phone, email
-   - line_items (for documents with a FEW items only — maximum 10. For spreadsheets or documents with many rows, provide a count like "transaction_count": 150 and "date_range": "2020-01-01 to 2020-12-31" instead of individual line items.)
+   - line_items: For receipts and invoices, ALWAYS extract individual line items as an array of objects. Each object must have:
+     - "description" (string, required): What the item is
+     - "quantity" (number or null): How many units
+     - "unit_price" (number or null): Price per unit
+     - "amount" (number, required): Total for this line
+     - "category" (string or null): Best-fit expense category from: fuel, supplies, parts, vehicle_repair, insurance, licensing, tools, marketing, office, other
+   Extract ALL visible line items (up to 50). For spreadsheets or documents with hundreds of rows, provide "transaction_count" and "date_range" instead.
    - Any other clearly identifiable key data points from the document.
    Omit keys that are not present in the document. Use null for values that appear but are unreadable.
 5. "confidence" — A float from 0.0 to 1.0 indicating your overall confidence in the extraction accuracy.

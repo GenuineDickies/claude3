@@ -110,6 +110,11 @@ class Document extends Model
         return $this->belongsTo(User::class, 'uploaded_by');
     }
 
+    public function lineItems(): HasMany
+    {
+        return $this->hasMany(DocumentLineItem::class);
+    }
+
     public function transactionImports(): HasMany
     {
         return $this->hasMany(DocumentTransactionImport::class);

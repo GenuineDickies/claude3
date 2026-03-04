@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\ProcessDocumentIntelligenceJob;
+use App\Models\Account;
 use App\Models\Customer;
 use App\Models\Document;
 use App\Models\Estimate;
@@ -102,7 +103,12 @@ class DocumentController extends Controller
     /** Display AI analysis results for a document. */
     public function detail(Document $document)
     {
-        return view('documents.detail', compact('document'));
+        $document->load('lineItems.account');
+        $lineItems = $document->lineItems;
+        $accounts = Account::general()->where('is_active', true)->orderBy('code')->get();
+        $categories = Expense::CATEGORIES;
+
+        return view('documents.detail', compact('document', 'lineItems', 'accounts', 'categories'));
     }
 
     /** Re-dispatch the AI processing job. */

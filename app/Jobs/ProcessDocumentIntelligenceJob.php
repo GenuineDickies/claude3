@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Document;
+use App\Models\DocumentLineItem;
 use App\Jobs\ImportDocumentTransactionsJob;
 use App\Services\DocumentIntelligenceInterface;
 use App\Services\DocumentMatchingService;
@@ -151,6 +152,9 @@ class ProcessDocumentIntelligenceJob implements ShouldQueue
 
         $this->document->update($updates);
 
+        // Extract line items from receipts/invoices into document_line_items
+        $this->createLineItemsFromExtractedData($result['extracted_data']);
+
         // For inbox docs (no parent entity), attempt auto-matching
         // Skip matching for spreadsheets — they contain many transactions,
         // not a single entity to link to. Individual rows are handled by
@@ -177,6 +181,50 @@ class ProcessDocumentIntelligenceJob implements ShouldQueue
             'document_id' => $this->document->id,
             'error'       => $exception->getMessage(),
         ]);
+    }
+
+    /** Create DocumentLineItem records from AI-extracted line_items data. */
+    private function createLineItemsFromExtractedData(array $extractedData): void
+    {
+        $lineItems = $extractedData['line_items'] ?? null;
+
+        if (! is_array($lineItems) || empty($lineItems)) {
+            return;
+        }
+
+        // Clear any existing line items from a previous analysis run
+        $this->document->lineItems()->where('status', DocumentLineItem::STATUS_DRAFT)->delete();
+
+        foreach ($lineItems as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $description = trim((string) ($item['description'] ?? ''));
+            if ($description === '') {
+                continue;
+            }
+
+            $amount = $item['amount'] ?? null;
+            if ($amount === null || ! is_numeric($amount)) {
+                continue;
+            }
+
+            $category = $item['category'] ?? null;
+            if ($category !== null && ! array_key_exists($category, \App\Models\Expense::CATEGORIES)) {
+                $category = null;
+            }
+
+            $this->document->lineItems()->create([
+                'description' => mb_substr($description, 0, 255),
+                'quantity'    => is_numeric($item['quantity'] ?? null) ? $item['quantity'] : null,
+                'unit_price'  => is_numeric($item['unit_price'] ?? null) ? $item['unit_price'] : null,
+                'amount'      => round((float) $amount, 2),
+                'category'    => $category,
+                'status'      => DocumentLineItem::STATUS_DRAFT,
+                'raw_data'    => $item,
+            ]);
+        }
     }
 
     /** Extract text from a PDF file using smalot/pdfparser. */
