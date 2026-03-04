@@ -7,18 +7,11 @@
             <a href="{{ route('catalog.index') }}" class="text-sm text-blue-600 hover:text-blue-700">&larr; Back to Catalog</a>
             <h1 class="text-2xl font-bold text-gray-900 mt-2">{{ $category->name }}</h1>
             <div class="flex items-center gap-2 mt-1">
-                <span @class([
-                    'inline-block px-2 py-0.5 text-xs font-medium rounded-full',
-                    'bg-blue-100 text-blue-700' => $category->type === 'service',
-                    'bg-amber-100 text-amber-700' => $category->type === 'part',
-                ])>
-                    {{ ucfirst($category->type) }}
-                </span>
                 @if(!$category->is_active)
                     <span class="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-sm">Inactive</span>
                 @endif
                 @if($category->description)
-                    <span class="text-sm text-gray-500">— {{ $category->description }}</span>
+                    <span class="text-sm text-gray-500">{{ $category->description }}</span>
                 @endif
             </div>
         </div>
@@ -32,7 +25,7 @@
                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                 </svg>
-                Add Item
+                Add Service
             </a>
         </div>
     </div>
@@ -45,7 +38,7 @@
 
     @if($category->items->isEmpty())
         <div class="bg-white rounded-lg shadow-xs p-8 text-center">
-            <p class="text-gray-500">No items in this category yet.</p>
+            <p class="text-gray-500">No services in this category yet.</p>
         </div>
     @else
         <div class="bg-white rounded-lg shadow-xs divide-y divide-gray-100">
@@ -54,15 +47,12 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2">
                             <span class="text-sm font-medium text-gray-900">{{ $item->name }}</span>
-                            @if($item->sku)
-                                <span class="text-xs text-gray-400 font-mono">{{ $item->sku }}</span>
-                            @endif
                             @if(!$item->is_active)
                                 <span class="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-sm">Inactive</span>
                             @endif
                         </div>
                         <div class="flex items-center gap-3 mt-1">
-                            <span class="text-sm font-semibold text-gray-700">${{ number_format($item->unit_price, 2) }}</span>
+                            <span class="text-sm font-semibold text-gray-700">${{ number_format($item->base_cost, 2) }}</span>
                             <span class="text-xs text-gray-500">/ {{ $item->unit }}</span>
                             <span @class([
                                 'text-xs px-1.5 py-0.5 rounded-sm font-medium',

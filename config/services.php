@@ -54,4 +54,12 @@ return [
         'base_url' => env('LOCATION_BASE_URL'),
     ],
 
+    'document_ai' => [
+        'enabled'                => env('DOCUMENT_AI_ENABLED', true),
+        'provider'               => env('DOCUMENT_AI_PROVIDER', 'openai'),
+        'api_key'                => env('OPENAI_API_KEY'),
+        'model'                  => env('OPENAI_MODEL', 'gpt-4o-mini'),
+        'max_file_size_for_vision' => (int) env('DOCUMENT_AI_MAX_VISION_SIZE', 10 * 1024 * 1024),
+    ],
+
 ];

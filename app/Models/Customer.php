@@ -7,6 +7,7 @@ use App\Events\CustomerOptedOut;
 use App\Models\Correspondence;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 /**
  * @property int $id
@@ -151,5 +152,10 @@ class Customer extends Model
     public function correspondences(): HasMany
     {
         return $this->hasMany(Correspondence::class);
+    }
+
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
     }
 }

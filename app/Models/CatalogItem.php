@@ -6,12 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
+ * An individual service offered within a category (e.g. "Spare Tire Swap").
+ *
  * @property int $id
  * @property int $catalog_category_id
  * @property string $name
- * @property string|null $sku
  * @property string|null $description
- * @property numeric $unit_price
+ * @property numeric $base_cost
  * @property string $unit
  * @property string $pricing_type
  * @property bool $is_active
@@ -23,18 +24,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CatalogItem newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CatalogItem newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CatalogItem query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CatalogItem whereCatalogCategoryId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CatalogItem whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CatalogItem whereDescription($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CatalogItem whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CatalogItem whereIsActive($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CatalogItem whereName($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CatalogItem wherePricingType($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CatalogItem whereSku($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CatalogItem whereSortOrder($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CatalogItem whereUnit($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CatalogItem whereUnitPrice($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CatalogItem whereUpdatedAt($value)
  * @mixin \Eloquent
  */
 class CatalogItem extends Model
@@ -42,9 +31,8 @@ class CatalogItem extends Model
     protected $fillable = [
         'catalog_category_id',
         'name',
-        'sku',
         'description',
-        'unit_price',
+        'base_cost',
         'unit',
         'pricing_type',
         'is_active',
@@ -54,7 +42,7 @@ class CatalogItem extends Model
     protected function casts(): array
     {
         return [
-            'unit_price' => 'decimal:2',
+            'base_cost' => 'decimal:2',
             'is_active' => 'boolean',
         ];
     }

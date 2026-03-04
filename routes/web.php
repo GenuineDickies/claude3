@@ -7,6 +7,7 @@ use App\Http\Controllers\CorrespondenceController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ChangeOrderController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\DocumentInboxController;
 use App\Http\Controllers\EstimateApprovalController;
 use App\Http\Controllers\EstimateController;
 use App\Http\Controllers\ExpenseController;
@@ -26,6 +27,7 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SignatureController;
 use App\Http\Controllers\StateTaxRateController;
 use App\Http\Controllers\TechnicianProfileController;
+use App\Http\Controllers\TransactionImportController;
 use App\Http\Controllers\WarrantyController;
 use App\Http\Controllers\WorkOrderController;
 use App\Models\Customer;
@@ -101,6 +103,7 @@ Route::middleware('auth')->group(function () {
 
     // Accounting
     Route::get('/accounting/chart-of-accounts', [AccountingController::class, 'chartOfAccounts'])->name('accounting.chart-of-accounts');
+    Route::get('/accounting/import-accounts', [AccountingController::class, 'importAccounts'])->name('accounting.import-accounts');
     Route::get('/accounting/journal', [AccountingController::class, 'journal'])->name('accounting.journal');
     Route::get('/accounting/trial-balance', [AccountingController::class, 'trialBalance'])->name('accounting.trial-balance');
     Route::get('/accounting/profit-loss', [AccountingController::class, 'profitAndLoss'])->name('accounting.profit-loss');
@@ -210,6 +213,30 @@ Route::middleware('auth')->group(function () {
     Route::get('/documents/{document}', [DocumentController::class, 'show'])->name('documents.show');
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
 
+    // Generic polymorphic document upload (service-request, customer, invoice, etc.)
+    Route::post('/documents/{type}/{id}', [DocumentController::class, 'storeGeneric'])->name('documents.store-generic')->where('id', '[0-9]+');
+    Route::get('/documents/{document}/detail', [DocumentController::class, 'detail'])->name('documents.detail');
+    Route::post('/documents/{document}/reanalyze', [DocumentController::class, 'reanalyze'])->name('documents.reanalyze');
+    Route::post('/documents/{document}/accept-category', [DocumentController::class, 'acceptCategory'])->name('documents.accept-category');
+
+    // Document Inbox — bulk upload & AI-powered matching
+    Route::get('/inbox', [DocumentInboxController::class, 'index'])->name('inbox.index');
+    Route::post('/inbox/upload', [DocumentInboxController::class, 'upload'])->name('inbox.upload');
+    Route::post('/inbox/{document}/link', [DocumentInboxController::class, 'link'])->name('inbox.link');
+    Route::post('/inbox/{document}/accept-match', [DocumentInboxController::class, 'acceptMatch'])->name('inbox.accept-match');
+    Route::post('/inbox/bulk-accept', [DocumentInboxController::class, 'bulkAccept'])->name('inbox.bulk-accept');
+    Route::post('/inbox/{document}/skip', [DocumentInboxController::class, 'skip'])->name('inbox.skip');
+    Route::post('/inbox/{document}/rematch', [DocumentInboxController::class, 'rematch'])->name('inbox.rematch');
+    Route::get('/inbox/search', [DocumentInboxController::class, 'search'])->name('inbox.search');
+
+    // Transaction Imports — AI-parsed spreadsheet transactions
+    Route::get('/transaction-imports', [TransactionImportController::class, 'index'])->name('transaction-imports.index');
+    Route::get('/transaction-imports/{document}', [TransactionImportController::class, 'show'])->name('transaction-imports.show');
+    Route::post('/transaction-imports/{import}/accept', [TransactionImportController::class, 'accept'])->name('transaction-imports.accept');
+    Route::post('/transaction-imports/{import}/reject', [TransactionImportController::class, 'reject'])->name('transaction-imports.reject');
+    Route::post('/transaction-imports/{document}/bulk-accept', [TransactionImportController::class, 'bulkAccept'])->name('transaction-imports.bulk-accept');
+    Route::post('/transaction-imports/{document}/bulk-reject', [TransactionImportController::class, 'bulkReject'])->name('transaction-imports.bulk-reject');
+
     // Receipts (issued from an invoice)
     Route::get('/service-requests/{serviceRequest}/invoices/{invoice}/receipts/create', [ReceiptController::class, 'create'])->name('receipts.create');
     Route::post('/service-requests/{serviceRequest}/invoices/{invoice}/receipts', [ReceiptController::class, 'store'])->name('receipts.store');
@@ -256,10 +283,10 @@ Route::middleware('auth')->group(function () {
     // AJAX endpoints (same-origin, session-auth)
     Route::get('/api/customers/search', [CustomerController::class, 'search'])->name('api.customers.search');
     Route::get('/api/service-types', function () {
-        return \App\Models\CatalogItem::whereHas('category', fn ($q) => $q->where('type', 'service')->where('is_active', true))
+        return \App\Models\CatalogItem::whereHas('category', fn ($q) => $q->where('is_active', true))
             ->where('is_active', true)
             ->orderBy('sort_order')
-            ->get(['id', 'name', 'unit_price as default_price', 'is_active', 'sort_order']);
+            ->get(['id', 'name', 'base_cost as default_price', 'is_active', 'sort_order']);
     });
     Route::get('/api/state-tax-rate/{stateCode}', [EstimateController::class, 'taxRateForState'])->name('api.state-tax-rate');
     Route::get('/api/message-templates', function () {

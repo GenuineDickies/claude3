@@ -16,7 +16,7 @@
             <div class="mt-6 flex items-center gap-3">
                 <button type="submit"
                         class="px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors">
-                    Update Category
+                    Update Service Category
                 </button>
                 <a href="{{ route('catalog.index') }}"
                    class="px-5 py-2 text-sm text-gray-600 hover:text-gray-800">Cancel</a>
@@ -25,12 +25,12 @@
 
         <div class="mt-4 pt-4 border-t border-gray-200 flex justify-end">
             <form action="{{ route('catalog.categories.destroy', $category) }}" method="POST"
-                  onsubmit="return confirm('Delete this category and all its items?')">
+                  onsubmit="return confirm('Delete this category and all its services?')">
                 @csrf
                 @method('DELETE')
                 <button type="submit"
                         class="px-4 py-2 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors">
-                    Delete Category
+                    Delete Service Category
                 </button>
             </form>
         </div>

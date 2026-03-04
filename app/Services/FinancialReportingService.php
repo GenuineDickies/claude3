@@ -16,7 +16,7 @@ class FinancialReportingService
      */
     public function trialBalance(?\DateTimeInterface $asOf = null): array
     {
-        $accounts = Account::where('is_active', true)->orderBy('code')->get();
+        $accounts = Account::general()->where('is_active', true)->orderBy('code')->get();
 
         $rows = [];
         $totalDebits = 0;
@@ -245,7 +245,7 @@ class FinancialReportingService
      */
     private function accountBalancesAsOf(array $types, \DateTimeInterface $asOf): array
     {
-        $accounts = Account::whereIn('type', $types)
+        $accounts = Account::general()->whereIn('type', $types)
             ->where('is_active', true)
             ->orderBy('code')
             ->get();
@@ -272,9 +272,9 @@ class FinancialReportingService
      */
     private function netIncomeAsOf(\DateTimeInterface $asOf): float
     {
-        $revenueAccounts = Account::whereIn('type', ['revenue'])->pluck('id');
-        $cogsAccounts = Account::whereIn('type', ['cogs'])->pluck('id');
-        $expenseAccounts = Account::whereIn('type', ['expense'])->pluck('id');
+        $revenueAccounts = Account::general()->whereIn('type', ['revenue'])->pluck('id');
+        $cogsAccounts = Account::general()->whereIn('type', ['cogs'])->pluck('id');
+        $expenseAccounts = Account::general()->whereIn('type', ['expense'])->pluck('id');
 
         $postedCondition = function ($q) use ($asOf) {
             $q->where('status', JournalEntry::STATUS_POSTED)

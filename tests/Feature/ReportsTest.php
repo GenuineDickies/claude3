@@ -198,19 +198,19 @@ class ReportsTest extends TestCase
     {
         $user = $this->createUser();
         $customer = $this->createCustomer();
-        $category = CatalogCategory::create(['name' => 'Services', 'type' => 'service']);
+        $category = CatalogCategory::create(['name' => 'Services']);
 
         $tow = CatalogItem::create([
             'catalog_category_id' => $category->id,
             'name' => 'Tow Service',
-            'unit_price' => 100,
+            'base_cost' => 100,
             'unit' => 'each',
             'pricing_type' => 'fixed',
         ]);
         $jump = CatalogItem::create([
             'catalog_category_id' => $category->id,
             'name' => 'Jump Start',
-            'unit_price' => 50,
+            'base_cost' => 50,
             'unit' => 'each',
             'pricing_type' => 'fixed',
         ]);

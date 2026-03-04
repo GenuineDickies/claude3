@@ -121,7 +121,7 @@
             @endif
             @if ($serviceRequest->catalogItem)
             <div>
-                <span class="block text-gray-500">Service Type</span>
+                <span class="block text-gray-500">Service</span>
                 <span class="font-medium">{{ $serviceRequest->catalogItem->name }}</span>
             </div>
             @endif
@@ -795,6 +795,12 @@
         </div>
     </div>
     @endif
+
+    {{-- Documents --}}
+    @include('partials.document-list', [
+        'documents' => $serviceRequest->documents,
+        'uploadUrl' => route('documents.store-generic', ['type' => 'service-request', 'id' => $serviceRequest->id]),
+    ])
 
     {{-- Back link --}}
     <div class="flex gap-3">

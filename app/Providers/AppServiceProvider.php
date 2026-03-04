@@ -2,10 +2,14 @@
 
 namespace App\Providers;
 
+use App\Models\DocumentTransactionImport;
 use App\Models\Setting;
+use App\Services\DocumentIntelligenceInterface;
+use App\Services\DocumentIntelligenceService;
 use App\Services\SmsService;
 use App\Services\SmsServiceInterface;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -17,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(SmsServiceInterface::class, SmsService::class);
+        $this->app->singleton(DocumentIntelligenceInterface::class, DocumentIntelligenceService::class);
     }
 
     /**
@@ -24,6 +29,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Custom route model binding for transaction imports
+        Route::model('import', DocumentTransactionImport::class);
+
         // Safety nets — catch common bugs early in dev,
         // but keep production lenient to avoid surprises.
         $strict = ! app()->environment('production');

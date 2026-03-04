@@ -23,6 +23,9 @@ class Account extends Model
     public const TYPE_COGS      = 'cogs';
     public const TYPE_EXPENSE   = 'expense';
 
+    public const SCOPE_GENERAL = 'general';
+    public const SCOPE_IMPORT  = 'import';
+
     public const TYPES = [
         self::TYPE_ASSET,
         self::TYPE_LIABILITY,
@@ -49,6 +52,7 @@ class Account extends Model
 
     protected $fillable = [
         'code',
+        'scope',
         'name',
         'type',
         'is_active',
@@ -60,6 +64,18 @@ class Account extends Model
         return [
             'is_active' => 'boolean',
         ];
+    }
+
+    // ── Scopes ──────────────────────────────────────────
+
+    public function scopeGeneral($query)
+    {
+        return $query->where('scope', self::SCOPE_GENERAL);
+    }
+
+    public function scopeImport($query)
+    {
+        return $query->where('scope', self::SCOPE_IMPORT);
     }
 
     // ── Relationships ──────────────────────────────────

@@ -98,7 +98,7 @@
             <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Service</h3>
 
             <div>
-                <label for="catalog_item_id" class="block text-sm font-medium text-gray-700">Service Type <span class="text-red-500">*</span></label>
+                <label for="catalog_item_id" class="block text-sm font-medium text-gray-700">Service <span class="text-red-500">*</span></label>
                 <select name="catalog_item_id" id="catalog_item_id"
                         x-model="catalogItemId"
                         @change="updatePrice()"
@@ -109,9 +109,9 @@
                         <optgroup label="{{ $cat->name }}">
                             @foreach ($cat->items as $item)
                                 <option value="{{ $item->id }}"
-                                        data-price="{{ $item->unit_price }}"
+                                        data-price="{{ $item->base_cost }}"
                                         {{ old('catalog_item_id') == $item->id ? 'selected' : '' }}>
-                                    {{ $item->name }} — ${{ number_format($item->unit_price, 2) }}
+                                    {{ $item->name }} — ${{ number_format($item->base_cost, 2) }}
                                 </option>
                             @endforeach
                         </optgroup>

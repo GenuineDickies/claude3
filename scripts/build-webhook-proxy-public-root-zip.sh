@@ -77,13 +77,13 @@ if [[ ! -f "$INDEX_FILE" ]]; then
 fi
 
 # Update require paths.
-# - from: __DIR__.'/../vendor/autoload.php'
-# - to:   __DIR__.'/vendor/autoload.php'
-# - from: __DIR__.'/../bootstrap/app.php'
-# - to:   __DIR__.'/bootstrap/app.php'
+# - from: __DIR__.'/../vendor/autoload.php'   → __DIR__.'/vendor/autoload.php'
+# - from: __DIR__.'/../bootstrap/app.php'     → __DIR__.'/bootstrap/app.php'
+# - from: __DIR__.'/../storage/...'           → __DIR__.'/storage/...'
 sed -i \
   -e "s#__DIR__\s*\.\s*'\/\.\.\/vendor\/autoload\.php'#__DIR__ . '\/vendor\/autoload.php'#" \
   -e "s#__DIR__\s*\.\s*'\/\.\.\/bootstrap\/app\.php'#__DIR__ . '\/bootstrap\/app.php'#" \
+  -e "s#__DIR__\s*\.\s*'\/\.\.\/storage\/#__DIR__ . '\/storage\/#" \
   "$INDEX_FILE"
 
 # Insert $app->usePublicPath(__DIR__); right after app bootstrap.

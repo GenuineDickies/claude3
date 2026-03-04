@@ -143,6 +143,13 @@ class MessageTemplateSeeder extends Seeder
                 'body'      => 'Thank you for your message to {{ company_name }}! We will be with you shortly. Msg frequency may vary. Msg&data rates may apply. Reply STOP to opt out, HELP for help. We will not share or sell your mobile information for marketing/promotional purposes.',
             ],
             [
+                'slug'      => 'billing-address-updated',
+                'name'      => 'Billing Address Updated',
+                'category'  => 'general',
+                'sort_order' => 3,
+                'body'      => '{{ company_name }}: Hi {{ customer_first_name }}, your billing address has been updated. If you did not make this change, please contact us immediately at {{ company_phone }}.',
+            ],
+            [
                 'slug'      => 'custom-message',
                 'name'      => 'Custom / Freeform',
                 'category'  => 'general',

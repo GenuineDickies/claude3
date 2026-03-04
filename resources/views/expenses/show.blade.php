@@ -99,5 +99,11 @@
         <p class="text-sm text-gray-700 whitespace-pre-line">{{ $expense->notes }}</p>
     </div>
     @endif
+
+    {{-- Documents --}}
+    @include('partials.document-list', [
+        'documents' => $expense->documents,
+        'uploadUrl' => route('documents.store-generic', ['type' => 'expense', 'id' => $expense->id]),
+    ])
 </div>
 @endsection

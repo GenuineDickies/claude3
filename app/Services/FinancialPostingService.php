@@ -212,7 +212,7 @@ class FinancialPostingService
 
     private function account(string $code): ?Account
     {
-        return Account::where('code', $code)->where('is_active', true)->first();
+        return Account::general()->where('code', $code)->where('is_active', true)->first();
     }
 
     private function hasExistingPosting(object $source): bool

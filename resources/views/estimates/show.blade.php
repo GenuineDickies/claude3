@@ -282,5 +282,11 @@
         </div>
     </div>
     @endif
+
+    {{-- Documents --}}
+    @include('partials.document-list', [
+        'documents' => $estimate->documents,
+        'uploadUrl' => route('documents.store-generic', ['type' => 'estimate', 'id' => $estimate->id]),
+    ])
 </div>
 @endsection

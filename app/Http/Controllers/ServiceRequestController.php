@@ -13,6 +13,7 @@ use App\Models\CatalogCategory;
 use App\Services\SmsServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -51,8 +52,7 @@ class ServiceRequestController extends Controller
 
     public function create()
     {
-        $serviceCategories = CatalogCategory::where('type', 'service')
-            ->where('is_active', true)
+        $serviceCategories = CatalogCategory::where('is_active', true)
             ->with(['items' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order')])
             ->orderBy('sort_order')
             ->get();
@@ -72,7 +72,7 @@ class ServiceRequestController extends Controller
             $this->syncLocationFromCapture($serviceRequest);
         }
 
-        $serviceRequest->load(['customer', 'catalogItem', 'messages', 'estimates.items', 'statusLogs.user', 'receipts', 'photos', 'signatures', 'paymentRecords', 'serviceLogs.user', 'workOrders.items', 'correspondences.logger']);
+        $serviceRequest->load(['customer', 'catalogItem', 'messages', 'estimates.items', 'statusLogs.user', 'receipts', 'photos', 'signatures', 'paymentRecords', 'serviceLogs.user', 'workOrders.items', 'correspondences.logger', 'documents.uploader']);
 
         $messageTemplates = MessageTemplate::active()
             ->whereNotIn('category', ['compliance'])
@@ -309,17 +309,27 @@ class ServiceRequestController extends Controller
             return;
         }
 
+        // Rate-limit sync attempts — don't hammer a failing endpoint on every
+        // auto-refresh (the show page refreshes every 10 seconds).
+        $cacheKey = 'loc_sync_backoff:' . $serviceRequest->id;
+        if (Cache::has($cacheKey)) {
+            return;
+        }
+
         // Build capture URL: strip trailing path segment + append captures/{token}.json
         $sanitizedToken = preg_replace('/[^a-zA-Z0-9]/', '', $serviceRequest->location_token);
-        $baseDir = preg_replace('#[?#].*$#', '', $base);  // strip query/fragment
+        $baseDir = preg_replace('/[?#].*$/', '', $base);  // strip query/fragment
         $baseDir = rtrim($baseDir, '/');
         $baseDir = substr($baseDir, 0, strrpos($baseDir, '/'));
         $captureUrl = $baseDir . '/captures/' . $sanitizedToken . '.json';
 
         try {
-            $response = Http::timeout(3)->get($captureUrl);
+            $response = Http::connectTimeout(2)->timeout(3)->get($captureUrl);
 
             if ($response->failed()) {
+                // Back off for 30 seconds before retrying
+                Cache::put($cacheKey, true, 30);
+
                 return; // File doesn't exist yet — customer hasn't shared location
             }
 
@@ -340,6 +350,9 @@ class ServiceRequestController extends Controller
                 'location_shared_at' => now(),
             ]);
 
+            // Clear the backoff cache since we succeeded
+            Cache::forget($cacheKey);
+
             Log::info('Location synced from remote capture file', [
                 'service_request_id' => $serviceRequest->id,
                 'lat'                => $data['latitude'],
@@ -347,6 +360,9 @@ class ServiceRequestController extends Controller
                 'capture_time'       => $data['time'] ?? null,
             ]);
         } catch (\Throwable $e) {
+            // Back off for 60 seconds after connection/DNS failures
+            Cache::put($cacheKey, true, 60);
+
             Log::warning('Failed to sync location from capture file', [
                 'service_request_id' => $serviceRequest->id,
                 'url'                => $captureUrl,

@@ -228,6 +228,12 @@
     </div>
     @endif
 
+    {{-- Documents --}}
+    @include('partials.document-list', [
+        'documents' => $invoice->documents,
+        'uploadUrl' => route('documents.store-generic', ['type' => 'invoice', 'id' => $invoice->id]),
+    ])
+
     {{-- Back --}}
     <div class="flex gap-3">
         <a href="{{ route('service-requests.show', $serviceRequest) }}" class="text-sm text-gray-500 hover:text-blue-600 underline">&larr; Back to Ticket</a>

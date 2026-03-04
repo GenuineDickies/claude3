@@ -1,22 +1,13 @@
-{{-- Shared form partial for catalog item create / edit --}}
+{{-- Shared form partial for service create / edit --}}
 <div class="space-y-6">
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Item Name <span class="text-red-500">*</span></label>
-            <input type="text" name="name" id="name"
-                   value="{{ old('name', $item->name ?? '') }}"
-                   class="w-full rounded-lg border-gray-300 shadow-xs focus:border-blue-500 focus:ring-blue-500 text-sm"
-                   required>
-            @error('name') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
-        </div>
-        <div>
-            <label for="sku" class="block text-sm font-medium text-gray-700 mb-1">SKU</label>
-            <input type="text" name="sku" id="sku"
-                   value="{{ old('sku', $item->sku ?? '') }}"
-                   class="w-full rounded-lg border-gray-300 shadow-xs focus:border-blue-500 focus:ring-blue-500 text-sm font-mono"
-                   placeholder="Optional">
-            @error('sku') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
-        </div>
+    <div>
+        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Service Name <span class="text-red-500">*</span></label>
+        <input type="text" name="name" id="name"
+               value="{{ old('name', $item->name ?? '') }}"
+               class="w-full rounded-lg border-gray-300 shadow-xs focus:border-blue-500 focus:ring-blue-500 text-sm"
+               placeholder="e.g. Spare Tire Swap, Jump Start, Lockout"
+               required>
+        @error('name') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
     </div>
 
     <div>
@@ -28,15 +19,15 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
-            <label for="unit_price" class="block text-sm font-medium text-gray-700 mb-1">Unit Price <span class="text-red-500">*</span></label>
+            <label for="base_cost" class="block text-sm font-medium text-gray-700 mb-1">Base Cost <span class="text-red-500">*</span></label>
             <div class="relative">
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
-                <input type="number" name="unit_price" id="unit_price" step="0.01" min="0"
-                       value="{{ old('unit_price', $item->unit_price ?? '') }}"
+                <input type="number" name="base_cost" id="base_cost" step="0.01" min="0"
+                       value="{{ old('base_cost', $item->base_cost ?? '') }}"
                        class="w-full pl-7 rounded-lg border-gray-300 shadow-xs focus:border-blue-500 focus:ring-blue-500 text-sm"
                        required>
             </div>
-            @error('unit_price') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
+            @error('base_cost') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
         </div>
         <div>
             <label for="unit" class="block text-sm font-medium text-gray-700 mb-1">Unit <span class="text-red-500">*</span></label>

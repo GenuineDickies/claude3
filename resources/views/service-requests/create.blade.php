@@ -116,13 +116,13 @@
                 <h3 class="text-lg font-semibold text-gray-700 mb-4">Service</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label for="catalog_item_id" class="block text-sm font-medium text-gray-700">Service Type <span class="text-red-500">*</span></label>
+                        <label for="catalog_item_id" class="block text-sm font-medium text-gray-700">Service <span class="text-red-500">*</span></label>
                         <select name="catalog_item_id" id="catalog_item_id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border bg-white">
                             <option value="">Select a service...</option>
                             @foreach ($serviceCategories as $category)
                                 <optgroup label="{{ $category->name }}">
                                     @foreach ($category->items as $item)
-                                        <option value="{{ $item->id }}" data-price="{{ $item->unit_price }}" {{ old('catalog_item_id') == $item->id ? 'selected' : '' }}>
+                                        <option value="{{ $item->id }}" data-price="{{ $item->base_cost }}" {{ old('catalog_item_id') == $item->id ? 'selected' : '' }}>
                                             {{ $item->name }}
                                         </option>
                                     @endforeach

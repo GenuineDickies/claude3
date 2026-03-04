@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use App\Models\Correspondence;
 use App\Models\Vehicle;
 use App\Models\CatalogItem;
@@ -282,6 +283,11 @@ class ServiceRequest extends Model
     public function statusLogs(): HasMany
     {
         return $this->hasMany(ServiceRequestStatusLog::class)->orderBy('created_at');
+    }
+
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
     }
 
     /** Get the next forward status, or null if terminal. */

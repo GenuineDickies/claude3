@@ -26,7 +26,6 @@ final class ServiceRequestFlowTest extends TestCase
     {
         $category = CatalogCategory::first() ?? CatalogCategory::create([
             'name' => 'Services',
-            'type' => 'service',
             'sort_order' => 0,
             'is_active' => true,
         ]);
@@ -35,7 +34,7 @@ final class ServiceRequestFlowTest extends TestCase
             ?? CatalogItem::create([
                 'catalog_category_id' => $category->id,
                 'name' => 'Flat Tire Change',
-                'unit_price' => 75.00,
+                'base_cost' => 75.00,
                 'unit' => 'each',
                 'pricing_type' => 'fixed',
                 'sort_order' => 1,

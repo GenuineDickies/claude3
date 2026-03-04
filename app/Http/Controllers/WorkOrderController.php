@@ -149,7 +149,7 @@ class WorkOrderController extends Controller
 
         return view('work-orders.show', [
             'serviceRequest' => $serviceRequest,
-            'workOrder'      => $workOrder,
+            'workOrder'      => $workOrder->load('documents.uploader'),
         ]);
     }
 

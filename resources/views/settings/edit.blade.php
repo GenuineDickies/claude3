@@ -144,7 +144,7 @@
                             @endif
                         </div>
 
-                        <p class="text-xs text-gray-500 mb-2">{!! $field['help'] !!}</p>
+                        <p class="text-xs text-gray-500 mb-2">{{ $field['help'] }}</p>
 
                         @if(!empty($field['how_to']))
                             <details class="mb-3">

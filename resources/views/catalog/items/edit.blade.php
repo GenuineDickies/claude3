@@ -16,7 +16,7 @@
             <div class="mt-6 flex items-center gap-3">
                 <button type="submit"
                         class="px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors">
-                    Update Item
+                    Update Service
                 </button>
                 <a href="{{ route('catalog.categories.show', $category) }}"
                    class="px-5 py-2 text-sm text-gray-600 hover:text-gray-800">Cancel</a>
@@ -25,12 +25,12 @@
 
         <div class="mt-4 pt-4 border-t border-gray-200 flex justify-end">
             <form action="{{ route('catalog.items.destroy', [$category, $item]) }}" method="POST"
-                  onsubmit="return confirm('Delete this item?')">
+                  onsubmit="return confirm('Delete this service?')">
                 @csrf
                 @method('DELETE')
                 <button type="submit"
                         class="px-4 py-2 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors">
-                    Delete Item
+                    Delete Service
                 </button>
             </form>
         </div>

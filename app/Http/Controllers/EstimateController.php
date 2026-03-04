@@ -104,7 +104,7 @@ class EstimateController extends Controller
     {
         abort_if($estimate->service_request_id !== $serviceRequest->id, 404);
 
-        $estimate->load('items');
+        $estimate->load('items', 'documents.uploader');
         $serviceRequest->load(['customer', 'catalogItem']);
         $versions = $estimate->allVersions();
 

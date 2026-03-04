@@ -17,8 +17,7 @@ class RapidDispatchController extends Controller
 {
     public function create()
     {
-        $serviceCategories = CatalogCategory::where('type', 'service')
-            ->where('is_active', true)
+        $serviceCategories = CatalogCategory::where('is_active', true)
             ->with(['items' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order')])
             ->orderBy('sort_order')
             ->get();
@@ -99,7 +98,7 @@ class RapidDispatchController extends Controller
             'matched'         => true,
             'catalog_item_id' => $item->id,
             'name'            => $item->name,
-            'unit_price'      => (float) $item->unit_price,
+            'unit_price'      => (float) $item->base_cost,
             'keyword'         => $result['keyword'],
         ]);
     }

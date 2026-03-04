@@ -34,7 +34,6 @@ final class EstimateTest extends TestCase
 
         $category = CatalogCategory::create([
             'name' => 'Services',
-            'type' => 'service',
             'sort_order' => 0,
             'is_active' => true,
         ]);
@@ -42,7 +41,7 @@ final class EstimateTest extends TestCase
         $catalogItem = CatalogItem::create([
             'catalog_category_id' => $category->id,
             'name' => 'Flat Tire Change',
-            'unit_price' => 75.00,
+            'base_cost' => 75.00,
             'unit' => 'each',
             'pricing_type' => 'fixed',
             'sort_order' => 1,
@@ -252,7 +251,6 @@ final class EstimateTest extends TestCase
 
         $category = CatalogCategory::create([
             'name' => 'Labor',
-            'type' => 'service',
             'sort_order' => 1,
             'is_active' => true,
         ]);
@@ -260,7 +258,7 @@ final class EstimateTest extends TestCase
         $catalogItem = CatalogItem::create([
             'catalog_category_id' => $category->id,
             'name' => 'Standard Labor',
-            'unit_price' => 85.00,
+            'base_cost' => 85.00,
             'unit' => 'hour',
             'is_active' => true,
             'sort_order' => 1,

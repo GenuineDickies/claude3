@@ -97,10 +97,45 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
 
     // ── Update the database so the operator's dashboard reflects it ──
     $dbUpdated = false;
+    $callbackOk = false;
     $config = load_config();
-    $dbHost = $config['DB_HOST'] ?? '';
 
-    if ($dbHost !== '') {
+    // Strategy 1: POST back to the Laravel API (works across any deployment topology)
+    $callbackUrl = $config['APP_CALLBACK_URL'] ?? '';
+    if ($callbackUrl !== '') {
+        $callbackUrl = rtrim($callbackUrl, '/') . '/api/locate/' . urlencode($token);
+        $postBody = json_encode([
+            'latitude'  => $lat,
+            'longitude' => $lng,
+            'accuracy'  => $accuracy,
+        ]);
+        $ctx = stream_context_create([
+            'http' => [
+                'method'  => 'POST',
+                'header'  => "Content-Type: application/json\r\nAccept: application/json\r\n",
+                'content' => $postBody,
+                'timeout' => 5,
+                'ignore_errors' => true,
+            ],
+            'ssl' => ['verify_peer' => true, 'verify_peer_name' => true],
+        ]);
+        $cbResponse = @file_get_contents($callbackUrl, false, $ctx);
+        if ($cbResponse !== false) {
+            $cbData = json_decode($cbResponse, true);
+            $callbackOk = is_array($cbData) && ($cbData['ok'] ?? false);
+        }
+        if (!$callbackOk) {
+            @file_put_contents(
+                __DIR__ . '/locate-callback-errors.log',
+                sprintf("[%s] token=%s url=%s response=%s\n", gmdate('c'), $token, $callbackUrl, $cbResponse ?: 'false'),
+                FILE_APPEND,
+            );
+        }
+    }
+
+    // Strategy 2: Direct DB update via PDO (same-server / shared-hosting deployments)
+    $dbHost = $config['DB_HOST'] ?? '';
+    if ($dbHost !== '' && !$callbackOk) {
         try {
             $dsn = sprintf(
                 'mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
@@ -141,7 +176,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     echo json_encode([
         'ok'      => true,
         'message' => 'Location received. Thank you!',
-        'db'      => $dbUpdated,
+        'db'      => $dbUpdated || $callbackOk,
     ]);
     exit;
 }

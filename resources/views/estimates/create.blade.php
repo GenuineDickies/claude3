@@ -102,10 +102,10 @@
                                         @if($item->description)
                                             <p class="text-xs text-gray-500 truncate">{{ Str::limit($item->description, 80) }}</p>
                                         @endif
-                                        <span class="text-xs text-gray-400 font-mono">${{ number_format($item->unit_price, 2) }}/{{ $item->unit }}</span>
+                                        <span class="text-xs text-gray-400 font-mono">${{ number_format($item->base_cost, 2) }}/{{ $item->unit }}</span>
                                     </div>
                                     <button type="button"
-                                            @click="addCatalogItem({{ $item->id }}, {{ json_encode($item->name) }}, {{ json_encode($item->description) }}, {{ $item->unit_price }}, {{ json_encode($item->unit) }})"
+                                            @click="addCatalogItem({{ $item->id }}, {{ json_encode($item->name) }}, {{ json_encode($item->description) }}, {{ $item->base_cost }}, {{ json_encode($item->unit) }})"
                                             class="shrink-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-sm p-1.5 transition" title="Add to estimate">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                                     </button>

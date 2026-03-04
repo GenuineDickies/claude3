@@ -129,7 +129,7 @@ class InvoiceController extends Controller
 
         return view('invoices.show', [
             'serviceRequest' => $serviceRequest,
-            'invoice'        => $invoice,
+            'invoice'        => $invoice->load('documents.uploader'),
             'versions'       => $versions,
         ]);
     }

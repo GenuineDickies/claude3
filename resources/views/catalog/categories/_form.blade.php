@@ -1,26 +1,13 @@
-{{-- Shared form partial for catalog category create / edit --}}
+{{-- Shared form partial for service category create / edit --}}
 <div class="space-y-6">
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Category Name <span class="text-red-500">*</span></label>
-            <input type="text" name="name" id="name"
-                   value="{{ old('name', $category->name ?? '') }}"
-                   class="w-full rounded-lg border-gray-300 shadow-xs focus:border-blue-500 focus:ring-blue-500 text-sm"
-                   required>
-            @error('name') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
-        </div>
-        <div>
-            <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type <span class="text-red-500">*</span></label>
-            <select name="type" id="type"
-                    class="w-full rounded-lg border-gray-300 shadow-xs focus:border-blue-500 focus:ring-blue-500 text-sm">
-                @foreach($types as $key => $label)
-                    <option value="{{ $key }}" {{ old('type', $category->type ?? '') === $key ? 'selected' : '' }}>
-                        {{ $label }}
-                    </option>
-                @endforeach
-            </select>
-            @error('type') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
-        </div>
+    <div>
+        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Category Name <span class="text-red-500">*</span></label>
+        <input type="text" name="name" id="name"
+               value="{{ old('name', $category->name ?? '') }}"
+               class="w-full rounded-lg border-gray-300 shadow-xs focus:border-blue-500 focus:ring-blue-500 text-sm"
+               placeholder="e.g. Tire Services, Battery Services, Towing"
+               required>
+        @error('name') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
     </div>
 
     <div>

@@ -97,7 +97,7 @@ class ExpenseController extends Controller
 
     public function show(Expense $expense)
     {
-        $expense->load('creator');
+        $expense->load('creator', 'documents.uploader');
 
         return view('expenses.show', compact('expense'));
     }

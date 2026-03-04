@@ -335,6 +335,12 @@
         @endif
     </div>
 
+    {{-- Documents --}}
+    @include('partials.document-list', [
+        'documents' => $workOrder->documents,
+        'uploadUrl' => route('documents.store-generic', ['type' => 'work-order', 'id' => $workOrder->id]),
+    ])
+
     {{-- Back link --}}
     <div class="flex justify-start">
         <a href="{{ route('service-requests.show', $serviceRequest) }}"

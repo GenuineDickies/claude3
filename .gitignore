@@ -22,6 +22,7 @@ _ide_helper_models.php
 /storage/*.key
 /storage/pail
 /vendor
+deploy/**/config.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
@@ -54,4 +55,4 @@ node_modules/
 
 # Task files
 # tasks.json
-# tasks/ 
+# tasks/

@@ -24,7 +24,6 @@ class RapidDispatchTest extends TestCase
     {
         $category = CatalogCategory::create([
             'name' => 'Labor',
-            'type' => 'service',
             'sort_order' => 1,
             'is_active' => true,
         ]);
@@ -32,7 +31,7 @@ class RapidDispatchTest extends TestCase
         return CatalogItem::create([
             'catalog_category_id' => $category->id,
             'name' => 'Jump Start',
-            'unit_price' => 85.00,
+            'base_cost' => 85.00,
             'unit' => 'each',
             'pricing_type' => 'fixed',
             'is_active' => true,
@@ -44,25 +43,24 @@ class RapidDispatchTest extends TestCase
     {
         $category = CatalogCategory::create([
             'name' => 'Labor',
-            'type' => 'service',
             'sort_order' => 1,
             'is_active' => true,
         ]);
 
         $items = [
-            ['name' => 'Flat Tire Change', 'unit_price' => 85.00],
-            ['name' => 'Jump Start', 'unit_price' => 85.00],
-            ['name' => 'Lockout Service', 'unit_price' => 95.00],
-            ['name' => 'Fuel Delivery', 'unit_price' => 75.00],
-            ['name' => 'Tow', 'unit_price' => 125.00],
-            ['name' => 'Winch Out', 'unit_price' => 150.00],
+            ['name' => 'Flat Tire Change', 'base_cost' => 85.00],
+            ['name' => 'Jump Start', 'base_cost' => 85.00],
+            ['name' => 'Lockout Service', 'base_cost' => 95.00],
+            ['name' => 'Fuel Delivery', 'base_cost' => 75.00],
+            ['name' => 'Tow', 'base_cost' => 125.00],
+            ['name' => 'Winch Out', 'base_cost' => 150.00],
         ];
 
         foreach ($items as $i => $item) {
             CatalogItem::create([
                 'catalog_category_id' => $category->id,
                 'name' => $item['name'],
-                'unit_price' => $item['unit_price'],
+                'base_cost' => $item['base_cost'],
                 'unit' => 'each',
                 'pricing_type' => 'fixed',
                 'is_active' => true,

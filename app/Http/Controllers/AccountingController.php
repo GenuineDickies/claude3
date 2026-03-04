@@ -18,12 +18,22 @@ class AccountingController extends Controller
 
     public function chartOfAccounts()
     {
-        $accounts = Account::orderBy('code')->get();
+        $accounts = Account::general()->orderBy('code')->get();
 
         // Group by type for display
         $grouped = $accounts->groupBy('type');
 
         return view('accounting.chart-of-accounts', compact('accounts', 'grouped'));
+    }
+
+    // ── Import Chart of Accounts ───────────────────────
+
+    public function importAccounts()
+    {
+        $accounts = Account::import()->orderBy('code')->get();
+        $grouped = $accounts->groupBy('type');
+
+        return view('accounting.import-accounts', compact('accounts', 'grouped'));
     }
 
     // ── Journal Entries ────────────────────────────────

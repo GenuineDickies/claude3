@@ -25,10 +25,22 @@ return [
     // Leave empty to fall back to OpenStreetMap.
     'GOOGLE_MAPS_API_KEY' => '',
 
+    // ── App Callback (recommended) ─────────────────────────────────
+    // When set, locate.php will POST captured GPS data back to your
+    // Laravel app's API so the operator dashboard updates immediately.
+    // This works across any deployment topology (different servers,
+    // local dev via tunnel, etc.).
+    //
+    // Set this to the public URL of your Laravel app, e.g.:
+    //   'https://yourdomain.com'  or  'https://abc123.ngrok.io'
+    // Leave empty to skip the callback.
+    'APP_CALLBACK_URL' => '',
+
     // ── Database (MySQL) ──────────────────────────────────────────
     // When set, locate.php will update the service_requests table
     // directly so the operator's dashboard reflects the GPS data
-    // in real time.
+    // in real time. Used as a fallback if APP_CALLBACK_URL is not
+    // set or the callback fails.
     //
     // Copy these from your Laravel .env on the same hosting account.
     // Leave DB_HOST empty to skip database updates (flat-file only).
