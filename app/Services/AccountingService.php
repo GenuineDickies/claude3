@@ -9,6 +9,7 @@ use App\Models\Invoice;
 use App\Models\JournalEntry;
 use App\Models\PaymentRecord;
 use App\Models\VendorDocument;
+use App\Services\PostingRules;
 
 /**
  * Canonical entry point for all GL posting.
@@ -73,9 +74,9 @@ class AccountingService
             return null;
         }
 
-        $ar         = $this->account('1200'); // Accounts Receivable
-        $taxPayable = $this->account('2200'); // Sales Tax Payable
-        $coreLiab   = $this->account('2350'); // Core Deposits Payable
+        $ar         = $this->account(PostingRules::ACCOUNTS_RECEIVABLE);
+        $taxPayable = $this->account(PostingRules::SALES_TAX_PAYABLE);
+        $coreLiab   = $this->account(PostingRules::CORE_DEPOSITS_PAYABLE);
 
         if (! $ar) {
             return null;
@@ -101,7 +102,7 @@ class AccountingService
                 $amount = (float) ($item['quantity'] ?? 1) * (float) ($item['unit_price'] ?? 0);
 
                 // Try to find catalog item for revenue account mapping
-                $revenueAccountCode = '4000'; // Default: Roadside Service Revenue
+                $revenueAccountCode = PostingRules::REVENUE_DEFAULT;
                 if (! empty($item['catalog_item_id'])) {
                     $catalogItem = \App\Models\CatalogItem::find($item['catalog_item_id']);
                     if ($catalogItem?->revenueAccount) {
@@ -119,7 +120,7 @@ class AccountingService
         // If no line item detail, credit all revenue minus tax to default account
         if (empty($revenueCredits)) {
             $revenueAmount = (float) $invoice->total - (float) $invoice->tax_amount;
-            $defaultRevenue = $this->account('4000');
+            $defaultRevenue = $this->account(PostingRules::REVENUE_DEFAULT);
             if ($defaultRevenue) {
                 $this->credit($entry, $defaultRevenue, $revenueAmount, "Revenue – {$invoice->displayNumber()}");
             }
@@ -160,17 +161,14 @@ class AccountingService
             return null;
         }
 
-        $ar = $this->account('1200'); // Accounts Receivable
+        $ar = $this->account(PostingRules::ACCOUNTS_RECEIVABLE);
         if (! $ar) {
             return null;
         }
 
         // Cash account depends on payment method
-        $cashAccountCode = match ($payment->method) {
-            'card'   => '1150', // Square Clearing
-            default  => '1100', // Cash
-        };
-        $cash = $this->account($cashAccountCode) ?? $this->account('1100');
+        $cashAccountCode = PostingRules::cashAccountForPayment($payment->method);
+        $cash = $this->account($cashAccountCode) ?? $this->account(PostingRules::CASH);
 
         if (! $cash) {
             return null;
@@ -199,9 +197,9 @@ class AccountingService
             return null;
         }
 
-        $expenseAccountCode = self::EXPENSE_ACCOUNT_MAP[$expense->category] ?? '6900';
+        $expenseAccountCode = PostingRules::EXPENSE_CATEGORY_MAP[$expense->category] ?? PostingRules::EXPENSE_OTHER;
         $expenseAccount = $this->account($expenseAccountCode);
-        $cash = $this->account('1100');
+        $cash = $this->account(PostingRules::CASH);
 
         if (! $expenseAccount || ! $cash) {
             return null;
@@ -236,12 +234,9 @@ class AccountingService
 
         // Determine credit account: paid → cash/checking, unpaid → A/P
         if ($doc->is_paid) {
-            $creditAccountCode = match ($doc->payment_method) {
-                'check', 'ach' => '1110', // Business Checking
-                default        => '1100', // Cash
-            };
+            $creditAccountCode = PostingRules::cashAccountForDisbursement($doc->payment_method);
         } else {
-            $creditAccountCode = '2100'; // Accounts Payable
+            $creditAccountCode = PostingRules::ACCOUNTS_PAYABLE;
         }
 
         $creditAccount = $this->account($creditAccountCode);
@@ -249,7 +244,7 @@ class AccountingService
             return null;
         }
 
-        $coreLiab = $this->account('2350'); // Core Deposits Payable
+        $coreLiab = $this->account(PostingRules::CORE_DEPOSITS_PAYABLE);
         $vendorName = $doc->vendor->name ?? 'Unknown Vendor';
 
         $entry = $this->createEntry(
@@ -268,7 +263,7 @@ class AccountingService
         foreach ($doc->lines as $line) {
             if ($line->line_type === 'tax' || $line->line_type === 'shipping') {
                 // Tax & shipping go to the expense category of the document
-                $debitAccount = $this->account('6900'); // Other Expenses (default)
+                $debitAccount = $this->account(PostingRules::EXPENSE_OTHER);
                 if ($line->expense_account_id) {
                     $debitAccount = Account::find($line->expense_account_id) ?? $debitAccount;
                 }
@@ -292,7 +287,7 @@ class AccountingService
             // Fall back to vendor's default expense account or 6900
             if (! $debitAccount) {
                 $debitAccount = $doc->vendor->defaultExpenseAccount
-                    ?? $this->account('6900');
+                    ?? $this->account(PostingRules::EXPENSE_OTHER);
             }
 
             if ($debitAccount && (float) $line->line_total > 0) {
@@ -329,11 +324,8 @@ class AccountingService
     ): ?JournalEntry {
         $service = new self;
 
-        $ap = $service->account('2100'); // Accounts Payable
-        $cashCode = match ($paymentMethod) {
-            'check', 'ach' => '1110', // Business Checking
-            default        => '1100', // Cash
-        };
+        $ap = $service->account(PostingRules::ACCOUNTS_PAYABLE);
+        $cashCode = PostingRules::cashAccountForDisbursement($paymentMethod);
         $cash = $service->account($cashCode);
 
         if (! $ap || ! $cash) {
@@ -371,8 +363,8 @@ class AccountingService
     ): ?JournalEntry {
         $service = new self;
 
-        $coreLiab = $service->account('2350');
-        $cash     = $service->account('1100');
+        $coreLiab = $service->account(PostingRules::CORE_DEPOSITS_PAYABLE);
+        $cash     = $service->account(PostingRules::CASH);
 
         if (! $coreLiab || ! $cash) {
             return null;
@@ -405,9 +397,9 @@ class AccountingService
     ): ?JournalEntry {
         $service = new self;
 
-        $checking       = $service->account('1110');
-        $squareClearing = $service->account('1150');
-        $squareFees     = $service->account('7010');
+        $checking       = $service->account(PostingRules::CHECKING);
+        $squareClearing = $service->account(PostingRules::SQUARE_CLEARING);
+        $squareFees     = $service->account(PostingRules::SQUARE_FEES);
 
         if (! $checking || ! $squareClearing) {
             return null;
@@ -434,18 +426,7 @@ class AccountingService
 
     // ── Expense category → Account code mapping ──
 
-    private const EXPENSE_ACCOUNT_MAP = [
-        'fuel'           => '6150', // Vehicle Fuel Expense
-        'vehicle_repair' => '6200', // Vehicle Repairs
-        'supplies'       => '6400', // Supplies
-        'parts'          => '5100', // Parts & Materials (COGS)
-        'insurance'      => '6300', // General Insurance
-        'licensing'      => '6500', // Licensing & Permits
-        'tools'          => '6600', // Tools & Equipment
-        'marketing'      => '6700', // Advertising
-        'office'         => '6800', // Office Expenses
-        'other'          => '6900', // Other Expenses
-    ];
+    // Expense category map now lives in PostingRules::EXPENSE_CATEGORY_MAP
 
     // ── Private helpers ────────────────────────────────
 

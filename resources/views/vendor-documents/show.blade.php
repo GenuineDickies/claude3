@@ -13,7 +13,7 @@
     <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
             <div class="flex items-center gap-3">
-                <h1 class="text-2xl font-bold text-gray-900">{{ $doc->document_number }}</h1>
+                <h1 class="text-2xl font-bold text-gray-900">{{ $doc->vendor_document_number ?: 'DOC-'.$doc->id }}</h1>
                 @include('vendor-documents._status-badge', ['status' => $doc->status])
             </div>
             <p class="text-sm text-gray-500 mt-1">
@@ -94,8 +94,8 @@
                     @if ($doc->payment_method)
                         ({{ \App\Models\VendorDocument::PAYMENT_METHODS[$doc->payment_method] ?? $doc->payment_method }})
                     @endif
-                    @if ($doc->paid_date)
-                        on {{ $doc->paid_date->format('M j, Y') }}
+                    @if ($doc->paid_at)
+                        on {{ $doc->paid_at->format('M j, Y') }}
                     @endif
                 </span>
             @else
@@ -150,7 +150,7 @@
                 <tfoot>
                     <tr class="border-t-2 font-bold text-base">
                         <td colspan="6" class="py-3 text-right">Total</td>
-                        <td class="py-3 text-right">${{ number_format($doc->total_amount, 2) }}</td>
+                        <td class="py-3 text-right">${{ number_format($doc->total, 2) }}</td>
                     </tr>
                     @if ($doc->totalCoreCharges() > 0)
                         <tr class="text-sm text-gray-500">
@@ -206,7 +206,7 @@
                                 <span class="font-medium text-sm">{{ $je->entry_number }}</span>
                                 <span class="text-xs px-2 py-0.5 rounded {{ $je->status === 'posted' ? 'bg-green-100 text-green-700' : ($je->status === 'void' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600') }}">{{ ucfirst($je->status) }}</span>
                             </div>
-                            <p class="text-xs text-gray-400 mb-2">{{ $link->link_type }} &middot; {{ $je->entry_date->format('M j, Y') }}</p>
+                            <p class="text-xs text-gray-400 mb-2">{{ class_basename($link->document_type) }} &middot; {{ $je->entry_date->format('M j, Y') }}</p>
                             <table class="w-full text-xs">
                                 <thead>
                                     <tr class="text-gray-400 border-b">
