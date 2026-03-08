@@ -107,6 +107,10 @@ class CatalogController extends Controller
             'taxable'            => 'boolean',
         ]);
 
+        if (($validated['core_amount'] ?? null) === null) {
+            $validated['core_amount'] = 0.00;
+        }
+
         $category->items()->create($validated);
 
         return redirect()->route('catalog.categories.show', $category)
@@ -138,6 +142,10 @@ class CatalogController extends Controller
             'core_amount'        => 'nullable|numeric|min:0|max:99999.99',
             'taxable'            => 'boolean',
         ]);
+
+        if (($validated['core_amount'] ?? null) === null) {
+            $validated['core_amount'] = 0.00;
+        }
 
         $item->update($validated);
 
