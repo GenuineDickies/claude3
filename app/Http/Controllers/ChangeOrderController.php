@@ -71,9 +71,13 @@ class ChangeOrderController extends Controller
             $companyName = Setting::getValue('company_name', config('app.name'));
             $link = route('change-orders.show', $changeOrder->approval_token);
 
-            app(SmsServiceInterface::class)->sendRaw(
-                $serviceRequest->customer->phone,
-                $companyName . ': Change authorization requested for your service. Review and approve: ' . $link . ' Reply STOP to opt out.'
+            app(SmsServiceInterface::class)->sendRawWithLog(
+                to: $serviceRequest->customer->phone,
+                text: $companyName . ': Change authorization requested for your service. Review and approve: ' . $link . ' Reply STOP to opt out.',
+                customer: $serviceRequest->customer,
+                serviceRequest: $serviceRequest,
+                subject: 'Change order approval',
+                loggedBy: Auth::id(),
             );
         }
 

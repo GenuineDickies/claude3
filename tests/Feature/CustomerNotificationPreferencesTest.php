@@ -216,7 +216,7 @@ final class CustomerNotificationPreferencesTest extends TestCase
         ]);
 
         $smsMock = $this->mock(SmsServiceInterface::class);
-        $smsMock->shouldReceive('sendRaw')
+        $smsMock->shouldReceive('sendRawWithLog')
             ->once()
             ->andReturn(['success' => true, 'message_id' => 'msg-1', 'rendered_text' => 'text', 'error' => null]);
 

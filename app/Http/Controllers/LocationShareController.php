@@ -112,23 +112,29 @@ class LocationShareController extends Controller
      */
     public function store(Request $request, string $token): JsonResponse
     {
-        $serviceRequest = ServiceRequest::where('location_token', $token)->first();
-
-        if (! $serviceRequest || ! $serviceRequest->isLocationTokenValid()) {
-            return response()->json(['error' => 'Invalid or expired token.'], 422);
-        }
-
         $validated = $request->validate([
             'latitude'  => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
             'accuracy'  => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        $serviceRequest->update([
-            'latitude'          => $validated['latitude'],
-            'longitude'         => $validated['longitude'],
-            'location_shared_at' => now(),
-        ]);
+        // Atomic update: only succeed if token is still valid and unused
+        $updated = \Illuminate\Support\Facades\DB::table('service_requests')
+            ->where('location_token', $token)
+            ->whereNull('location_shared_at')  // Only update if still null
+            ->where('location_token_expires_at', '>', now())
+            ->update([
+                'latitude' => $validated['latitude'],
+                'longitude' => $validated['longitude'],
+                'location_shared_at' => now(),
+            ]);
+
+        if ($updated === 0) {
+            return response()->json(['error' => 'Invalid or expired token.'], 422);
+        }
+
+        // Reload the service request with fresh data
+        $serviceRequest = ServiceRequest::where('location_token', $token)->firstOrFail();
 
         LocationShared::dispatch(
             $serviceRequest,

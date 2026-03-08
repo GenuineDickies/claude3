@@ -295,6 +295,19 @@ class ProcessDocumentIntelligenceJob implements ShouldQueue
     private function extractSpreadsheetText(string $absolutePath): string
     {
         try {
+            // Check file size before loading to prevent memory issues
+            $maxFileSizeMB = 10; // 10MB limit
+            $fileSizeBytes = filesize($absolutePath);
+            
+            if ($fileSizeBytes > $maxFileSizeMB * 1024 * 1024) {
+                Log::warning('Spreadsheet exceeds size limit', [
+                    'document_id' => $this->document->id,
+                    'file_size_mb' => round($fileSizeBytes / 1024 / 1024, 2),
+                    'limit_mb' => $maxFileSizeMB,
+                ]);
+                return '';
+            }
+
             $spreadsheet = SpreadsheetIOFactory::load($absolutePath);
             $text = '';
             $maxChars = 60000; // ~15k tokens — safe limit for AI analysis

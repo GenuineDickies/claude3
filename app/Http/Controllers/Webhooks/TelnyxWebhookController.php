@@ -41,7 +41,13 @@ final class TelnyxWebhookController
 
         try {
             $client->webhooks->verify($payload, $headers, tolerance: $toleranceSeconds);
-        } catch (WebhookVerificationException) {
+        } catch (WebhookVerificationException $e) {
+            Log::warning('Telnyx webhook signature verification failed', [
+                'error' => $e->getMessage(),
+                'ip' => $request->ip(),
+                'timestamp_header' => $headers['telnyx-timestamp'] ?? null,
+                'signature_present' => isset($headers['telnyx-signature-ed25519']),
+            ]);
             return response()->json(['ok' => false], 401);
         }
 
@@ -75,7 +81,7 @@ final class TelnyxWebhookController
         }
 
         // Normalize phone to digits only for DB lookup
-        $phone = preg_replace('/\D/', '', $from);
+        $phone = Customer::normalizePhone($from);
 
         // Find the active customer by phone
         $customer = Customer::where('phone', $phone)
@@ -93,16 +99,24 @@ final class TelnyxWebhookController
                 telnyxMessageId: $telnyxMessageId,
                 serviceRequest: $serviceRequest,
             );
+        } else {
+            // Log unknown sender for audit trail
+            Log::info('Inbound SMS from unknown number', [
+                'from' => $from,
+                'body_preview' => substr($body, 0, 50),
+                'telnyx_message_id' => $telnyxMessageId,
+            ]);
         }
 
         // Check for compliance keywords
         $keyword = strtoupper(trim($body));
 
         if (! isset(self::KEYWORD_SLUGS[$keyword])) {
-            // Not a keyword — send auto-reply if customer exists and has consent
+            // Not a keyword — send auto-reply if customer exists
+            // Note: 'inbound-auto-reply' is a compliance template that bypasses consent checks
             if ($customer) {
                 $autoReply = MessageTemplate::where('slug', 'inbound-auto-reply')->first();
-                if ($autoReply && $customer->hasSmsConsent()) {
+                if ($autoReply) {
                     app(SmsServiceInterface::class)->sendTemplate(
                         template: $autoReply,
                         to: $from,

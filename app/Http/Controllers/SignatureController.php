@@ -43,21 +43,14 @@ class SignatureController extends Controller
             $companyName = Setting::getValue('company_name', config('app.name'));
 
             $sms = app(SmsServiceInterface::class);
-            $sms->sendRaw(
-                $serviceRequest->customer->phone,
-                $companyName . ': Please sign to confirm service completion: ' . $signUrl . ' Reply STOP to opt out.',
+            $sms->sendRawWithLog(
+                to: $serviceRequest->customer->phone,
+                text: $companyName . ': Please sign to confirm service completion: ' . $signUrl . ' Reply STOP to opt out.',
+                customer: $serviceRequest->customer,
+                serviceRequest: $serviceRequest,
+                subject: 'Signature request',
+                loggedBy: Auth::id(),
             );
-
-            Correspondence::create([
-                'customer_id'        => $serviceRequest->customer->id,
-                'service_request_id' => $serviceRequest->id,
-                'channel'            => Correspondence::CHANNEL_SMS,
-                'direction'          => Correspondence::DIRECTION_OUTBOUND,
-                'subject'            => 'Signature request',
-                'body'               => $companyName . ': Please sign to confirm service completion: ' . $signUrl,
-                'logged_by'          => Auth::id(),
-                'logged_at'          => now(),
-            ]);
         }
 
         return redirect()->route('service-requests.show', $serviceRequest)
@@ -104,7 +97,7 @@ class SignatureController extends Controller
         }
 
         $request->validate([
-            'signature_data' => 'required|string',
+            'signature_data' => 'required|string|max:500000',
             'signer_name'    => 'required|string|max:200',
         ]);
 

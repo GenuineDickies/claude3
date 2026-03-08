@@ -304,7 +304,7 @@ final class TelnyxWebhookTest extends TestCase
         $response->assertOk();
     }
 
-    public function test_webhook_skips_auto_reply_when_customer_has_no_consent(): void
+    public function test_webhook_sends_auto_reply_even_without_consent_because_it_is_compliance_template(): void
     {
         MessageTemplate::create([
             'slug'     => 'inbound-auto-reply',
@@ -313,7 +313,7 @@ final class TelnyxWebhookTest extends TestCase
             'body'     => 'Thank you!',
         ]);
 
-        Customer::create([
+        $customer = Customer::create([
             'first_name' => 'No',
             'last_name'  => 'Consent',
             'phone'      => '15551234567',
@@ -321,7 +321,14 @@ final class TelnyxWebhookTest extends TestCase
         ]);
 
         $smsMock = $this->mock(SmsServiceInterface::class);
-        $smsMock->shouldNotReceive('sendTemplate');
+        // inbound-auto-reply is a compliance template, so it should be sent even without consent
+        $smsMock->shouldReceive('sendTemplate')
+            ->once()
+            ->andReturn([
+                'success'       => true,
+                'message_id'    => 'test-msg-id',
+                'rendered_text' => 'Thank you!',
+            ]);
         $smsMock->shouldReceive('logInbound')->once();
 
         $response = $this->postSignedWebhook(

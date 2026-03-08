@@ -126,12 +126,29 @@ class Customer extends Model
     }
 
     /**
+     * Normalize a phone number to digits-only format.
+     * Strips all non-digit characters and removes leading 1 for 11-digit US numbers.
+     *
+     * @param string $phone
+     * @return string
+     */
+    public static function normalizePhone(string $phone): string
+    {
+        $normalized = preg_replace('/\D/', '', $phone);
+        // Remove leading '1' for 11-digit US numbers (e.g., 15551234567 -> 5551234567)
+        if (strlen($normalized) === 11 && substr($normalized, 0, 1) === '1') {
+            return substr($normalized, 1);
+        }
+        return $normalized;
+    }
+
+    /**
      * Strip phone to digits-only before saving.
      * Ensures consistent storage regardless of input format.
      */
     public function setPhoneAttribute(string $value): void
     {
-        $this->attributes['phone'] = preg_replace('/\D/', '', $value);
+        $this->attributes['phone'] = self::normalizePhone($value);
     }
 
     public function serviceRequests(): HasMany
