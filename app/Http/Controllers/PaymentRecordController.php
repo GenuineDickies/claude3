@@ -10,6 +10,7 @@ use App\Models\ServiceLog;
 use App\Models\ServiceRequest;
 use App\Models\Setting;
 use App\Services\StatusAutomationService;
+use App\Services\PostingRules;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -89,10 +90,10 @@ class PaymentRecordController extends Controller
         ]);
 
         // For deposits (no invoice), record a journal entry:
-        // Debit Cash, Credit Customer Deposits
+        // Debit Checking, Credit Deferred Revenue
         if (!$payment->invoice_id) {
-            $cash     = Account::where('code', '1100')->first();
-            $deposits = Account::where('code', '2300')->first();
+            $cash     = Account::where('code', PostingRules::CHECKING)->first();
+            $deposits = Account::where('code', PostingRules::DEFERRED_REVENUE)->first();
 
             if ($cash && $deposits) {
                 $je = JournalEntry::create([

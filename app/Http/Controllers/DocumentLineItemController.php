@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 
 class DocumentLineItemController extends Controller
 {
-    private const CASH_ACCOUNT_CODE = '1100';
+    private const CASH_ACCOUNT_CODE = '1000';
 
     /** Update category and/or account on a draft line item, then accept it. */
     public function accept(Request $request, DocumentLineItem $lineItem)

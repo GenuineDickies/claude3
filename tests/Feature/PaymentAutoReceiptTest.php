@@ -136,17 +136,17 @@ class PaymentAutoReceiptTest extends TestCase
         $this->assertStringContainsString('Customer deposit', $je->memo);
         $this->assertEquals(PaymentRecord::class, $je->source_type);
 
-        // Balanced double-entry: debit Cash, credit Customer Deposits
+        // Balanced double-entry: debit Checking, credit Deferred Revenue
         $lines = $je->lines()->with('account')->get();
         $this->assertCount(2, $lines);
 
         $debitLine = $lines->firstWhere('debit', '>', 0);
         $creditLine = $lines->firstWhere('credit', '>', 0);
 
-        $this->assertEquals('1100', $debitLine->account->code);  // Cash
+        $this->assertEquals('1000', $debitLine->account->code);  // Checking
         $this->assertEquals(350.00, (float) $debitLine->debit);
 
-        $this->assertEquals('2300', $creditLine->account->code);  // Customer Deposits
+        $this->assertEquals('2300', $creditLine->account->code);  // Deferred Revenue
         $this->assertEquals(350.00, (float) $creditLine->credit);
     }
 

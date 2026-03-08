@@ -85,8 +85,8 @@ class CatalogController extends Controller
     {
         $pricingTypes = CatalogItem::pricingTypes();
         $units = CatalogItem::units();
-        $revenueAccounts = Account::general()->where('type', 'revenue')->orderBy('code')->get();
-        $cogsAccounts = Account::general()->whereIn('type', ['cogs', 'expense'])->orderBy('code')->get();
+        $revenueAccounts = Account::general()->where('type', 'revenue')->where('is_active', true)->orderBy('code')->get();
+        $cogsAccounts = Account::general()->whereIn('type', ['cogs', 'expense'])->where('is_active', true)->orderBy('code')->get();
         return view('catalog.items.create', compact('category', 'pricingTypes', 'units', 'revenueAccounts', 'cogsAccounts'));
     }
 
@@ -117,8 +117,8 @@ class CatalogController extends Controller
     {
         $pricingTypes = CatalogItem::pricingTypes();
         $units = CatalogItem::units();
-        $revenueAccounts = Account::general()->where('type', 'revenue')->orderBy('code')->get();
-        $cogsAccounts = Account::general()->whereIn('type', ['cogs', 'expense'])->orderBy('code')->get();
+        $revenueAccounts = Account::general()->where('type', 'revenue')->where('is_active', true)->orderBy('code')->get();
+        $cogsAccounts = Account::general()->whereIn('type', ['cogs', 'expense'])->where('is_active', true)->orderBy('code')->get();
         return view('catalog.items.edit', compact('category', 'item', 'pricingTypes', 'units', 'revenueAccounts', 'cogsAccounts'));
     }
 
@@ -150,7 +150,7 @@ class CatalogController extends Controller
         $name = $item->name;
         $item->delete();
 
-        return redirect()->route('catalog.index')
+        return redirect()->route('catalog.categories.show', $category)
             ->with('success', 'Service "' . $name . '" deleted.');
     }
 }

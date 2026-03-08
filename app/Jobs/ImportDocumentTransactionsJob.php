@@ -76,17 +76,16 @@ Chart of Accounts:
 {$accounts}
 
 Categorisation guidance for this roadside-assistance business:
-- Gas station purchases → category "fuel", account 6150
-- Auto parts, batteries, tires, jump starters → category "parts", account 5100
-- Tow truck repairs, oil changes → category "vehicle_repair", account 6200
-- Deposits or payments received from customers, Honk, Urgently → type "income"
-- Square deposits, card settlements → type "transfer" from Square Clearing (1050) to Checking (1010)
-- Honk or Urgently payouts/revenue → type "income", account 4400
-- Bank fees, processing fees, Stripe/Square fees → category "other", account 6850
-- Transfers between own accounts → type "transfer", account 1110 or 1120
-- Subcontractor or provider payments → category "other", account 5200
+- Gas station purchases → category "fuel", account 6100
+- Auto parts, batteries, tires, jump starters → category "parts", account 5000
+- Tow truck repairs, oil changes → category "vehicle_repair", account 6110
+- Deposits or payments received from customers → type "income", account 4000
+- Honk or Urgently payouts/revenue → type "income", account 4040 or 4900
+- Bank fees, processing fees, Stripe/Square fees → category "other", account 6700
+- Transfers between own accounts → type "transfer", account 1010 or 1020
+- Subcontractor or provider payments → category "other", account 5010
 - Owner draws, personal transfers → type "transfer", account 3100
-- Insurance premiums → category "insurance", account 6300 or 6250
+- Insurance premiums → category "insurance", account 6200 or 6120
 
 Rules:
 - Parse EVERY identifiable transaction row. Do not skip or combine rows.

@@ -18,7 +18,7 @@ class AccountingController extends Controller
 
     public function chartOfAccounts()
     {
-        $accounts = Account::general()->orderBy('code')->get();
+        $accounts = Account::general()->where('is_active', true)->orderBy('code')->get();
 
         // Group by type for display
         $grouped = $accounts->groupBy('type');
@@ -30,7 +30,7 @@ class AccountingController extends Controller
 
     public function importAccounts()
     {
-        $accounts = Account::import()->orderBy('code')->get();
+        $accounts = Account::import()->where('is_active', true)->orderBy('code')->get();
         $grouped = $accounts->groupBy('type');
 
         return view('accounting.import-accounts', compact('accounts', 'grouped'));

@@ -110,10 +110,10 @@ class AccountingTest extends TestCase
     {
         $this->seedAccounts();
 
-        $this->assertDatabaseHas('accounts', ['code' => '1000', 'name' => 'Cash']);
+        $this->assertDatabaseHas('accounts', ['code' => '1000', 'name' => 'Checking Account']);
         $this->assertDatabaseHas('accounts', ['code' => '1100', 'name' => 'Accounts Receivable']);
         $this->assertDatabaseHas('accounts', ['code' => '4000', 'name' => 'Service Revenue']);
-        $this->assertDatabaseHas('accounts', ['code' => '5300', 'name' => 'Parts & Materials']);
+        $this->assertDatabaseHas('accounts', ['code' => '5000', 'name' => 'Parts & Supplies Used']);
 
         $this->assertGreaterThanOrEqual(17, Account::count());
     }
@@ -133,9 +133,9 @@ class AccountingTest extends TestCase
 
     public function test_account_debit_normal_types(): void
     {
-        $asset   = Account::create(['code' => '1000', 'name' => 'T', 'type' => 'asset']);
-        $expense = Account::create(['code' => '6000', 'name' => 'T', 'type' => 'expense']);
-        $cogs    = Account::create(['code' => '5000', 'name' => 'T', 'type' => 'cogs']);
+        $asset   = Account::firstOrCreate(['code' => '1000', 'scope' => Account::SCOPE_GENERAL], ['name' => 'T', 'type' => 'asset']);
+        $expense = Account::firstOrCreate(['code' => '6000', 'scope' => Account::SCOPE_GENERAL], ['name' => 'T', 'type' => 'expense']);
+        $cogs    = Account::firstOrCreate(['code' => '5000', 'scope' => Account::SCOPE_GENERAL], ['name' => 'T', 'type' => 'cogs']);
 
         $this->assertTrue($asset->isDebitNormal());
         $this->assertTrue($expense->isDebitNormal());
@@ -144,9 +144,9 @@ class AccountingTest extends TestCase
 
     public function test_account_credit_normal_types(): void
     {
-        $liability = Account::create(['code' => '2000', 'name' => 'T', 'type' => 'liability']);
-        $equity    = Account::create(['code' => '3000', 'name' => 'T', 'type' => 'equity']);
-        $revenue   = Account::create(['code' => '4000', 'name' => 'T', 'type' => 'revenue']);
+        $liability = Account::firstOrCreate(['code' => '2000', 'scope' => Account::SCOPE_GENERAL], ['name' => 'T', 'type' => 'liability']);
+        $equity    = Account::firstOrCreate(['code' => '3000', 'scope' => Account::SCOPE_GENERAL], ['name' => 'T', 'type' => 'equity']);
+        $revenue   = Account::firstOrCreate(['code' => '4000', 'scope' => Account::SCOPE_GENERAL], ['name' => 'T', 'type' => 'revenue']);
 
         $this->assertFalse($liability->isDebitNormal());
         $this->assertFalse($equity->isDebitNormal());
@@ -155,8 +155,8 @@ class AccountingTest extends TestCase
 
     public function test_account_balance_debit_normal(): void
     {
-        $cash = Account::create(['code' => '1100', 'name' => 'Cash', 'type' => 'asset']);
-        $revenue = Account::create(['code' => '4000', 'name' => 'Rev', 'type' => 'revenue']);
+        $cash = Account::firstOrCreate(['code' => '1000', 'scope' => Account::SCOPE_GENERAL], ['name' => 'Checking Account', 'type' => 'asset']);
+        $revenue = Account::firstOrCreate(['code' => '4000', 'scope' => Account::SCOPE_GENERAL], ['name' => 'Rev', 'type' => 'revenue']);
 
         $this->createJournalEntry([
             ['account_id' => $cash->id, 'debit' => 500, 'credit' => 0],
@@ -168,8 +168,8 @@ class AccountingTest extends TestCase
 
     public function test_account_balance_credit_normal(): void
     {
-        $cash = Account::create(['code' => '1100', 'name' => 'Cash', 'type' => 'asset']);
-        $revenue = Account::create(['code' => '4000', 'name' => 'Rev', 'type' => 'revenue']);
+        $cash = Account::firstOrCreate(['code' => '1000', 'scope' => Account::SCOPE_GENERAL], ['name' => 'Checking Account', 'type' => 'asset']);
+        $revenue = Account::firstOrCreate(['code' => '4000', 'scope' => Account::SCOPE_GENERAL], ['name' => 'Rev', 'type' => 'revenue']);
 
         $this->createJournalEntry([
             ['account_id' => $cash->id, 'debit' => 1000, 'credit' => 0],
@@ -181,8 +181,8 @@ class AccountingTest extends TestCase
 
     public function test_account_balance_ignores_void_entries(): void
     {
-        $cash = Account::create(['code' => '1100', 'name' => 'Cash', 'type' => 'asset']);
-        $revenue = Account::create(['code' => '4000', 'name' => 'Rev', 'type' => 'revenue']);
+        $cash = Account::firstOrCreate(['code' => '1000', 'scope' => Account::SCOPE_GENERAL], ['name' => 'Checking Account', 'type' => 'asset']);
+        $revenue = Account::firstOrCreate(['code' => '4000', 'scope' => Account::SCOPE_GENERAL], ['name' => 'Rev', 'type' => 'revenue']);
 
         // Posted entry
         $this->createJournalEntry([
@@ -201,8 +201,8 @@ class AccountingTest extends TestCase
 
     public function test_account_balance_with_as_of_date(): void
     {
-        $cash = Account::create(['code' => '1100', 'name' => 'Cash', 'type' => 'asset']);
-        $revenue = Account::create(['code' => '4000', 'name' => 'Rev', 'type' => 'revenue']);
+        $cash = Account::firstOrCreate(['code' => '1000', 'scope' => Account::SCOPE_GENERAL], ['name' => 'Checking Account', 'type' => 'asset']);
+        $revenue = Account::firstOrCreate(['code' => '4000', 'scope' => Account::SCOPE_GENERAL], ['name' => 'Rev', 'type' => 'revenue']);
 
         $this->createJournalEntry([
             ['account_id' => $cash->id, 'debit' => 500, 'credit' => 0],
@@ -242,8 +242,8 @@ class AccountingTest extends TestCase
 
     public function test_journal_entry_is_balanced(): void
     {
-        $account1 = Account::create(['code' => '1100', 'name' => 'Cash', 'type' => 'asset']);
-        $account2 = Account::create(['code' => '4000', 'name' => 'Rev', 'type' => 'revenue']);
+        $account1 = Account::firstOrCreate(['code' => '1000', 'scope' => Account::SCOPE_GENERAL], ['name' => 'Checking Account', 'type' => 'asset']);
+        $account2 = Account::firstOrCreate(['code' => '4000', 'scope' => Account::SCOPE_GENERAL], ['name' => 'Rev', 'type' => 'revenue']);
 
         $entry = $this->createJournalEntry([
             ['account_id' => $account1->id, 'debit' => 100, 'credit' => 0],
@@ -255,8 +255,8 @@ class AccountingTest extends TestCase
 
     public function test_journal_entry_is_not_balanced(): void
     {
-        $account1 = Account::create(['code' => '1100', 'name' => 'Cash', 'type' => 'asset']);
-        $account2 = Account::create(['code' => '4000', 'name' => 'Rev', 'type' => 'revenue']);
+        $account1 = Account::firstOrCreate(['code' => '1000', 'scope' => Account::SCOPE_GENERAL], ['name' => 'Checking Account', 'type' => 'asset']);
+        $account2 = Account::firstOrCreate(['code' => '4000', 'scope' => Account::SCOPE_GENERAL], ['name' => 'Rev', 'type' => 'revenue']);
 
         $entry = JournalEntry::create([
             'entry_number' => JournalEntry::generateEntryNumber(),
@@ -272,8 +272,8 @@ class AccountingTest extends TestCase
 
     public function test_journal_entry_void_excludes_from_balances(): void
     {
-        $cash    = Account::create(['code' => '1100', 'name' => 'Cash', 'type' => 'asset']);
-        $revenue = Account::create(['code' => '4000', 'name' => 'Rev', 'type' => 'revenue']);
+        $cash    = Account::firstOrCreate(['code' => '1000', 'scope' => Account::SCOPE_GENERAL], ['name' => 'Checking Account', 'type' => 'asset']);
+        $revenue = Account::firstOrCreate(['code' => '4000', 'scope' => Account::SCOPE_GENERAL], ['name' => 'Rev', 'type' => 'revenue']);
 
         $entry = $this->createJournalEntry([
             ['account_id' => $cash->id, 'debit' => 250, 'credit' => 0],
@@ -322,7 +322,7 @@ class AccountingTest extends TestCase
         $this->assertEquals(1000.00, (float) $revLine->credit);
 
         // Sales tax credited
-        $taxLine = $entry->lines()->where('account_id', $this->account('2020')->id)->first();
+        $taxLine = $entry->lines()->where('account_id', $this->account('2110')->id)->first();
         $this->assertEquals(80.00, (float) $taxLine->credit);
     }
 
@@ -458,7 +458,7 @@ class AccountingTest extends TestCase
         $this->assertTrue($entry->isBalanced());
 
         // Parts → COGS account 5300
-        $expLine = $entry->lines()->where('account_id', $this->account('5300')->id)->first();
+        $expLine = $entry->lines()->where('account_id', $this->account('5000')->id)->first();
         $this->assertEquals(49.99, (float) $expLine->debit);
 
         // Cash credited
@@ -483,9 +483,9 @@ class AccountingTest extends TestCase
         $entry = $service->postExpense($expense);
 
         $this->assertNotNull($entry);
-        // fuel → 6000 Vehicle Fuel Expense
+        // fuel → 6100 Vehicle Fuel
         $this->assertNotNull(
-            $entry->lines()->where('account_id', $this->account('6000')->id)->first()
+            $entry->lines()->where('account_id', $this->account('6100')->id)->first()
         );
     }
 
@@ -716,7 +716,7 @@ class AccountingTest extends TestCase
 
     public function test_general_ledger_requires_auth(): void
     {
-        $account = Account::create(['code' => '1100', 'name' => 'Cash', 'type' => 'asset']);
+        $account = Account::firstOrCreate(['code' => '1000', 'scope' => Account::SCOPE_GENERAL], ['name' => 'Checking Account', 'type' => 'asset']);
         $this->get(route('accounting.general-ledger', $account))->assertRedirect(route('login'));
     }
 
@@ -734,7 +734,7 @@ class AccountingTest extends TestCase
             ->assertOk()
             ->assertSee('Chart of Accounts')
             ->assertSee('1000')
-            ->assertSee('Cash');
+            ->assertSee('Checking Account');
     }
 
     public function test_journal_page_loads(): void
@@ -805,14 +805,14 @@ class AccountingTest extends TestCase
             ->assertOk()
             ->assertSee('General Ledger')
             ->assertSee('1000')
-            ->assertSee('Cash');
+            ->assertSee('Checking Account');
     }
 
     public function test_chart_of_accounts_empty_state(): void
     {
         $user = $this->createUser();
 
-        // Migration seeds a Customer Deposits account; remove it to test the true empty state.
+        // Clear any seeded chart rows to test the true empty state.
         Account::query()->delete();
 
         $this->actingAs($user)
@@ -852,7 +852,7 @@ class AccountingTest extends TestCase
         $this->assertEquals(1000.0, $this->account('4000')->balance());
 
         // Sales tax payable should be $80
-        $this->assertEquals(80.0, $this->account('2020')->balance());
+        $this->assertEquals(80.0, $this->account('2110')->balance());
 
         // Trial balance must balance
         $reporting = new FinancialReportingService();

@@ -8,6 +8,7 @@ use App\Models\DocumentTransactionImport;
 use App\Models\Expense;
 use App\Models\JournalEntry;
 use App\Models\JournalLine;
+use App\Services\PostingRules;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,10 +17,10 @@ class TransactionImportController extends Controller
 {
     /**
      * Map AI account codes to their debit/credit expense accounts for journal entries.
-     * For expenses: debit the expense account, credit Cash (1100).
-     * For income: debit Cash (1100), credit the revenue account.
+        * For expenses: debit the expense account, credit Checking (1000).
+        * For income: debit Checking (1000), credit the revenue account.
      */
-    private const CASH_ACCOUNT_CODE = '1100';
+        private const CASH_ACCOUNT_CODE = PostingRules::CHECKING;
 
     /** List all documents that have parsed transaction imports. */
     public function index(Request $request)
@@ -193,7 +194,7 @@ class TransactionImportController extends Controller
         if ($import->type === DocumentTransactionImport::TYPE_TRANSFER) {
             // Transfers don't create an Expense — just journal the movement
             $sourceAccount = $cashAccount;
-            $destCode = $import->account_code ?: '1110'; // Default to Business Checking
+            $destCode = $import->account_code ?: PostingRules::SAVINGS;
             $destAccount = $this->generalAccount($destCode);
 
             if ($sourceAccount && $destAccount) {
@@ -289,7 +290,7 @@ class TransactionImportController extends Controller
             'created_by'       => Auth::id(),
         ]);
 
-        $expenseAccountCode = $import->account_code ?: '6900';
+            $expenseAccountCode = $import->account_code ?: PostingRules::EXPENSE_OTHER;
         $expenseAccount = $this->generalAccount($expenseAccountCode);
 
         $journalEntry = null;
