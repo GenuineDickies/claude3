@@ -138,6 +138,17 @@ final class LocationShareTest extends TestCase
         $response->assertViewHas('token', $sr->location_token);
     }
 
+    public function test_locate_page_uses_generated_api_url_instead_of_root_relative_path(): void
+    {
+        [, $sr] = $this->createCustomerWithRequest(withToken: true);
+
+        $response = $this->get('/locate/' . $sr->location_token);
+
+        $response->assertOk();
+        $response->assertSee(json_encode(url('/api/locate/' . $sr->location_token)), false);
+        $response->assertDontSee("fetch('/api/locate/" . $sr->location_token, false);
+    }
+
     public function test_locate_page_returns_410_for_expired_token(): void
     {
         [, $sr] = $this->createCustomerWithRequest(withToken: true);

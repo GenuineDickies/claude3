@@ -261,7 +261,7 @@
                     status.textContent = 'Sending your confirmed location…';
                     status.className = 'status';
 
-                    fetch('/api/locate/{{ $token }}', {
+                    fetch(@json(url('/api/locate/' . $token)), {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
