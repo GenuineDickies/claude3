@@ -51,7 +51,6 @@ class ChartOfAccountsSeeder extends Seeder
             ['code' => '4250', 'name' => 'Towing Revenue',             'type' => Account::TYPE_REVENUE],
             ['code' => '4300', 'name' => 'Other Revenue',              'type' => Account::TYPE_REVENUE],
             ['code' => '4400', 'name' => 'Platform Revenue (Honk/Urgently)', 'type' => Account::TYPE_REVENUE],
-            ['code' => '4500', 'name' => 'Square Payment Revenue',     'type' => Account::TYPE_REVENUE],
 
             // Cost of Goods Sold (5xxx)
             ['code' => '5000', 'name' => 'Parts Cost of Goods Sold',   'type' => Account::TYPE_COGS],
@@ -109,7 +108,6 @@ class ChartOfAccountsSeeder extends Seeder
             ['code' => '4250', 'name' => 'Towing Income',           'type' => Account::TYPE_REVENUE],
             ['code' => '4300', 'name' => 'Other Income',            'type' => Account::TYPE_REVENUE],
             ['code' => '4400', 'name' => 'Honk / Urgently Payouts', 'type' => Account::TYPE_REVENUE],
-            ['code' => '4500', 'name' => 'Square Deposits',         'type' => Account::TYPE_REVENUE],
 
             // COGS
             ['code' => '5300', 'name' => 'Parts & Materials',       'type' => Account::TYPE_COGS],

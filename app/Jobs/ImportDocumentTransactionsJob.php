@@ -80,7 +80,7 @@ Categorisation guidance for this roadside-assistance business:
 - Auto parts, batteries, tires, jump starters → category "parts", account 5100
 - Tow truck repairs, oil changes → category "vehicle_repair", account 6200
 - Deposits or payments received from customers, Honk, Urgently → type "income"
-- Square deposits, card settlements → type "income", account 4500
+- Square deposits, card settlements → type "transfer" from Square Clearing (1050) to Checking (1010)
 - Honk or Urgently payouts/revenue → type "income", account 4400
 - Bank fees, processing fees, Stripe/Square fees → category "other", account 6850
 - Transfers between own accounts → type "transfer", account 1110 or 1120
