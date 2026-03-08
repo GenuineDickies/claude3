@@ -48,12 +48,15 @@
                             <th class="pb-2 pr-4">Location</th>
                             <th class="pb-2 pr-4">Status</th>
                             <th class="pb-2">Created</th>
+                            <th class="pb-2 text-right"><span class="sr-only">Actions</span></th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($recent as $sr)
-                            <tr class="border-b last:border-0">
-                                <td class="py-2 pr-4 font-mono text-gray-700">#{{ $sr->id }}</td>
+                            <tr class="border-b last:border-0 hover:bg-gray-50">
+                                <td class="py-2 pr-4">
+                                    <a href="{{ route('service-requests.show', $sr) }}" class="font-mono text-blue-600 hover:text-blue-800 font-medium">#{{ $sr->id }}</a>
+                                </td>
                                 <td class="py-2 pr-4">{{ $sr->customer?->first_name }} {{ $sr->customer?->last_name }}</td>
                                 <td class="py-2 pr-4 text-gray-600">{{ $sr->catalogItem?->name ?? '—' }}</td>
                                 <td class="py-2 pr-4 text-gray-600">{{ \Illuminate\Support\Str::limit($sr->location, 30) }}</td>
@@ -61,6 +64,14 @@
                                     <x-status-badge :status="$sr->status" />
                                 </td>
                                 <td class="py-2 text-gray-500">{{ $sr->created_at->diffForHumans() }}</td>
+                                <td class="py-2 text-right">
+                                    <a href="{{ route('service-requests.show', $sr) }}" class="inline-flex text-gray-400 hover:text-blue-600" title="View ticket">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+                                        </svg>
+                                    </a>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
