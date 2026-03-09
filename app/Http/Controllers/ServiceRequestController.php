@@ -216,7 +216,11 @@ class ServiceRequestController extends Controller
         $newStatus = $request->input('status');
 
         if (! $serviceRequest->canTransitionTo($newStatus)) {
-            return back()->with('error', 'Cannot transition from "' . $serviceRequest->statusLabel() . '" to "' . (ServiceRequest::STATUS_LABELS[$newStatus] ?? $newStatus) . '".');
+            $error = $newStatus === 'dispatched' && $serviceRequest->status === 'new'
+                ? ($serviceRequest->dispatchBlockedReason() ?? 'Dispatch requirements are not met.')
+                : 'Cannot transition from "' . $serviceRequest->statusLabel() . '" to "' . (ServiceRequest::STATUS_LABELS[$newStatus] ?? $newStatus) . '".';
+
+            return back()->with('error', $error);
         }
 
         $oldStatus = $serviceRequest->status;

@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 })
                 .catch(error => {
-                    statusDiv.innerHTML = '<span class="text-red-600">Lookup failed. Proceeding as new customer.</span>';
+                    statusDiv.innerHTML = '<span class="text-red-600">No match found. Proceeding as new customer.</span>';
                     customerCheckResolved = true;
                     updateNextButtonState();
                     console.error('Error fetching customer:', error);

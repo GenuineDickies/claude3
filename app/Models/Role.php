@@ -1,0 +1,32 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+
+class Role extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'role_name',
+        'description',
+    ];
+
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class);
+    }
+
+    public function pages(): BelongsToMany
+    {
+        return $this->belongsToMany(Page::class);
+    }
+
+    public function isAdministrator(): bool
+    {
+        return strcasecmp($this->role_name, 'Administrator') === 0;
+    }
+}

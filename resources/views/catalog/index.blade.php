@@ -5,14 +5,14 @@
     <div class="flex items-center justify-between mb-6">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">Service Catalog</h1>
-            <p class="text-sm text-gray-500 mt-1">Manage service categories and the individual services you offer.</p>
+            <p class="text-sm text-gray-500 mt-1">Manage the services you offer.</p>
         </div>
-        <a href="{{ route('catalog.categories.create') }}"
+        <a href="{{ route('catalog.items.create') }}"
            class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors">
             <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
             </svg>
-            New Service Category
+            Add Service
         </a>
     </div>
 
@@ -22,38 +22,43 @@
         </div>
     @endif
 
-    @if($categories->isEmpty())
+    @if($services->isEmpty())
         <div class="bg-white rounded-lg shadow-xs p-8 text-center">
-            <p class="text-gray-500">No service categories yet. Create one to get started.</p>
+            <p class="text-gray-500">No services yet. Add one to get started.</p>
         </div>
     @else
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            @foreach($categories as $category)
-                <div class="bg-white rounded-lg shadow-xs p-5 flex flex-col">
-                    <div class="flex items-start justify-between mb-2">
-                        <div>
-                            <a href="{{ route('catalog.categories.show', $category) }}"
-                               class="text-base font-semibold text-gray-900 hover:text-blue-600">
-                                {{ $category->name }}
-                            </a>
+        <div class="bg-white rounded-lg shadow-xs divide-y divide-gray-100">
+            @foreach($services as $service)
+                <div class="flex items-center justify-between gap-4 px-6 py-4">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-medium text-gray-900">{{ $service->name }}</span>
+                            @if(!$service->is_active)
+                                <span class="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-sm">Inactive</span>
+                            @endif
                         </div>
-                        @if(!$category->is_active)
-                            <span class="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-sm">Inactive</span>
+                        <div class="flex items-center gap-3 mt-1">
+                            <span class="text-sm font-semibold text-gray-700">${{ number_format($service->base_cost, 2) }}</span>
+                            <span class="text-xs text-gray-500">/ {{ $service->unit }}</span>
+                            <span @class([
+                                'text-xs px-1.5 py-0.5 rounded-sm font-medium',
+                                'bg-green-50 text-green-700' => $service->pricing_type === 'fixed',
+                                'bg-purple-50 text-purple-700' => $service->pricing_type === 'variable',
+                            ])>
+                                {{ ucfirst($service->pricing_type) }}
+                            </span>
+                        </div>
+                        @if($service->description)
+                            <p class="text-xs text-gray-500 mt-1 truncate">{{ $service->description }}</p>
                         @endif
                     </div>
-
-                    @if($category->description)
-                        <p class="text-sm text-gray-500 mb-3">{{ $category->description }}</p>
-                    @endif
-
-                    <div class="mt-auto flex items-center justify-between pt-3 border-t border-gray-100">
-                        <span class="text-sm text-gray-500">{{ $category->items_count }} {{ Str::plural('service', $category->items_count) }}</span>
-                        <div class="flex items-center gap-2">
-                            <a href="{{ route('catalog.categories.show', $category) }}"
-                               class="text-sm text-blue-600 hover:text-blue-700">View</a>
-                            <a href="{{ route('catalog.categories.edit', $category) }}"
-                               class="text-sm text-gray-400 hover:text-blue-600">Edit</a>
-                        </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <a href="{{ route('catalog.items.edit', $service) }}"
+                           class="text-sm text-gray-400 hover:text-blue-600" title="Edit">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                        </a>
                     </div>
                 </div>
             @endforeach

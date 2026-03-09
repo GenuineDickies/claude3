@@ -24,18 +24,25 @@
         {{-- Status transition controls --}}
         @if (! in_array($serviceRequest->status, \App\Models\ServiceRequest::TERMINAL_STATUSES))
         <div class="mt-4 border-t border-gray-100 pt-4" x-data="{ showNotes: false }">
+            @php
+                $nextStatus = $serviceRequest->nextStatus();
+                $canAdvance = $nextStatus ? $serviceRequest->canTransitionTo($nextStatus) : false;
+                $advanceBlockedReason = $nextStatus === 'dispatched' ? $serviceRequest->dispatchBlockedReason() : null;
+            @endphp
             <div class="flex flex-wrap items-center gap-3">
-                @if ($serviceRequest->nextStatus())
+                @if ($nextStatus)
                 <form method="POST" action="{{ route('service-requests.update', $serviceRequest) }}" class="inline" x-ref="advanceForm">
                     @csrf
                     @method('PATCH')
-                    <input type="hidden" name="status" value="{{ $serviceRequest->nextStatus() }}">
+                    <input type="hidden" name="status" value="{{ $nextStatus }}">
                     <input type="hidden" name="notes" x-bind:value="$refs.notesField?.value || ''">
                     <input type="hidden" name="notify_customer" x-bind:value="$refs.notifyCheckbox?.checked ? '1' : '0'">
                     <button type="submit"
-                            class="inline-flex items-center px-4 py-2 min-h-[44px] bg-green-600 text-white text-sm font-semibold rounded-md hover:bg-green-700 transition">
+                            @disabled(! $canAdvance)
+                            aria-disabled="{{ $canAdvance ? 'false' : 'true' }}"
+                            class="inline-flex items-center px-4 py-2 min-h-[44px] text-sm font-semibold rounded-md transition {{ $canAdvance ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-200 text-gray-500 cursor-not-allowed' }}">
                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                        Mark as {{ \App\Models\ServiceRequest::STATUS_LABELS[$serviceRequest->nextStatus()] }}
+                        Mark as {{ \App\Models\ServiceRequest::STATUS_LABELS[$nextStatus] }}
                     </button>
                 </form>
                 @endif
@@ -60,6 +67,10 @@
                     {{ 'Add note' }}
                 </button>
             </div>
+
+            @if (! $canAdvance && $advanceBlockedReason)
+            <p class="mt-3 text-sm text-amber-700">{{ $advanceBlockedReason }}</p>
+            @endif
 
             <div x-show="showNotes" x-cloak class="mt-3 space-y-2">
                 <textarea x-ref="notesField"

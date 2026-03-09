@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\Admin\PageController as AdminPageController;
+use App\Http\Controllers\Admin\RoleAccessController;
+use App\Http\Controllers\Admin\RoleController as AdminRoleController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\AccountingController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\ApiMonitorController;
@@ -65,7 +69,11 @@ Route::get('/estimates/approve/{token}', [EstimateApprovalController::class, 'sh
 Route::post('/estimates/approve/{token}', [EstimateApprovalController::class, 'store'])->name('estimate-approval.store');
 
 // ── Authenticated routes ──────────────────────────────────────
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'active-user'])->group(function () {
+    Route::get('/access-denied', fn () => view('errors.access-denied'))->name('access.denied');
+});
+
+Route::middleware(['auth', 'active-user', 'page-access'])->group(function () {
 
     // Dashboard (replaces old welcome page)
     Route::get('/dashboard', function () {
@@ -102,6 +110,28 @@ Route::middleware('auth')->group(function () {
     // Reports
     Route::get('/reports', [ReportsController::class, 'dashboard'])->name('reports.dashboard');
     Route::get('/reports/financial', [ReportsController::class, 'financial'])->name('reports.financial');
+
+    // Access Administration
+    Route::get('/admin/users', [AdminUserController::class, 'index'])->name('admin.users.index');
+    Route::get('/admin/users/create', [AdminUserController::class, 'create'])->name('admin.users.create');
+    Route::post('/admin/users', [AdminUserController::class, 'store'])->name('admin.users.store');
+    Route::get('/admin/users/{user}/edit', [AdminUserController::class, 'edit'])->name('admin.users.edit');
+    Route::put('/admin/users/{user}', [AdminUserController::class, 'update'])->name('admin.users.update');
+    Route::post('/admin/users/{user}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('admin.users.toggle-status');
+
+    Route::get('/admin/roles', [AdminRoleController::class, 'index'])->name('admin.roles.index');
+    Route::post('/admin/roles', [AdminRoleController::class, 'store'])->name('admin.roles.store');
+    Route::put('/admin/roles/{role}', [AdminRoleController::class, 'update'])->name('admin.roles.update');
+    Route::delete('/admin/roles/{role}', [AdminRoleController::class, 'destroy'])->name('admin.roles.destroy');
+
+    Route::get('/admin/pages', [AdminPageController::class, 'index'])->name('admin.pages.index');
+    Route::post('/admin/pages', [AdminPageController::class, 'store'])->name('admin.pages.store');
+    Route::put('/admin/pages/{page}', [AdminPageController::class, 'update'])->name('admin.pages.update');
+    Route::delete('/admin/pages/{page}', [AdminPageController::class, 'destroy'])->name('admin.pages.destroy');
+    Route::post('/admin/pages/sync', [AdminPageController::class, 'sync'])->name('admin.pages.sync');
+
+    Route::get('/admin/access/roles/{role}', [RoleAccessController::class, 'edit'])->name('admin.access.edit');
+    Route::put('/admin/access/roles/{role}', [RoleAccessController::class, 'update'])->name('admin.access.update');
 
     // Accounting
     Route::get('/accounting/chart-of-accounts', [AccountingController::class, 'chartOfAccounts'])->name('accounting.chart-of-accounts');
@@ -144,17 +174,11 @@ Route::middleware('auth')->group(function () {
 
     // Catalog
     Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog.index');
-    Route::get('/catalog/categories/create', [CatalogController::class, 'createCategory'])->name('catalog.categories.create');
-    Route::post('/catalog/categories', [CatalogController::class, 'storeCategory'])->name('catalog.categories.store');
-    Route::get('/catalog/categories/{category}', [CatalogController::class, 'showCategory'])->name('catalog.categories.show');
-    Route::get('/catalog/categories/{category}/edit', [CatalogController::class, 'editCategory'])->name('catalog.categories.edit');
-    Route::put('/catalog/categories/{category}', [CatalogController::class, 'updateCategory'])->name('catalog.categories.update');
-    Route::delete('/catalog/categories/{category}', [CatalogController::class, 'destroyCategory'])->name('catalog.categories.destroy');
-    Route::get('/catalog/categories/{category}/items/create', [CatalogController::class, 'createItem'])->name('catalog.items.create');
-    Route::post('/catalog/categories/{category}/items', [CatalogController::class, 'storeItem'])->name('catalog.items.store');
-    Route::get('/catalog/categories/{category}/items/{item}/edit', [CatalogController::class, 'editItem'])->name('catalog.items.edit');
-    Route::put('/catalog/categories/{category}/items/{item}', [CatalogController::class, 'updateItem'])->name('catalog.items.update');
-    Route::delete('/catalog/categories/{category}/items/{item}', [CatalogController::class, 'destroyItem'])->name('catalog.items.destroy');
+    Route::get('/catalog/services/create', [CatalogController::class, 'createItem'])->name('catalog.items.create');
+    Route::post('/catalog/services', [CatalogController::class, 'storeItem'])->name('catalog.items.store');
+    Route::get('/catalog/services/{item}/edit', [CatalogController::class, 'editItem'])->name('catalog.items.edit');
+    Route::put('/catalog/services/{item}', [CatalogController::class, 'updateItem'])->name('catalog.items.update');
+    Route::delete('/catalog/services/{item}', [CatalogController::class, 'destroyItem'])->name('catalog.items.destroy');
 
     // Settings
     Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');

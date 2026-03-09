@@ -3,12 +3,14 @@
 namespace Tests\Feature;
 
 use App\Models\Customer;
+use App\Models\Estimate;
 use App\Models\PaymentRecord;
 use App\Models\ServiceLog;
 use App\Models\ServicePhoto;
 use App\Models\ServiceRequest;
 use App\Models\ServiceSignature;
 use App\Models\User;
+use App\Models\WorkOrder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -20,6 +22,35 @@ class DisputeEvidenceTest extends TestCase
 
     private User $user;
     private ServiceRequest $sr;
+
+    private function makeDispatchReady(ServiceRequest $serviceRequest): void
+    {
+        Estimate::create([
+            'service_request_id' => $serviceRequest->id,
+            'estimate_number' => 'EST-DISPUTE-' . str_pad((string) (Estimate::count() + 1), 4, '0', STR_PAD_LEFT),
+            'state_code' => 'WA',
+            'tax_rate' => 0,
+            'subtotal' => 250,
+            'tax_amount' => 0,
+            'total' => 250,
+            'status' => 'accepted',
+            'version' => 1,
+            'is_locked' => false,
+            'approved_at' => now(),
+        ]);
+
+        WorkOrder::create([
+            'service_request_id' => $serviceRequest->id,
+            'work_order_number' => 'WO-DISPUTE-' . str_pad((string) (WorkOrder::count() + 1), 4, '0', STR_PAD_LEFT),
+            'status' => WorkOrder::STATUS_PENDING,
+            'priority' => 'normal',
+            'assigned_to' => 'Driver One',
+            'subtotal' => 0,
+            'tax_rate' => 0,
+            'tax_amount' => 0,
+            'total' => 0,
+        ]);
+    }
 
     protected function setUp(): void
     {
@@ -410,6 +441,8 @@ class DisputeEvidenceTest extends TestCase
 
     public function test_status_change_creates_service_log(): void
     {
+        $this->makeDispatchReady($this->sr);
+
         $this->actingAs($this->user)->patch(
             route('service-requests.update', $this->sr),
             ['status' => 'dispatched', 'notes' => 'Driver assigned']

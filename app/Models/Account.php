@@ -54,6 +54,7 @@ class Account extends Model
     protected $fillable = [
         'code',
         'scope',
+        'category',
         'name',
         'type',
         'parent_account_id',

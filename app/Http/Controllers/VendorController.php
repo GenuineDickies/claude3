@@ -68,7 +68,7 @@ class VendorController extends Controller
         $vendor = Vendor::create($validated);
 
         return redirect()->route('vendors.show', $vendor)
-            ->with('success', "Vendor "{$vendor->name}" created.");
+            ->with('success', 'Vendor "' . $vendor->name . '" created.');
     }
 
     public function show(Vendor $vendor)

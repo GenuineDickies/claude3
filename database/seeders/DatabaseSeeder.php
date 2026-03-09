@@ -19,10 +19,13 @@ class DatabaseSeeder extends Seeder
 
         User::factory()->create([
             'name' => 'Test User',
+            'username' => 'test.user',
             'email' => 'test@example.com',
+            'status' => 'active',
         ]);
 
         $this->call([
+            AccessControlSeeder::class,
             ServiceTypeSeeder::class,
             MessageTemplateSeeder::class,
             CatalogSeeder::class,

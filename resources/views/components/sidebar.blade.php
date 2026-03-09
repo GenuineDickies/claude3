@@ -80,6 +80,28 @@
             Financials
         </a>
 
+        @if ($currentUserCanManageAccess)
+            <p class="text-[11px] uppercase tracking-wider text-gray-500 font-semibold px-3 mb-1 mt-4">Administration</p>
+
+            <a href="{{ route('admin.users.index') }}"
+               class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('admin.users.*') ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a8.967 8.967 0 0 0-6-2.22 8.967 8.967 0 0 0-6 2.22m12 0a9 9 0 1 0-12 0m12 0A8.963 8.963 0 0 1 12 21a8.963 8.963 0 0 1-6-2.28M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+                Users
+            </a>
+
+            <a href="{{ route('admin.roles.index') }}"
+               class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('admin.roles.*', 'admin.access.*') ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m9 0a2.25 2.25 0 0 1 2.25 2.25v5.25A2.25 2.25 0 0 1 16.5 20.25h-9A2.25 2.25 0 0 1 5.25 18v-5.25A2.25 2.25 0 0 1 7.5 10.5m9 0h-9" /></svg>
+                Roles
+            </a>
+
+            <a href="{{ route('admin.pages.index') }}"
+               class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('admin.pages.*') ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-8.625A2.625 2.625 0 0 0 16.875 3h-9.75A2.625 2.625 0 0 0 4.5 5.625v12.75A2.625 2.625 0 0 0 7.125 21h4.125m8.25-6.75h-6.75m0 0v6.75m0-6.75h6.75" /></svg>
+                Pages
+            </a>
+        @endif
+
         {{-- DOCUMENTS --}}
         <p class="text-[11px] uppercase tracking-wider text-gray-500 font-semibold px-3 mb-1 mt-4">Documents</p>
 

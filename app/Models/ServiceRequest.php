@@ -280,6 +280,83 @@ class ServiceRequest extends Model
         return $this->hasOne(Estimate::class)->latestOfMany();
     }
 
+    public function latestEstimateForDispatch(): ?Estimate
+    {
+        if ($this->relationLoaded('estimates')) {
+            return $this->estimates->sortByDesc('created_at')->first();
+        }
+
+        return $this->estimates()->latest()->first();
+    }
+
+    public function hasApprovedEstimateForDispatch(): bool
+    {
+        $estimate = $this->latestEstimateForDispatch();
+
+        if (! $estimate) {
+            return false;
+        }
+
+        if ($estimate->isApproved()) {
+            return true;
+        }
+
+        return in_array($estimate->status, ['sent', 'pending_approval', 'accepted'], true)
+            && strtoupper((string) $estimate->state_code) === 'OR'
+            && (float) $estimate->total < 200;
+    }
+
+    public function hasAssignedDriverForDispatch(): bool
+    {
+        if ($this->relationLoaded('workOrders')) {
+            return $this->workOrders->contains(
+                fn (WorkOrder $workOrder) => filled(trim((string) $workOrder->assigned_to))
+            );
+        }
+
+        return $this->workOrders()
+            ->whereNotNull('assigned_to')
+            ->where('assigned_to', '!=', '')
+            ->exists();
+    }
+
+    public function dispatchReadinessIssues(): array
+    {
+        $issues = [];
+
+        if (! $this->hasApprovedEstimateForDispatch()) {
+            $issues[] = 'an approved estimate';
+        }
+
+        if (! $this->hasAssignedDriverForDispatch()) {
+            $issues[] = 'an assigned driver';
+        }
+
+        return $issues;
+    }
+
+    public function canDispatch(): bool
+    {
+        return $this->status === 'new' && $this->dispatchReadinessIssues() === [];
+    }
+
+    public function dispatchBlockedReason(): ?string
+    {
+        $issues = $this->dispatchReadinessIssues();
+
+        if ($issues === []) {
+            return null;
+        }
+
+        if (count($issues) === 1) {
+            return 'Dispatch requires ' . $issues[0] . '.';
+        }
+
+        $lastIssue = array_pop($issues);
+
+        return 'Dispatch requires ' . implode(', ', $issues) . ' and ' . $lastIssue . '.';
+    }
+
     public function statusLogs(): HasMany
     {
         return $this->hasMany(ServiceRequestStatusLog::class)->orderBy('created_at');
@@ -301,6 +378,10 @@ class ServiceRequest extends Model
     {
         // Forward transition
         if (($this->nextStatus() ?? '') === $status) {
+            if ($status === 'dispatched') {
+                return $this->canDispatch();
+            }
+
             return true;
         }
 

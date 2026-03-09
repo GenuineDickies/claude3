@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Customer;
+use App\Models\Estimate;
 use App\Models\ServiceRequest;
 use App\Models\User;
+use App\Models\WorkOrder;
 use App\Services\StatusAutomationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -37,6 +39,35 @@ class StatusAutomationTest extends TestCase
             'customer_id' => $this->customer->id,
             'status'      => $status,
             'location'    => '123 Main St',
+        ]);
+    }
+
+    private function makeDispatchReady(ServiceRequest $serviceRequest): void
+    {
+        Estimate::create([
+            'service_request_id' => $serviceRequest->id,
+            'estimate_number' => 'EST-AUTO-' . str_pad((string) (Estimate::count() + 1), 4, '0', STR_PAD_LEFT),
+            'state_code' => 'WA',
+            'tax_rate' => 0,
+            'subtotal' => 250,
+            'tax_amount' => 0,
+            'total' => 250,
+            'status' => 'accepted',
+            'version' => 1,
+            'is_locked' => false,
+            'approved_at' => now(),
+        ]);
+
+        WorkOrder::create([
+            'service_request_id' => $serviceRequest->id,
+            'work_order_number' => 'WO-AUTO-' . str_pad((string) (WorkOrder::count() + 1), 4, '0', STR_PAD_LEFT),
+            'status' => WorkOrder::STATUS_PENDING,
+            'priority' => 'normal',
+            'assigned_to' => 'Driver One',
+            'subtotal' => 0,
+            'tax_rate' => 0,
+            'tax_amount' => 0,
+            'total' => 0,
         ]);
     }
 
@@ -263,6 +294,7 @@ class StatusAutomationTest extends TestCase
     public function test_manual_status_change_still_works(): void
     {
         $sr = $this->makeSr('new');
+        $this->makeDispatchReady($sr);
 
         $response = $this->actingAs($this->user)->patch(
             route('service-requests.update', $sr),

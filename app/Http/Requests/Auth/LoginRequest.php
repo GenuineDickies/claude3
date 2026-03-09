@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
+use App\Services\Access\AuditLogger;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -41,8 +43,24 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+        $user = User::query()
+            ->where('email', $this->string('email')->lower()->value())
+            ->first();
+
+        if ($user && ! $user->isActive()) {
+            app(AuditLogger::class)->log('login_blocked_disabled_user', $user, null, $this);
+
+            throw ValidationException::withMessages([
+                'email' => 'Your account has been disabled. Contact an administrator.',
+            ]);
+        }
+
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
+
+            app(AuditLogger::class)->log('login_failed', $user, [
+                'email' => $this->string('email')->lower()->value(),
+            ], $this);
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
@@ -50,6 +68,8 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
+
+        app(AuditLogger::class)->log('login_succeeded', $user, null, $this);
     }
 
     /**

@@ -3,10 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\Customer;
+use App\Models\Estimate;
 use App\Models\MessageTemplate;
 use App\Models\ServiceRequest;
 use App\Models\ServiceRequestStatusLog;
 use App\Models\User;
+use App\Models\WorkOrder;
 use App\Services\SmsServiceInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -20,7 +22,7 @@ class ServiceRequestStatusTest extends TestCase
         return User::factory()->create();
     }
 
-    private function createServiceRequest(string $status = 'new'): ServiceRequest
+    private function createServiceRequest(string $status = 'new', bool $dispatchReady = true): ServiceRequest
     {
         $customer = Customer::create([
             'first_name' => 'Test',
@@ -29,10 +31,52 @@ class ServiceRequestStatusTest extends TestCase
             'is_active'  => true,
         ]);
 
-        return ServiceRequest::create([
+        $serviceRequest = ServiceRequest::create([
             'customer_id' => $customer->id,
             'status'      => $status,
         ]);
+
+        if ($status === 'new' && $dispatchReady) {
+            $this->createEstimate($serviceRequest, [
+                'status' => 'accepted',
+                'approved_at' => now(),
+            ]);
+            $this->createWorkOrder($serviceRequest, ['assigned_to' => 'Driver One']);
+        }
+
+        return $serviceRequest->fresh();
+    }
+
+    private function createEstimate(ServiceRequest $serviceRequest, array $attributes = []): Estimate
+    {
+        return Estimate::create(array_merge([
+            'service_request_id' => $serviceRequest->id,
+            'estimate_number' => 'EST-' . str_pad((string) (Estimate::count() + 1), 4, '0', STR_PAD_LEFT),
+            'state_code' => 'WA',
+            'tax_rate' => 0,
+            'subtotal' => 250,
+            'tax_amount' => 0,
+            'total' => 250,
+            'status' => 'accepted',
+            'version' => 1,
+            'is_locked' => false,
+            'approved_at' => now(),
+        ], $attributes));
+    }
+
+    private function createWorkOrder(ServiceRequest $serviceRequest, array $attributes = []): WorkOrder
+    {
+        return WorkOrder::create(array_merge([
+            'service_request_id' => $serviceRequest->id,
+            'work_order_number' => 'WO-TEST-' . str_pad((string) (WorkOrder::count() + 1), 4, '0', STR_PAD_LEFT),
+            'status' => WorkOrder::STATUS_PENDING,
+            'priority' => 'normal',
+            'assigned_to' => null,
+            'subtotal' => 0,
+            'tax_rate' => 0,
+            'tax_amount' => 0,
+            'total' => 0,
+        ], $attributes));
     }
 
     // ── Model constants & helpers ─────────────────────────────
@@ -193,6 +237,64 @@ class ServiceRequestStatusTest extends TestCase
         $response->assertSessionHasErrors('status');
     }
 
+    public function test_update_blocks_dispatch_without_approved_estimate_or_assigned_driver(): void
+    {
+        $user = $this->createUser();
+        $sr = $this->createServiceRequest('new', false);
+
+        $response = $this->actingAs($user)->patch(
+            route('service-requests.update', $sr),
+            ['status' => 'dispatched'],
+        );
+
+        $response->assertRedirect();
+        $response->assertSessionHas('error', 'Dispatch requires an approved estimate and an assigned driver.');
+        $this->assertDatabaseHas('service_requests', ['id' => $sr->id, 'status' => 'new']);
+    }
+
+    public function test_update_allows_dispatch_with_oregon_in_house_estimate_and_assigned_driver(): void
+    {
+        $user = $this->createUser();
+        $sr = $this->createServiceRequest('new', false);
+
+        $this->createEstimate($sr, [
+            'state_code' => 'OR',
+            'subtotal' => 199.99,
+            'total' => 199.99,
+            'status' => 'sent',
+            'approved_at' => null,
+        ]);
+        $this->createWorkOrder($sr, ['assigned_to' => 'Driver One']);
+
+        $response = $this->actingAs($user)->patch(
+            route('service-requests.update', $sr),
+            ['status' => 'dispatched'],
+        );
+
+        $response->assertRedirect(route('service-requests.show', $sr));
+        $this->assertDatabaseHas('service_requests', ['id' => $sr->id, 'status' => 'dispatched']);
+    }
+
+    public function test_update_blocks_dispatch_when_driver_is_missing_even_with_approved_estimate(): void
+    {
+        $user = $this->createUser();
+        $sr = $this->createServiceRequest('new', false);
+
+        $this->createEstimate($sr, [
+            'status' => 'accepted',
+            'approved_at' => now(),
+        ]);
+
+        $response = $this->actingAs($user)->patch(
+            route('service-requests.update', $sr),
+            ['status' => 'dispatched'],
+        );
+
+        $response->assertRedirect();
+        $response->assertSessionHas('error', 'Dispatch requires an assigned driver.');
+        $this->assertDatabaseHas('service_requests', ['id' => $sr->id, 'status' => 'new']);
+    }
+
     // ── Auth requirement ──────────────────────────────────────
 
     public function test_update_requires_authentication(): void
@@ -304,6 +406,19 @@ class ServiceRequestStatusTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Mark as Dispatched');
+    }
+
+    public function test_show_page_disables_dispatch_button_until_requirements_are_met(): void
+    {
+        $user = $this->createUser();
+        $sr = $this->createServiceRequest('new', false);
+
+        $response = $this->actingAs($user)->get(route('service-requests.show', $sr));
+
+        $response->assertOk();
+        $response->assertSee('Mark as Dispatched');
+        $response->assertSee('Dispatch requires an approved estimate and an assigned driver.');
+        $response->assertSee('cursor-not-allowed');
     }
 
     public function test_show_page_hides_controls_for_completed(): void

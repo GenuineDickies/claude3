@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\Customer;
+use App\Models\Estimate;
 use App\Models\MessageTemplate;
 use App\Models\ServiceRequest;
 use App\Models\User;
+use App\Models\WorkOrder;
 use App\Services\SmsServiceInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -40,6 +42,35 @@ final class CustomerNotificationPreferencesTest extends TestCase
                 'body'     => 'Status update for {{ customer_first_name }}.',
             ]);
         }
+    }
+
+    private function makeDispatchReady(ServiceRequest $serviceRequest): void
+    {
+        Estimate::create([
+            'service_request_id' => $serviceRequest->id,
+            'estimate_number' => 'EST-' . str_pad((string) (Estimate::count() + 1), 4, '0', STR_PAD_LEFT),
+            'state_code' => 'WA',
+            'tax_rate' => 0,
+            'subtotal' => 250,
+            'tax_amount' => 0,
+            'total' => 250,
+            'status' => 'accepted',
+            'version' => 1,
+            'is_locked' => false,
+            'approved_at' => now(),
+        ]);
+
+        WorkOrder::create([
+            'service_request_id' => $serviceRequest->id,
+            'work_order_number' => 'WO-NOTIFY-' . str_pad((string) (WorkOrder::count() + 1), 4, '0', STR_PAD_LEFT),
+            'status' => WorkOrder::STATUS_PENDING,
+            'priority' => 'normal',
+            'assigned_to' => 'Driver One',
+            'subtotal' => 0,
+            'tax_rate' => 0,
+            'tax_amount' => 0,
+            'total' => 0,
+        ]);
     }
 
     // ------------------------------------------------------------------
@@ -115,6 +146,7 @@ final class CustomerNotificationPreferencesTest extends TestCase
             'customer_id' => $customer->id,
             'status'      => 'new',
         ]);
+        $this->makeDispatchReady($sr);
 
         $smsMock = $this->mock(SmsServiceInterface::class);
         $smsMock->shouldReceive('sendTemplate')
@@ -139,6 +171,7 @@ final class CustomerNotificationPreferencesTest extends TestCase
             'customer_id' => $customer->id,
             'status'      => 'new',
         ]);
+        $this->makeDispatchReady($sr);
 
         $smsMock = $this->mock(SmsServiceInterface::class);
         $smsMock->shouldNotReceive('sendTemplate');
@@ -261,6 +294,7 @@ final class CustomerNotificationPreferencesTest extends TestCase
             'customer_id' => $customer->id,
             'status'      => 'new',
         ]);
+        $this->makeDispatchReady($sr);
 
         $smsMock = $this->mock(SmsServiceInterface::class);
         $smsMock->shouldReceive('sendTemplate')

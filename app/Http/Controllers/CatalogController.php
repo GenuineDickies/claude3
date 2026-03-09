@@ -14,12 +14,13 @@ class CatalogController extends Controller
 {
     public function index(): View
     {
-        $categories = CatalogCategory::withCount('items')
+        $services = CatalogItem::query()
+            ->with('category')
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
 
-        return view('catalog.index', compact('categories'));
+        return view('catalog.index', compact('services'));
     }
 
     // ── Categories ──────────────────────────────────────
@@ -81,16 +82,17 @@ class CatalogController extends Controller
         return view('catalog.categories.show', compact('category'));
     }
 
-    public function createItem(CatalogCategory $category): View
+    public function createItem(): View
     {
         $pricingTypes = CatalogItem::pricingTypes();
         $units = CatalogItem::units();
         $revenueAccounts = Account::general()->where('type', 'revenue')->where('is_active', true)->orderBy('code')->get();
         $cogsAccounts = Account::general()->whereIn('type', ['cogs', 'expense'])->where('is_active', true)->orderBy('code')->get();
-        return view('catalog.items.create', compact('category', 'pricingTypes', 'units', 'revenueAccounts', 'cogsAccounts'));
+
+        return view('catalog.items.create', compact('pricingTypes', 'units', 'revenueAccounts', 'cogsAccounts'));
     }
 
-    public function storeItem(Request $request, CatalogCategory $category): RedirectResponse
+    public function storeItem(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'name'               => 'required|string|max:255',
@@ -111,22 +113,25 @@ class CatalogController extends Controller
             $validated['core_amount'] = 0.00;
         }
 
-        $category->items()->create($validated);
+        $validated['catalog_category_id'] = $this->defaultCategory()->id;
 
-        return redirect()->route('catalog.categories.show', $category)
+        CatalogItem::create($validated);
+
+        return redirect()->route('catalog.index')
             ->with('success', 'Service "' . $validated['name'] . '" created.');
     }
 
-    public function editItem(CatalogCategory $category, CatalogItem $item): View
+    public function editItem(CatalogItem $item): View
     {
         $pricingTypes = CatalogItem::pricingTypes();
         $units = CatalogItem::units();
         $revenueAccounts = Account::general()->where('type', 'revenue')->where('is_active', true)->orderBy('code')->get();
         $cogsAccounts = Account::general()->whereIn('type', ['cogs', 'expense'])->where('is_active', true)->orderBy('code')->get();
-        return view('catalog.items.edit', compact('category', 'item', 'pricingTypes', 'units', 'revenueAccounts', 'cogsAccounts'));
+
+        return view('catalog.items.edit', compact('item', 'pricingTypes', 'units', 'revenueAccounts', 'cogsAccounts'));
     }
 
-    public function updateItem(Request $request, CatalogCategory $category, CatalogItem $item): RedirectResponse
+    public function updateItem(Request $request, CatalogItem $item): RedirectResponse
     {
         $validated = $request->validate([
             'name'               => 'required|string|max:255',
@@ -149,16 +154,28 @@ class CatalogController extends Controller
 
         $item->update($validated);
 
-        return redirect()->route('catalog.categories.show', $category)
+        return redirect()->route('catalog.index')
             ->with('success', 'Service "' . $validated['name'] . '" updated.');
     }
 
-    public function destroyItem(CatalogCategory $category, CatalogItem $item): RedirectResponse
+    public function destroyItem(CatalogItem $item): RedirectResponse
     {
         $name = $item->name;
         $item->delete();
 
-        return redirect()->route('catalog.categories.show', $category)
+        return redirect()->route('catalog.index')
             ->with('success', 'Service "' . $name . '" deleted.');
+    }
+
+    private function defaultCategory(): CatalogCategory
+    {
+        return CatalogCategory::query()->firstOrCreate(
+            ['name' => 'Services'],
+            [
+                'description' => 'Default service catalog category.',
+                'sort_order' => 0,
+                'is_active' => true,
+            ],
+        );
     }
 }

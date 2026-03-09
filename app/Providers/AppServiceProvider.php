@@ -6,6 +6,7 @@ use App\Models\DocumentTransactionImport;
 use App\Models\Setting;
 use App\Services\DocumentIntelligenceInterface;
 use App\Services\DocumentIntelligenceService;
+use App\Services\Access\AccessControlService;
 use App\Services\SmsService;
 use App\Services\SmsServiceInterface;
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +21,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        require_once app_path('Support/access.php');
+
         $this->app->singleton(SmsServiceInterface::class, SmsService::class);
         $this->app->singleton(DocumentIntelligenceInterface::class, DocumentIntelligenceService::class);
     }
@@ -43,6 +46,7 @@ class AppServiceProvider extends ServiceProvider
         View::composer('*', function ($view) {
             $view->with('companyName', Setting::getValue('company_name', config('app.name')));
             $view->with('companyTagline', Setting::getValue('company_tagline', 'Dispatch management'));
+            $view->with('currentUserCanManageAccess', app(AccessControlService::class)->isAdministrator(auth()->user()));
         });
     }
 }

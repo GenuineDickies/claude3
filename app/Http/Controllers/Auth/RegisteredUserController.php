@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\Access\AccessControlService;
+use App\Services\Access\AuditLogger;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,6 +16,12 @@ use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
+    public function __construct(
+        private readonly AccessControlService $accessControl,
+        private readonly AuditLogger $auditLogger,
+    ) {
+    }
+
     /**
      * Display the registration view.
      */
@@ -37,9 +45,13 @@ class RegisteredUserController extends Controller
 
         $user = User::create([
             'name' => $request->name,
+            'username' => $this->accessControl->uniqueUsername($request->name),
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'status' => 'active',
         ]);
+
+        $this->auditLogger->log('user_registered', $user, null, $request);
 
         event(new Registered($user));
 
