@@ -1,5 +1,11 @@
 {{-- Sidebar navigation — reused in desktop <aside> and mobile drawer --}}
 <nav aria-label="Main navigation" class="flex flex-col h-full bg-gray-900 w-64">
+    @php
+        $canAccessAdminUsers = canAccessPage('/admin/users');
+        $canAccessAdminRoles = canAccessPage('/admin/roles');
+        $canAccessAdminPages = canAccessPage('/admin/pages');
+        $showAdministration = $canAccessAdminUsers || $canAccessAdminRoles || $canAccessAdminPages;
+    @endphp
 
     {{-- ── Brand ────────────────────────────────────────── --}}
     <div class="flex items-center h-16 px-5 border-b border-gray-800 shrink-0">
@@ -80,26 +86,32 @@
             Financials
         </a>
 
-        @if ($currentUserCanManageAccess)
+        @if ($showAdministration)
             <p class="text-[11px] uppercase tracking-wider text-gray-500 font-semibold px-3 mb-1 mt-4">Administration</p>
 
-            <a href="{{ route('admin.users.index') }}"
-               class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('admin.users.*') ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a8.967 8.967 0 0 0-6-2.22 8.967 8.967 0 0 0-6 2.22m12 0a9 9 0 1 0-12 0m12 0A8.963 8.963 0 0 1 12 21a8.963 8.963 0 0 1-6-2.28M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
-                Users
-            </a>
+            @if ($canAccessAdminUsers)
+                <a href="{{ route('admin.users.index') }}"
+                   class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('admin.users.*') ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a8.967 8.967 0 0 0-6-2.22 8.967 8.967 0 0 0-6 2.22m12 0a9 9 0 1 0-12 0m12 0A8.963 8.963 0 0 1 12 21a8.963 8.963 0 0 1-6-2.28M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+                    Users
+                </a>
+            @endif
 
-            <a href="{{ route('admin.roles.index') }}"
-               class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('admin.roles.*', 'admin.access.*') ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m9 0a2.25 2.25 0 0 1 2.25 2.25v5.25A2.25 2.25 0 0 1 16.5 20.25h-9A2.25 2.25 0 0 1 5.25 18v-5.25A2.25 2.25 0 0 1 7.5 10.5m9 0h-9" /></svg>
-                Roles
-            </a>
+            @if ($canAccessAdminRoles)
+                <a href="{{ route('admin.roles.index') }}"
+                   class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('admin.roles.*', 'admin.access.*') ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m9 0a2.25 2.25 0 0 1 2.25 2.25v5.25A2.25 2.25 0 0 1 16.5 20.25h-9A2.25 2.25 0 0 1 5.25 18v-5.25A2.25 2.25 0 0 1 7.5 10.5m9 0h-9" /></svg>
+                    Roles
+                </a>
+            @endif
 
-            <a href="{{ route('admin.pages.index') }}"
-               class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('admin.pages.*') ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-8.625A2.625 2.625 0 0 0 16.875 3h-9.75A2.625 2.625 0 0 0 4.5 5.625v12.75A2.625 2.625 0 0 0 7.125 21h4.125m8.25-6.75h-6.75m0 0v6.75m0-6.75h6.75" /></svg>
-                Pages
-            </a>
+            @if ($canAccessAdminPages)
+                <a href="{{ route('admin.pages.index') }}"
+                   class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('admin.pages.*') ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-8.625A2.625 2.625 0 0 0 16.875 3h-9.75A2.625 2.625 0 0 0 4.5 5.625v12.75A2.625 2.625 0 0 0 7.125 21h4.125m8.25-6.75h-6.75m0 0v6.75m0-6.75h6.75" /></svg>
+                    Pages
+                </a>
+            @endif
         @endif
 
         {{-- DOCUMENTS --}}
@@ -164,6 +176,18 @@
             Balance Sheet
         </a>
 
+        <a href="{{ route('vendors.index') }}"
+           class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('vendors.*') ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M4.5 21V7.5A1.5 1.5 0 0 1 6 6h3v15m0 0h6m-6 0H4.5m10.5 0V10.5A1.5 1.5 0 0 1 16.5 9H19.5A1.5 1.5 0 0 1 21 10.5V21m-6 0h6M7.5 9h.008v.008H7.5V9Zm0 3h.008v.008H7.5V12Zm0 3h.008v.008H7.5V15Zm6-3h.008v.008H13.5V12Zm0 3h.008v.008H13.5V15Z" /></svg>
+            Vendors
+        </a>
+
+        <a href="{{ route('vendor-documents.index') }}"
+           class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('vendor-documents.*') ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+            Vendor Documents
+        </a>
+
         {{-- CUSTOMERS --}}
         <p class="text-[11px] uppercase tracking-wider text-gray-500 font-semibold px-3 mb-1 mt-4">Customers</p>
 
@@ -220,6 +244,12 @@
             {{-- Heroicon: receipt-percent --}}
             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0c1.1.128 1.907 1.077 1.907 2.185ZM9.75 9h.008v.008H9.75V9Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm4.125 4.5h.008v.008h-.008V13.5Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
             State Tax Rates
+        </a>
+
+        <a href="{{ route('settings.api-monitor.index') }}"
+           class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('settings.api-monitor.*') ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M7.5 15l3-3 2.25 2.25L18 9" /></svg>
+            API Monitor
         </a>
 
         {{-- DEV TOOLS (local/testing only) --}}

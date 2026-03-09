@@ -10,6 +10,7 @@ use App\Services\Access\AccessControlService;
 use App\Services\SmsService;
 use App\Services\SmsServiceInterface;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -44,9 +45,16 @@ class AppServiceProvider extends ServiceProvider
 
         // Share company branding variables with all views (single source of truth).
         View::composer('*', function ($view) {
+            $accessControl = app(AccessControlService::class);
+            $user = Auth::user();
+
             $view->with('companyName', Setting::getValue('company_name', config('app.name')));
             $view->with('companyTagline', Setting::getValue('company_tagline', 'Dispatch management'));
-            $view->with('currentUserCanManageAccess', app(AccessControlService::class)->isAdministrator(auth()->user()));
+            $view->with('currentUserCanManageAccess',
+                $accessControl->canAccessPage($user, '/admin/users')
+                || $accessControl->canAccessPage($user, '/admin/roles')
+                || $accessControl->canAccessPage($user, '/admin/pages')
+            );
         });
     }
 }

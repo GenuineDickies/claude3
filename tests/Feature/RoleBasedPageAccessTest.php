@@ -130,4 +130,48 @@ class RoleBasedPageAccessTest extends TestCase
             $role->fresh()->pages->pluck('id')->all(),
         );
     }
+
+    public function test_sidebar_shows_navigation_links_for_top_level_admin_and_operations_pages(): void
+    {
+        $admin = User::factory()->create([
+            'status' => 'active',
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('dashboard'));
+
+        $response->assertOk();
+        $response->assertSee('Administration');
+        $response->assertSee(route('admin.users.index'), false);
+        $response->assertSee(route('admin.roles.index'), false);
+        $response->assertSee(route('admin.pages.index'), false);
+        $response->assertSee(route('vendors.index'), false);
+        $response->assertSee(route('vendor-documents.index'), false);
+        $response->assertSee(route('settings.api-monitor.index'), false);
+    }
+
+    public function test_sidebar_shows_only_granted_admin_navigation_links_for_non_admin_users(): void
+    {
+        $dashboardPage = Page::query()->where('page_path', '/dashboard')->firstOrFail();
+        $adminUsersPage = Page::query()->where('page_path', '/admin/users')->firstOrFail();
+
+        $supportRole = Role::query()->create([
+            'role_name' => 'Support Lead',
+            'description' => 'Dashboard and user-management access',
+        ]);
+        $supportRole->pages()->sync([$dashboardPage->id, $adminUsersPage->id]);
+
+        $user = User::factory()->create([
+            'status' => 'active',
+        ]);
+        $user->roles()->detach();
+        $user->roles()->sync([$supportRole->id]);
+
+        $response = $this->actingAs($user)->get(route('dashboard'));
+
+        $response->assertOk();
+        $response->assertSee('Administration');
+        $response->assertSee(route('admin.users.index'), false);
+        $response->assertDontSee(route('admin.roles.index'), false);
+        $response->assertDontSee(route('admin.pages.index'), false);
+    }
 }
