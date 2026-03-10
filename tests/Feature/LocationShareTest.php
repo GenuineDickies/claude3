@@ -2,12 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\ReverseGeocodeJob;
 use App\Models\Customer;
 use App\Models\MessageTemplate;
 use App\Models\ServiceRequest;
 use App\Models\User;
 use App\Services\SmsServiceInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 final class LocationShareTest extends TestCase
@@ -188,6 +190,8 @@ final class LocationShareTest extends TestCase
 
     public function test_store_location_saves_coordinates(): void
     {
+        Queue::fake();
+
         [, $sr] = $this->createCustomerWithRequest(withToken: true);
 
         $response = $this->postJson('/api/locate/' . $sr->location_token, [
@@ -203,6 +207,8 @@ final class LocationShareTest extends TestCase
         $this->assertSame('33.7490000', $sr->latitude);
         $this->assertSame('-84.3880000', $sr->longitude);
         $this->assertNotNull($sr->location_shared_at);
+
+        Queue::assertPushed(ReverseGeocodeJob::class, fn (ReverseGeocodeJob $job): bool => $job->serviceRequest->is($sr));
     }
 
     public function test_store_location_rejects_expired_token(): void
@@ -281,6 +287,8 @@ final class LocationShareTest extends TestCase
 
     public function test_store_location_accuracy_is_optional(): void
     {
+        Queue::fake();
+
         [, $sr] = $this->createCustomerWithRequest(withToken: true);
 
         $response = $this->postJson('/api/locate/' . $sr->location_token, [

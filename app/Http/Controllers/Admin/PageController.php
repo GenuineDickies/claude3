@@ -12,6 +12,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/**
+ * Maintains the persisted page registry used by role-based page access.
+ */
 class PageController extends Controller
 {
     public function __construct(
@@ -20,6 +23,9 @@ class PageController extends Controller
     ) {
     }
 
+    /**
+     * Show the page registry with optional name/path filtering.
+     */
     public function index(Request $request): View
     {
         $search = trim((string) $request->string('search'));
@@ -43,6 +49,9 @@ class PageController extends Controller
         ]);
     }
 
+    /**
+     * Register a page manually and audit-log the creation.
+     */
     public function store(StorePageRequest $request): RedirectResponse
     {
         $page = Page::create($request->validated());
@@ -55,6 +64,9 @@ class PageController extends Controller
         return back()->with('success', 'Page registered successfully.');
     }
 
+    /**
+     * Update a registered page's metadata.
+     */
     public function update(UpdatePageRequest $request, Page $page): RedirectResponse
     {
         $page->update($request->validated());
@@ -67,6 +79,9 @@ class PageController extends Controller
         return back()->with('success', 'Page updated successfully.');
     }
 
+    /**
+     * Remove a page from the registry after clearing role assignments.
+     */
     public function destroy(Request $request, Page $page): RedirectResponse
     {
         $pagePath = $page->page_path;
@@ -80,6 +95,9 @@ class PageController extends Controller
         return back()->with('success', 'Page deleted successfully.');
     }
 
+    /**
+     * Discover protected routes and sync them into the page registry.
+     */
     public function sync(Request $request): RedirectResponse
     {
         $pages = $this->pageRegistry->sync();

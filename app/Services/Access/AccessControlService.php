@@ -11,12 +11,21 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
+/**
+ * Centralizes user-to-page authorization checks and administrator safety rules.
+ *
+ * This service is used by middleware, user administration flows, and sidebar
+ * rendering so that page access decisions stay consistent across the app.
+ */
 class AccessControlService
 {
     public function __construct(private readonly AuditLogger $auditLogger)
     {
     }
 
+    /**
+     * Determine whether a specific active user may open the given canonical page path.
+     */
     public function canAccessPage(?User $user, string $pagePath): bool
     {
         if (! $user instanceof User || ! $user->isActive()) {
@@ -38,6 +47,11 @@ class AccessControlService
             ->exists();
     }
 
+    /**
+     * Return a redirect response when access should be denied, otherwise null.
+     *
+     * Side effect: writes an audit log entry for denied access attempts.
+     */
     public function requirePageAccess(string $pagePath, ?Request $request = null): ?RedirectResponse
     {
         $user = Auth::user();
@@ -56,6 +70,9 @@ class AccessControlService
             ->with('error', 'You do not have access to that page.');
     }
 
+    /**
+     * Check whether the user currently holds the reserved Administrator role.
+     */
     public function isAdministrator(?User $user): bool
     {
         if (! $user instanceof User) {
@@ -65,6 +82,9 @@ class AccessControlService
         return $user->roles->contains(fn (Role $role): bool => $role->isAdministrator());
     }
 
+    /**
+     * Return all registered pages the user can access, including all pages for administrators.
+     */
     public function accessiblePagesFor(?User $user): Collection
     {
         if (! $user instanceof User) {
@@ -81,6 +101,9 @@ class AccessControlService
             ->get();
     }
 
+    /**
+     * Ensure the reserved Administrator role exists and return it.
+     */
     public function administratorRole(): Role
     {
         return Role::query()->firstOrCreate(
@@ -89,6 +112,9 @@ class AccessControlService
         );
     }
 
+    /**
+     * Count active administrators, optionally excluding one managed user.
+     */
     public function administratorsCount(?int $excludingUserId = null): int
     {
         $query = $this->administratorRole()->users()->where('status', 'active');
@@ -100,7 +126,11 @@ class AccessControlService
         return $query->count();
     }
 
-    /** @param array<int, int|string> $roleIds */
+    /**
+     * Determine whether updating the user's roles would remove the final active administrator.
+     *
+     * @param  array<int, int|string>  $roleIds
+     */
     public function wouldLeaveSystemWithoutAdministrator(User $user, array $roleIds): bool
     {
         $administratorRoleId = $this->administratorRole()->id;
@@ -114,6 +144,9 @@ class AccessControlService
             && $this->administratorsCount($user->id) === 0;
     }
 
+    /**
+     * Normalize free-form user input into the dotted username format used by the app.
+     */
     public function slugToUsername(string $value): string
     {
         $normalized = Str::of($value)
@@ -125,6 +158,9 @@ class AccessControlService
         return $normalized === '' ? 'user' : $normalized;
     }
 
+    /**
+     * Generate a unique username, appending a numeric suffix when needed.
+     */
     public function uniqueUsername(string $value, ?int $ignoreUserId = null): string
     {
         $base = $this->slugToUsername($value);

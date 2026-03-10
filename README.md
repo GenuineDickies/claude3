@@ -1,76 +1,116 @@
-# Roadside Assistance App
+# White Knight Roadside Application
 
-Internal roadside-assistance dispatch application. Manages service requests, customer messaging via Telnyx SMS, GPS location sharing, estimates with tax calculation, and a parts/services catalog.
+Last audited: 2026-03-08
+
+This repository contains the internal White Knight Roadside operations platform. It combines dispatch, customer communication, GPS location capture, estimates, work orders, invoices, receipts, accounting, vendor documents, compliance tracking, and RBAC-controlled administration in one Laravel application.
 
 ## Stack
 
-- **Backend:** Laravel 12 (PHP 8.2+)
-- **Database:** MySQL
-- **Frontend:** Blade + Tailwind CSS + Vite
-- **Auth:** Laravel Breeze
-- **SMS:** Telnyx PHP SDK v6
-- **Geocoding:** Google Maps API
-- **Deploy:** Shared hosting (lite webhook proxy)
+- Backend: Laravel 12 on PHP 8.2+
+- Database: MySQL
+- Frontend: Blade, Alpine-powered interactions, Tailwind CSS v4, Vite
+- Authentication: Laravel Breeze with session auth
+- Messaging: Telnyx PHP SDK v6
+- Geocoding: Google Maps Geocoding API
+- Document intelligence: OpenAI-backed document parsing when enabled
+- Deployment target: shared hosting with optional standalone lite webhook proxy
 
-## Features
+## Core Modules
 
-- **Service Requests** — Create and track roadside jobs with customer, vehicle, service type, and location info.
-- **SMS Messaging** — Inbound/outbound messaging via Telnyx with opt-in/opt-out consent tracking.
-- **GPS Location Sharing** — Send a link via SMS; customer taps to share GPS; reverse-geocoded to an address.
-- **Message Templates** — Reusable SMS templates with `{{ variable }}` placeholders auto-resolved from context.
-- **Estimates** — Line-item estimates from catalog with US state tax calculation (draft → sent → accepted/declined).
-- **Parts & Services Catalog** — Categories and items with fixed/variable pricing.
-- **Settings** — In-app configuration with encryption support for sensitive values.
-- **Dispatcher Dashboard** — Full web UI for managing all of the above.
+- Dispatch: service requests, rapid dispatch, status progression, customer lookup, vehicle details, service logs, photos, signatures, warranties, and evidence packages.
+- Customer communication: outbound SMS, inbound webhook handling, compliance keywords, correspondence timeline, and reusable message templates.
+- Customer-facing approvals: public location links, estimate approvals, signature capture, and change-order approvals.
+- Commercial workflow: estimates, work orders, invoices, receipts, payment records, and change orders.
+- Finance and operations: chart of accounts, journal entries, expenses, reports, vendor records, vendor documents, and API monitor endpoints.
+- Administration: users, roles, page registry, page-to-role access assignment, settings, and audit logging.
 
 ## Quick Start
 
+### Manual setup
+
 ```bash
-# Install dependencies
 composer install
 npm install
-
-# Configure environment
 cp .env.example .env
 php artisan key:generate
-
-# Set up database
 php artisan migrate
-php artisan db:seed
-
-# Build frontend
 npm run build
-
-# Start dev server
 php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-Or use the shortcut: `composer setup` (runs all of the above).
+### Composer shortcut
 
-For development with HMR + queue worker + log viewer: `composer dev`
+```bash
+composer setup
+```
 
-## Environment Variables
+`composer setup` installs PHP and Node dependencies, creates `.env` if needed, generates the app key, runs migrations, and builds frontend assets. It does not run seeders automatically.
 
-| Variable | Purpose |
-|---|---|
-| `DB_*` | MySQL connection |
-| `TELNYX_API_KEY` | Telnyx API authentication |
-| `TELNYX_PUBLIC_KEY` | ED25519 webhook signature verification |
-| `TELNYX_FROM_NUMBER` | Outbound SMS sender |
-| `TELNYX_MESSAGING_PROFILE_ID` | Messaging profile |
-| `GOOGLE_MAPS_API_KEY` | Reverse geocoding |
+### Full local dev loop
+
+```bash
+composer dev
+```
+
+`composer dev` starts the Laravel server, queue listener, log viewer, and Vite dev server together.
+
+## Required Configuration
+
+Minimum local configuration:
+
+- `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`
+- `SESSION_DRIVER=database`
+- `QUEUE_CONNECTION=database`
+- `TELNYX_API_KEY`, `TELNYX_PUBLIC_KEY`, `TELNYX_FROM_NUMBER`
+- `GOOGLE_MAPS_API_KEY` if you want reverse geocoding and embedded maps
+
+Optional but important features:
+
+- `TELNYX_MESSAGING_PROFILE_ID` for production messaging profile routing
+- `LOCATION_BASE_URL` when customer location capture is hosted outside the main Laravel app
+- `DOCUMENT_AI_ENABLED`, `DOCUMENT_AI_PROVIDER`, `OPENAI_API_KEY`, `OPENAI_MODEL` for document parsing
+- `PDF_OUTPUT_DIR` if PDF generation should target a specific private storage path
+
+See [docs/configuration.md](docs/configuration.md) for the full environment and settings reference.
+
+## Security Defaults
+
+- Passwords are hashed through Laravel's `hashed` cast and `Hash::make()` flows.
+- Web routes use Laravel CSRF protection by default.
+- Protected application routes run behind `auth`, `active-user`, and `page-access` middleware.
+- Session cookies default to `http_only=true` and `same_site=lax`.
+- `SecurityHeaders` adds `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, and HSTS on secure requests.
+- Telnyx webhooks are ED25519-verified using the configured public key and tolerance.
 
 ## Testing
 
 ```bash
 php artisan test
-# or
+```
+
+Or:
+
+```bash
 composer test
 ```
 
-## Documentation
+Documentation-backed testing rules:
 
-See [docs/development.md](docs/development.md) for full architecture, data model, routes, and feature status.
+- Feature tests must not depend on live third-party services.
+- Queue or HTTP work that reaches Google Maps, Telnyx, or other providers should be faked unless the test explicitly covers that boundary.
+- Reverse geocoding is best-effort enrichment after a successful location submission. Failures should be logged, not surfaced as a customer-facing 500.
+
+## Documentation Map
+
+- [docs/development.md](docs/development.md): documentation index and current module map
+- [docs/architecture.md](docs/architecture.md): architecture overview, data flows, and Mermaid diagrams
+- [docs/schema-reference.md](docs/schema-reference.md): grouped table reference derived from migrations and model relationships
+- [docs/access-control.md](docs/access-control.md): RBAC and protected page registration
+- [docs/admin-guide.md](docs/admin-guide.md): admin workflows and day-to-day management
+- [docs/user-guide.md](docs/user-guide.md): dispatcher and operator workflows
+- [docs/configuration.md](docs/configuration.md): environment variables, settings, and security setup
+- [docs/api-reference.md](docs/api-reference.md): public and authenticated endpoints
+- [docs/documentation-audit-report.md](docs/documentation-audit-report.md): structured audit results and changes made
 
 ## Deploying the Webhook Proxy
 

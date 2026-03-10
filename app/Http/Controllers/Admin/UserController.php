@@ -15,6 +15,9 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
+/**
+ * Manages administrative CRUD actions for internal user accounts and role assignment.
+ */
 class UserController extends Controller
 {
     public function __construct(
@@ -23,6 +26,9 @@ class UserController extends Controller
     ) {
     }
 
+    /**
+     * Show the user index with search and status filters.
+     */
     public function index(Request $request): View
     {
         $search = trim((string) $request->string('search'));
@@ -50,6 +56,9 @@ class UserController extends Controller
         ]);
     }
 
+    /**
+     * Show the create form with the current role list.
+     */
     public function create(): View
     {
         return view('admin.users.create', [
@@ -57,6 +66,9 @@ class UserController extends Controller
         ]);
     }
 
+    /**
+     * Create a user, hash the password, attach roles, and audit-log the action.
+     */
     public function store(StoreUserRequest $request): RedirectResponse
     {
         $validated = $request->validated();
@@ -81,6 +93,9 @@ class UserController extends Controller
         return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
     }
 
+    /**
+     * Show the edit form for a managed user and preload assigned roles.
+     */
     public function edit(User $user): View
     {
         $user->load('roles');
@@ -91,6 +106,9 @@ class UserController extends Controller
         ]);
     }
 
+    /**
+     * Update identity, optional password, status, and role assignments with administrator safeguards.
+     */
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
         $validated = $request->validated();
@@ -132,6 +150,9 @@ class UserController extends Controller
         return redirect()->route('admin.users.edit', $user)->with('success', 'User updated successfully.');
     }
 
+    /**
+     * Toggle a user's active state while preventing the final administrator from being disabled.
+     */
     public function toggleStatus(Request $request, User $user): RedirectResponse
     {
         $nextStatus = $user->status === 'active' ? 'disabled' : 'active';

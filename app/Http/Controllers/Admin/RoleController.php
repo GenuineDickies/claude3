@@ -11,12 +11,18 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/**
+ * Handles CRUD operations for business roles used by the RBAC system.
+ */
 class RoleController extends Controller
 {
     public function __construct(private readonly AuditLogger $auditLogger)
     {
     }
 
+    /**
+     * Show the role list with search support and usage counts.
+     */
     public function index(Request $request): View
     {
         $search = trim((string) $request->string('search'));
@@ -34,6 +40,9 @@ class RoleController extends Controller
         ]);
     }
 
+    /**
+     * Create a role and audit-log the change.
+     */
     public function store(StoreRoleRequest $request): RedirectResponse
     {
         $role = Role::create($request->validated());
@@ -46,6 +55,9 @@ class RoleController extends Controller
         return back()->with('success', 'Role created successfully.');
     }
 
+    /**
+     * Update an existing role definition.
+     */
     public function update(UpdateRoleRequest $request, Role $role): RedirectResponse
     {
         $role->update($request->validated());
@@ -58,6 +70,9 @@ class RoleController extends Controller
         return back()->with('success', 'Role updated successfully.');
     }
 
+    /**
+     * Delete a non-reserved, unassigned role after detaching page access.
+     */
     public function destroy(Request $request, Role $role): RedirectResponse
     {
         if ($role->isAdministrator()) {

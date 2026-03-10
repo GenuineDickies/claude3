@@ -14,8 +14,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
+/**
+ * Manages vendor receipts and invoices from draft capture through posting, payment, and file attachments.
+ */
 class VendorDocumentController extends Controller
 {
+    /**
+     * Show the vendor document index with filters for type, status, vendor, date range, and search text.
+     */
     public function index(Request $request)
     {
         $query = VendorDocument::with('vendor')->latest('document_date');
@@ -62,6 +68,9 @@ class VendorDocumentController extends Controller
         ]);
     }
 
+    /**
+     * Show the create form with vendors, expense accounts, and catalog parts.
+     */
     public function create(Request $request)
     {
         $vendors = Vendor::active()->orderBy('name')->get(['id', 'name']);
@@ -85,6 +94,9 @@ class VendorDocumentController extends Controller
         ));
     }
 
+    /**
+     * Create a draft vendor document with validated lines inside a database transaction.
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -148,6 +160,9 @@ class VendorDocumentController extends Controller
             ->with('success', 'Vendor document created.');
     }
 
+    /**
+     * Show a vendor document with posting, attachment, and accounting-link context.
+     */
     public function show(VendorDocument $vendorDocument)
     {
         $vendorDocument->load([
@@ -165,6 +180,9 @@ class VendorDocumentController extends Controller
         ]);
     }
 
+    /**
+     * Show the edit form for draft-only vendor documents.
+     */
     public function edit(VendorDocument $vendorDocument)
     {
         abort_unless($vendorDocument->isDraft(), 403, 'Only draft documents can be edited.');
@@ -190,6 +208,9 @@ class VendorDocumentController extends Controller
         ]);
     }
 
+    /**
+     * Replace a draft vendor document's header and lines, then recalculate totals.
+     */
     public function update(Request $request, VendorDocument $vendorDocument)
     {
         abort_unless($vendorDocument->isDraft(), 403, 'Only draft documents can be edited.');
@@ -252,8 +273,7 @@ class VendorDocumentController extends Controller
     }
 
     /**
-     * POST vendor-documents/{vendorDocument}/post
-     * Post to GL via AccountingService.
+        * Post a draft vendor document to the general ledger through the accounting service.
      */
     public function post(VendorDocument $vendorDocument)
     {
@@ -274,7 +294,7 @@ class VendorDocumentController extends Controller
     }
 
     /**
-     * POST vendor-documents/{vendorDocument}/void
+        * Void a posted vendor document and reverse its accounting impact.
      */
     public function void(VendorDocument $vendorDocument)
     {
@@ -296,8 +316,7 @@ class VendorDocumentController extends Controller
     }
 
     /**
-     * POST vendor-documents/{vendorDocument}/pay
-     * Mark an unpaid vendor invoice as paid and post A/P clearing entry.
+        * Mark a posted unpaid vendor invoice as paid and create the A/P clearing entry.
      */
     public function pay(Request $request, VendorDocument $vendorDocument)
     {
@@ -327,7 +346,7 @@ class VendorDocumentController extends Controller
     }
 
     /**
-     * POST vendor-documents/{vendorDocument}/attachments
+        * Store an uploaded attachment on local disk and link it to the vendor document.
      */
     public function storeAttachment(Request $request, VendorDocument $vendorDocument)
     {
@@ -351,7 +370,7 @@ class VendorDocumentController extends Controller
     }
 
     /**
-     * GET vendor-documents/{vendorDocument}/attachments/{attachment}/download
+        * Download a persisted attachment for the vendor document.
      */
     public function downloadAttachment(VendorDocument $vendorDocument, int $attachment)
     {
@@ -363,7 +382,7 @@ class VendorDocumentController extends Controller
     }
 
     /**
-     * DELETE vendor-documents/{vendorDocument}/attachments/{attachment}
+        * Delete an attachment from storage and from the database for draft documents only.
      */
     public function deleteAttachment(VendorDocument $vendorDocument, int $attachment)
     {
@@ -377,6 +396,9 @@ class VendorDocumentController extends Controller
             ->with('success', 'Attachment deleted.');
     }
 
+    /**
+     * Delete a draft vendor document and all dependent lines and attachments.
+     */
     public function destroy(VendorDocument $vendorDocument)
     {
         abort_unless($vendorDocument->isDraft(), 403, 'Only draft documents can be deleted.');

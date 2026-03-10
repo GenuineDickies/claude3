@@ -34,6 +34,9 @@ class ImportDocumentTransactionsJob implements ShouldQueue
         public string $spreadsheetText,
     ) {}
 
+    /**
+     * Parse spreadsheet text into draft transaction-import rows for later user review.
+     */
     public function handle(): void
     {
         $apiKey = (string) config('services.document_ai.api_key', '');
@@ -193,6 +196,9 @@ PROMPT;
         ]);
     }
 
+    /**
+     * Record permanent job failure once retries are exhausted.
+     */
     public function failed(\Throwable $exception): void
     {
         Log::error('ImportDocumentTransactionsJob permanently failed', [

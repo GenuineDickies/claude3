@@ -8,14 +8,18 @@ use App\Services\FinancialReportingService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
+/**
+ * Presents read-only accounting and financial reporting views built from posted journal data.
+ */
 class AccountingController extends Controller
 {
     public function __construct(
         private FinancialReportingService $reporting,
     ) {}
 
-    // ── Chart of Accounts ──────────────────────────────
-
+    /**
+     * Show active general-scope accounts grouped by type for the chart of accounts page.
+     */
     public function chartOfAccounts()
     {
         $accounts = Account::general()->where('is_active', true)->orderBy('code')->get();
@@ -26,8 +30,9 @@ class AccountingController extends Controller
         return view('accounting.chart-of-accounts', compact('accounts', 'grouped'));
     }
 
-    // ── Import Chart of Accounts ───────────────────────
-
+    /**
+     * Show import-scope accounts used by document transaction import workflows.
+     */
     public function importAccounts()
     {
         $accounts = Account::import()->where('is_active', true)->orderBy('code')->get();
@@ -36,8 +41,9 @@ class AccountingController extends Controller
         return view('accounting.import-accounts', compact('accounts', 'grouped'));
     }
 
-    // ── Journal Entries ────────────────────────────────
-
+    /**
+     * Show journal entries with status, date, and free-text filtering.
+     */
     public function journal(Request $request)
     {
         $query = JournalEntry::with(['lines.account', 'creator'])->latest('entry_date')->latest('id');
@@ -67,8 +73,9 @@ class AccountingController extends Controller
         return view('accounting.journal', compact('entries'));
     }
 
-    // ── Trial Balance ──────────────────────────────────
-
+    /**
+     * Render the trial balance as of the requested day-end timestamp.
+     */
     public function trialBalance(Request $request)
     {
         $asOf = $request->input('as_of')
@@ -85,8 +92,9 @@ class AccountingController extends Controller
         ]);
     }
 
-    // ── Profit & Loss ──────────────────────────────────
-
+    /**
+     * Render the profit-and-loss statement for the requested date range.
+     */
     public function profitAndLoss(Request $request)
     {
         $from = $request->input('from')
@@ -105,8 +113,9 @@ class AccountingController extends Controller
         ]));
     }
 
-    // ── Balance Sheet ──────────────────────────────────
-
+    /**
+     * Render the balance sheet as of the requested date.
+     */
     public function balanceSheet(Request $request)
     {
         $asOf = $request->input('as_of')
@@ -120,8 +129,9 @@ class AccountingController extends Controller
         ]));
     }
 
-    // ── General Ledger ─────────────────────────────────
-
+    /**
+     * Render the general ledger activity for one account over the requested date range.
+     */
     public function generalLedger(Request $request, Account $account)
     {
         $from = $request->input('from')

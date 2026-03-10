@@ -6,6 +6,9 @@ use App\Models\Document;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Calls the configured document AI provider and normalizes the result into the application's schema.
+ */
 class DocumentIntelligenceService implements DocumentIntelligenceInterface
 {
     private string $apiKey;
@@ -18,7 +21,11 @@ class DocumentIntelligenceService implements DocumentIntelligenceInterface
         $this->model = (string) config('services.document_ai.model', 'gpt-4o-mini');
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Submit extracted document content for classification and structured extraction.
+     *
+     * @return array{category: string, summary: string, tags: string[], extracted_data: array<string, mixed>, confidence: float}
+     */
     public function analyze(string $textContent, ?string $base64Image = null, ?string $mimeType = null): array
     {
         if ($this->apiKey === '') {
@@ -63,6 +70,9 @@ class DocumentIntelligenceService implements DocumentIntelligenceInterface
         return $this->normalizeResult($parsed);
     }
 
+    /**
+     * Build the system prompt that constrains allowed categories and JSON output shape.
+     */
     private function buildSystemPrompt(): string
     {
         $categories = implode(', ', Document::CATEGORIES);

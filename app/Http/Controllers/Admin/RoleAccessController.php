@@ -11,12 +11,18 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/**
+ * Edits the page assignments that determine which routes a role may access.
+ */
 class RoleAccessController extends Controller
 {
     public function __construct(private readonly AuditLogger $auditLogger)
     {
     }
 
+    /**
+     * Show the role access editor with the current page assignments.
+     */
     public function edit(Request $request, Role $role): View
     {
         $search = trim((string) $request->string('search'));
@@ -40,6 +46,9 @@ class RoleAccessController extends Controller
         ]);
     }
 
+    /**
+     * Persist page assignments for a non-administrator role and audit-log the result.
+     */
     public function update(UpdateRoleAccessRequest $request, Role $role): RedirectResponse
     {
         if ($role->isAdministrator()) {

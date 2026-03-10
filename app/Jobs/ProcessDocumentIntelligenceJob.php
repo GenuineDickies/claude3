@@ -20,7 +20,8 @@ use Smalot\PdfParser\Parser as PdfParser;
 
 /**
  * Send an uploaded document to the AI service for analysis,
- * then write the structured results back to the Document record.
+ * then write structured results back to the Document record and trigger
+ * matching or transaction-import follow-up work when applicable.
  */
 class ProcessDocumentIntelligenceJob implements ShouldQueue
 {
@@ -38,6 +39,10 @@ class ProcessDocumentIntelligenceJob implements ShouldQueue
         public Document $document,
     ) {}
 
+    /**
+     * Extract source content, invoke document intelligence, persist normalized output,
+     * and fan out downstream matching or spreadsheet import flows.
+     */
     public function handle(DocumentIntelligenceInterface $service): void
     {
         $this->document->update(['ai_status' => 'processing']);
@@ -169,7 +174,9 @@ class ProcessDocumentIntelligenceJob implements ShouldQueue
         }
     }
 
-    /** Called when all retry attempts are exhausted. */
+    /**
+     * Mark the document as failed once all queue retry attempts are exhausted.
+     */
     public function failed(\Throwable $exception): void
     {
         $this->document->update([
@@ -183,7 +190,9 @@ class ProcessDocumentIntelligenceJob implements ShouldQueue
         ]);
     }
 
-    /** Create DocumentLineItem records from AI-extracted line_items data. */
+    /**
+     * Create draft document line items from the AI-extracted `line_items` payload.
+     */
     private function createLineItemsFromExtractedData(array $extractedData): void
     {
         $lineItems = $extractedData['line_items'] ?? null;

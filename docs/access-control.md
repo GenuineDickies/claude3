@@ -1,5 +1,7 @@
 # Role-Based Page Access
 
+Last audited: 2026-03-08
+
 This application uses centralized role-based page access. Users can hold multiple roles, roles map to registered pages, and every protected page checks access through one shared function.
 
 ## Core behavior
@@ -20,7 +22,7 @@ This application uses centralized role-based page access. Users can hold multipl
 
 1. Add the new route inside the authenticated web route group in [routes/web.php](routes/web.php).
 2. Keep the route inside the `auth`, `active-user`, and `page-access` middleware stack. That stack is already applied to the main protected group.
-3. Sync the page registry from the admin UI on [docs/access-control.md](docs/access-control.md), or run the same flow during seeding with `AccessControlSeeder`.
+3. Sync the page registry from `Administration -> Pages`, or run the same flow during seeding with `AccessControlSeeder`.
 4. Assign the new page to one or more roles from the role access editor.
 
 ## How the page registry works
@@ -46,3 +48,4 @@ This application uses centralized role-based page access. Users can hold multipl
 - Authentication continues to use Laravel’s hashed password column.
 - Login attempts, successful logins, denied page access, user changes, role changes, and page changes are written to `audit_logs`.
 - CSRF protection remains active on all web forms.
+- Session-only AJAX endpoints under the authenticated web middleware group inherit the same page-to-route resolution through `PageAccessResolver`.

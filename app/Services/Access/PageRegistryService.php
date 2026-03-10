@@ -6,13 +6,22 @@ use App\Models\Page;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Route;
 
+/**
+ * Discovers protected GET routes and keeps the persisted page registry in sync.
+ */
 class PageRegistryService
 {
     public function __construct(private readonly PageAccessResolver $resolver)
     {
     }
 
-    /** @return Collection<int, Page> */
+    /**
+     * Sync canonical page records from the current route list.
+     *
+     * Side effect: creates or updates `pages` rows used by role-based access control.
+     *
+     * @return Collection<int, Page>
+     */
     public function sync(): Collection
     {
         $syncedPages = collect();
