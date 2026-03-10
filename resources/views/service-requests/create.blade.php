@@ -52,7 +52,7 @@
         </div>
     </div>
 
-    <form action="{{ route('service-requests.store') }}" method="POST" id="service-request-form" class="space-y-6">
+    <form action="{{ route('service-requests.store') }}" method="POST" id="service-request-form" class="space-y-6" data-customer-search-url="{{ \App\Support\RequestPath::prefixed(request(), '/api/customers/search') }}">
         @csrf
         <input type="hidden" name="customer_action" id="customer_action" value="create_new">
 
@@ -161,9 +161,21 @@
                 <h3 class="text-lg font-semibold text-gray-700 mb-4">Location & Notes</h3>
                 <div class="space-y-4">
                     <div>
-                        <label for="location" class="block text-sm font-medium text-gray-700">Location / Address</label>
-                        <input type="text" name="location" id="location" maxlength="500" value="{{ old('location') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border" placeholder="e.g. I-95 Northbound, mile marker 42">
-                        <p class="mt-1 text-xs text-gray-500">Optional — you can also send a GPS location request via SMS after creating the ticket.</p>
+                        <label for="street_address" class="block text-sm font-medium text-gray-700">Street</label>
+                        <input type="text" name="street_address" id="street_address" maxlength="255" value="{{ old('street_address') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border" placeholder="e.g. 123 Main St">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="city" class="block text-sm font-medium text-gray-700">City</label>
+                            <input type="text" name="city" id="city" maxlength="100" value="{{ old('city') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border" placeholder="e.g. Tampa">
+                        </div>
+                        <div>
+                            <label for="state" class="block text-sm font-medium text-gray-700">State</label>
+                            <input type="text" name="state" id="state" maxlength="100" value="{{ old('state') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border" placeholder="e.g. FL">
+                        </div>
+                    </div>
+                    <div>
+                        <p class="mt-1 text-xs text-gray-500">Optional — leave all address fields blank if you do not have the location yet. You can also send a GPS location request via SMS after creating the ticket.</p>
                     </div>
                     <div>
                         <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>

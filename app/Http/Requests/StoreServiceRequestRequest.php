@@ -7,6 +7,30 @@ use Illuminate\Support\Facades\Auth;
 
 class StoreServiceRequestRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $streetAddress = trim((string) $this->input('street_address', ''));
+        $city = trim((string) $this->input('city', ''));
+        $state = trim((string) $this->input('state', ''));
+
+        $locationParts = array_values(array_filter([
+            $streetAddress,
+            $city,
+            $state,
+        ], static fn (string $value): bool => $value !== ''));
+
+        $location = $locationParts !== []
+            ? implode(', ', $locationParts)
+            : $this->input('location');
+
+        $this->merge([
+            'street_address' => $streetAddress,
+            'city' => $city,
+            'state' => $state,
+            'location' => $location !== null ? trim((string) $location) : null,
+        ]);
+    }
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -33,6 +57,9 @@ class StoreServiceRequestRequest extends FormRequest
             'vehicle_color' => 'nullable|string|max:50',
             'catalog_item_id' => 'required|exists:catalog_items,id',
             'quoted_price' => 'required|numeric|min:0',
+            'street_address' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:100',
+            'state' => 'nullable|string|max:100',
             'location' => 'nullable|string|max:500',
             'notes' => 'nullable|string|max:1000',
             'verbal_opt_in' => 'nullable|boolean',

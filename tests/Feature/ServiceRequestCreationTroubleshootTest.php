@@ -88,7 +88,9 @@ final class ServiceRequestCreationTroubleshootTest extends TestCase
             'vehicle_color' => 'Silver',
             'catalog_item_id' => $this->catalogItem->id,
             'quoted_price' => '75.00',
-            'location' => 'I-95 mile marker 42',
+            'street_address' => '123 Main St',
+            'city' => 'Tampa',
+            'state' => 'FL',
             'notes' => 'Flat tire, driver side rear',
         ], $overrides);
     }
@@ -402,7 +404,7 @@ final class ServiceRequestCreationTroubleshootTest extends TestCase
         
         $payload = $this->validPayload();
         unset($payload['vehicle_color']);
-        unset($payload['location']);
+        unset($payload['street_address'], $payload['city'], $payload['state']);
         unset($payload['notes']);
 
         $response = $this->actingAs($this->user)

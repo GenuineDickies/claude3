@@ -80,13 +80,8 @@ final class TelnyxWebhookController
             return;
         }
 
-        // Normalize phone to digits only for DB lookup
-        $phone = Customer::normalizePhone($from);
-
-        // Find the active customer by phone
-        $customer = Customer::where('phone', $phone)
-            ->where('is_active', true)
-            ->first();
+        // Find the active customer by phone, including legacy formatted rows.
+        $customer = Customer::findActiveByPhone($from);
 
         // Log inbound message
         $serviceRequestId = $customer?->serviceRequests()->latest()->value('id');

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use App\Models\Correspondence;
 use App\Models\Vehicle;
@@ -30,8 +31,10 @@ use App\Models\Setting;
  * @property \Illuminate\Support\Carbon|null $location_token_expires_at
  * @property \Illuminate\Support\Carbon|null $location_shared_at
  * @property string|null $notes
+ * @property int|null $assigned_user_id
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\User|null $assignedTechnician
  * @property-read CatalogItem|null $catalogItem
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Correspondence> $correspondences
  * @property-read int|null $correspondences_count
@@ -130,6 +133,7 @@ class ServiceRequest extends Model
         'location_token_expires_at',
         'location_shared_at',
         'notes',
+        'assigned_user_id',
     ];
 
     protected function casts(): array
@@ -245,6 +249,11 @@ class ServiceRequest extends Model
         return $this->hasMany(Invoice::class);
     }
 
+    public function assignedTechnician(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_user_id');
+    }
+
     public function workOrders(): HasMany
     {
         return $this->hasMany(WorkOrder::class);
@@ -308,6 +317,10 @@ class ServiceRequest extends Model
 
     public function hasAssignedDriverForDispatch(): bool
     {
+        if ($this->assigned_user_id) {
+            return true;
+        }
+
         if ($this->relationLoaded('workOrders')) {
             return $this->workOrders->contains(
                 fn (WorkOrder $workOrder) => filled(trim((string) $workOrder->assigned_to))
@@ -329,7 +342,7 @@ class ServiceRequest extends Model
         }
 
         if (! $this->hasAssignedDriverForDispatch()) {
-            $issues[] = 'an assigned driver';
+            $issues[] = 'an assigned technician';
         }
 
         return $issues;

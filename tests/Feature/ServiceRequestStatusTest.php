@@ -248,7 +248,7 @@ class ServiceRequestStatusTest extends TestCase
         );
 
         $response->assertRedirect();
-        $response->assertSessionHas('error', 'Dispatch requires an approved estimate and an assigned driver.');
+        $response->assertSessionHas('error', 'Dispatch requires an approved estimate and an assigned technician.');
         $this->assertDatabaseHas('service_requests', ['id' => $sr->id, 'status' => 'new']);
     }
 
@@ -291,7 +291,7 @@ class ServiceRequestStatusTest extends TestCase
         );
 
         $response->assertRedirect();
-        $response->assertSessionHas('error', 'Dispatch requires an assigned driver.');
+        $response->assertSessionHas('error', 'Dispatch requires an assigned technician.');
         $this->assertDatabaseHas('service_requests', ['id' => $sr->id, 'status' => 'new']);
     }
 
@@ -417,7 +417,7 @@ class ServiceRequestStatusTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Mark as Dispatched');
-        $response->assertSee('Dispatch requires an approved estimate and an assigned driver.');
+        $response->assertSee('Dispatch requires an approved estimate and an assigned technician.');
         $response->assertSee('cursor-not-allowed');
     }
 

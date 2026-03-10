@@ -52,7 +52,9 @@ final class ServiceRequestFlowTest extends TestCase
             'vehicle_color' => 'Silver',
             'catalog_item_id' => $catalogItem->id,
             'quoted_price' => '75.00',
-            'location' => 'I-95 mile marker 42',
+            'street_address' => '123 Main St',
+            'city' => 'Tampa',
+            'state' => 'FL',
             'notes' => 'Flat tire, driver side rear',
         ], $overrides);
     }
@@ -132,6 +134,7 @@ final class ServiceRequestFlowTest extends TestCase
         $this->assertSame('Camry', $sr->vehicle_model);
         $this->assertNotNull($sr->catalog_item_id);
         $this->assertSame('75.00', $sr->quoted_price);
+        $this->assertSame('123 Main St, Tampa, FL', $sr->location);
     }
 
     public function test_store_deactivates_old_customer_when_creating_new(): void
@@ -265,6 +268,34 @@ final class ServiceRequestFlowTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('New Service Request');
+        $response->assertSee('Street');
+        $response->assertSee('City');
+        $response->assertSee('State');
+        $response->assertDontSee('Location / Address');
+    }
+
+    public function test_store_allows_location_fields_to_remain_blank(): void
+    {
+        $response = $this->actingAs($this->authenticatedUser())
+            ->post(route('service-requests.store'), $this->validPayload([
+                'street_address' => '',
+                'city' => '',
+                'state' => '',
+            ]));
+
+        $response->assertRedirect(route('service-requests.show', ServiceRequest::first()));
+        $this->assertNull(ServiceRequest::first()->location);
+    }
+
+    public function test_create_page_includes_customer_search_url(): void
+    {
+        $this->withoutVite();
+
+        $response = $this->actingAs($this->authenticatedUser())
+            ->get(route('service-requests.create'));
+
+        $response->assertOk();
+        $response->assertSee('data-customer-search-url="/api/customers/search"', false);
     }
 
     // ------------------------------------------------------------------

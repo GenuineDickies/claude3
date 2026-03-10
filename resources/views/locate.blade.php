@@ -3,29 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Share Your Location</title>
+    <title>Share Your Location | {{ $companyName }}</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { width: 100%; height: 100%; }
+        html, body { width: 100%; min-height: 100%; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #fff;
+            background: #f8fafc;
             color: #1a202c;
             min-height: 100vh;
             min-height: 100dvh;
             display: flex;
-            flex-direction: column;
+            align-items: stretch;
+            justify-content: stretch;
             overflow-x: hidden;
         }
         .card {
             background: #fff;
             width: 100%;
+            min-height: 100vh;
+            min-height: 100dvh;
             flex: 1 0 auto;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 1.5rem 1rem;
+            align-items: stretch;
+            justify-content: flex-start;
+            padding: 1.5rem 1rem 2rem;
             text-align: center;
         }
         @media (min-width: 600px) {
@@ -36,17 +39,69 @@
                 background: #f0f4f8;
             }
             .card {
-                max-width: 500px;
-                width: auto;
+                width: min(100%, 720px);
+                min-height: min(100dvh - 4rem, 880px);
                 border-radius: 1.5rem;
                 box-shadow: 0 8px 40px rgba(0,0,0,0.12);
                 flex: none;
-                padding: 2rem 1.5rem;
+                padding: 2rem 1.75rem 2.25rem;
             }
         }
-        .icon { font-size: 4rem; margin-bottom: 1.25rem; }
-        h1 { font-size: 1.6rem; margin-bottom: 0.75rem; }
-        p { color: #4a5568; font-size: 1.05rem; line-height: 1.6; margin-bottom: 1.5rem; }
+        .icon { font-size: 3.5rem; margin-bottom: 1rem; }
+        h1 { font-size: clamp(1.8rem, 4vw, 2.35rem); margin-bottom: 0.75rem; }
+        p { color: #4a5568; font-size: 1.05rem; line-height: 1.6; margin-bottom: 1.25rem; }
+        .brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.875rem;
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+        .brand-mark {
+            width: 3.5rem;
+            height: 3.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .brand-mark img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 8px 20px rgba(15, 23, 42, 0.18));
+        }
+        .brand-copy {
+            min-width: 0;
+        }
+        .brand-name {
+            display: block;
+            color: #0f172a;
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        .brand-tagline {
+            display: block;
+            color: #64748b;
+            font-size: 0.82rem;
+            line-height: 1.35;
+            margin-top: 0.15rem;
+        }
+        .eyebrow {
+            display: inline-flex;
+            align-self: center;
+            padding: 0.3rem 0.7rem;
+            border-radius: 9999px;
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
         .btn {
             display: inline-block;
             background: #2563eb;
@@ -58,7 +113,6 @@
             font-weight: 600;
             cursor: pointer;
             width: 100%;
-            max-width: 400px;
             transition: background 0.2s;
         }
         .btn:hover { background: #1d4ed8; }
@@ -79,8 +133,14 @@
         .expired { color: #dc2626; }
         .card-inner {
             width: 100%;
-            max-width: 500px;
+            max-width: none;
             padding: 0;
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            justify-content: center;
+            gap: 0.75rem;
+            margin: 0 auto;
         }
         #map-container {
             display: none;
@@ -88,12 +148,11 @@
             border-radius: 0.75rem;
             overflow: hidden;
             border: 1px solid #e2e8f0;
+            background: #e2e8f0;
         }
         #map-container iframe {
             width: 100%;
-            height: 45vh;
-            min-height: 250px;
-            max-height: 500px;
+            height: clamp(320px, 52dvh, 640px);
             border: 0;
         }
         .map-label {
@@ -118,7 +177,6 @@
             font-weight: 600;
             cursor: pointer;
             width: 100%;
-            max-width: 400px;
         }
         .btn-retry {
             display: inline-block;
@@ -131,20 +189,103 @@
             font-weight: 500;
             cursor: pointer;
             width: 100%;
-            max-width: 400px;
         }
         .btn-confirm:hover { background: #15803d; }
         .btn-retry:hover { background: #cbd5e1; }
+
+        @media (max-width: 599px) {
+            .card {
+                padding-top: calc(1rem + env(safe-area-inset-top));
+                padding-right: 0;
+                padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+                padding-left: 0;
+            }
+
+            .card-inner {
+                justify-content: flex-start;
+                gap: 0.875rem;
+                padding: 0.5rem 1rem 0;
+            }
+
+            .brand {
+                justify-content: flex-start;
+                margin-bottom: 0.25rem;
+            }
+
+            .brand-mark {
+                width: 3rem;
+                height: 3rem;
+            }
+
+            .brand-name {
+                font-size: 0.95rem;
+            }
+
+            .brand-tagline {
+                font-size: 0.78rem;
+            }
+
+            .icon {
+                font-size: 3rem;
+                margin-bottom: 0.5rem;
+            }
+
+            p {
+                font-size: 1rem;
+                margin-bottom: 1rem;
+            }
+
+            #map-container {
+                margin-top: 1rem;
+                margin-right: -1rem;
+                margin-left: -1rem;
+                border-right: 0;
+                border-left: 0;
+                border-radius: 0;
+            }
+
+            #map-container iframe {
+                height: 56dvh;
+                min-height: 320px;
+            }
+
+            .confirm-row {
+                position: sticky;
+                bottom: 0;
+                margin-right: -1rem;
+                margin-left: -1rem;
+                padding: 0.875rem 1rem calc(0.875rem + env(safe-area-inset-bottom));
+                background: linear-gradient(to top, rgba(248, 250, 252, 0.98), rgba(248, 250, 252, 0.88));
+                backdrop-filter: blur(10px);
+            }
+
+            .btn,
+            .btn-confirm,
+            .btn-retry {
+                max-width: none;
+                border-radius: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="card">
         <div class="card-inner">
+            <div class="brand" aria-label="{{ $companyName }} branding">
+                <div class="brand-mark" aria-hidden="true">
+                    <img src="{{ asset('images/company-logo.jpg') }}" alt="" loading="eager" decoding="async">
+                </div>
+                <div class="brand-copy">
+                    <span class="brand-name">{{ $companyName }}</span>
+                    <span class="brand-tagline">{{ $companyTagline }}</span>
+                </div>
+            </div>
         @if ($expired)
             <div class="icon">⏰</div>
             <h1>Link Expired</h1>
             <p>This location-sharing link has expired or has already been used. Please contact us if you still need assistance.</p>
         @else
+            <div class="eyebrow">Secure Location Check-In</div>
             <div class="icon">📍</div>
             <h1>Share Your Location</h1>
             <p>
@@ -261,7 +402,7 @@
                     status.textContent = 'Sending your confirmed location…';
                     status.className = 'status';
 
-                    fetch(@json(url('/api/locate/' . $token)), {
+                    fetch(@json(route('locate.store', ['token' => $token])), {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

@@ -10,6 +10,7 @@ use App\Models\ServiceRequest;
 use App\Models\ServiceRequestStatusLog;
 use App\Models\Setting;
 use App\Models\CatalogCategory;
+use App\Models\User;
 use App\Services\SmsServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -72,28 +73,30 @@ class ServiceRequestController extends Controller
             $this->syncLocationFromCapture($serviceRequest);
         }
 
-        $serviceRequest->load(['customer', 'catalogItem', 'messages', 'estimates.items', 'statusLogs.user', 'receipts', 'photos', 'signatures', 'paymentRecords', 'serviceLogs.user', 'workOrders.items', 'correspondences.logger', 'documents.uploader']);
+        $serviceRequest->load(['customer', 'catalogItem', 'messages', 'estimates.items', 'statusLogs.user', 'receipts', 'photos', 'signatures', 'paymentRecords', 'serviceLogs.user', 'workOrders.items', 'correspondences.logger', 'documents.uploader', 'assignedTechnician', 'invoices']);
 
         $messageTemplates = MessageTemplate::active()
             ->whereNotIn('category', ['compliance'])
             ->orderBy('sort_order')
             ->get(['id', 'name', 'category', 'body']);
 
-        return view('service-requests.show', compact('serviceRequest', 'messageTemplates'));
+        $technicians = User::whereHas('technicianProfile')
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return view('service-requests.show', compact('serviceRequest', 'messageTemplates', 'technicians'));
     }
 
     public function store(StoreServiceRequestRequest $request)
     {
         $validated = $request->validated();
 
-        // Normalize phone to digits for consistent DB lookups
-        $phone = preg_replace('/\D/', '', $validated['phone']);
+        $phone = Customer::normalizePhone($validated['phone']);
 
         $serviceRequest = DB::transaction(function () use ($validated, $phone) {
             if ($validated['customer_action'] === 'use_existing') {
-                $customer = Customer::where('phone', $phone)
-                    ->where('is_active', true)
-                    ->first();
+                $customer = Customer::findActiveByPhone($phone);
 
                 if ($customer) {
                     $customer->update([
@@ -111,7 +114,8 @@ class ServiceRequestController extends Controller
                 }
             } else {
                 // Deactivate existing active customers with this phone
-                Customer::where('phone', $phone)
+                Customer::query()
+                    ->wherePhoneMatches($phone)
                     ->where('is_active', true)
                     ->update(['is_active' => false]);
 
@@ -251,6 +255,27 @@ class ServiceRequestController extends Controller
 
         return redirect()->route('service-requests.show', $serviceRequest)
             ->with('success', 'Status updated to "' . (ServiceRequest::STATUS_LABELS[$newStatus] ?? $newStatus) . '".');
+    }
+
+    public function assignTechnician(Request $request, ServiceRequest $serviceRequest)
+    {
+        $request->validate([
+            'assigned_user_id' => 'required|exists:users,id',
+        ]);
+
+        $user = User::whereHas('technicianProfile')
+            ->where('status', 'active')
+            ->findOrFail($request->input('assigned_user_id'));
+
+        $serviceRequest->update(['assigned_user_id' => $user->id]);
+
+        ServiceLog::log($serviceRequest, 'technician_assigned', [
+            'technician_name' => $user->name,
+            'technician_id'   => $user->id,
+        ], Auth::id());
+
+        return redirect()->route('service-requests.show', $serviceRequest)
+            ->with('success', 'Technician assigned: ' . $user->name);
     }
 
     /**

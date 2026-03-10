@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Events\CustomerOptedIn;
 use App\Events\CustomerOptedOut;
 use App\Models\Correspondence;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -149,6 +150,60 @@ class Customer extends Model
     public function setPhoneAttribute(string $value): void
     {
         $this->attributes['phone'] = self::normalizePhone($value);
+    }
+
+    /**
+     * Match phones across normalized, country-code, and legacy formatted values.
+     */
+    public function scopeWherePhoneMatches(Builder $query, string $phone): Builder
+    {
+        $normalized = self::normalizePhone($phone);
+
+        if ($normalized === '') {
+            return $query->whereRaw('1 = 0');
+        }
+
+        $candidates = [$normalized];
+
+        if (strlen($normalized) === 10) {
+            $candidates[] = '1' . $normalized;
+        } elseif (strlen($normalized) === 11 && str_starts_with($normalized, '1')) {
+            $candidates[] = substr($normalized, 1);
+        }
+
+        $candidates = array_values(array_unique($candidates));
+        $placeholders = implode(',', array_fill(0, count($candidates), '?'));
+        $normalizedPhoneSql = "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(phone, '+', ''), '(', ''), ')', ''), '-', ''), ' ', ''), '.', '')";
+
+        return $query->where(function (Builder $phoneQuery) use ($candidates, $normalizedPhoneSql, $placeholders) {
+            $phoneQuery->whereIn('phone', $candidates)
+                ->orWhereRaw($normalizedPhoneSql . " IN ($placeholders)", $candidates);
+        });
+    }
+
+    public static function findActiveByPhone(string $phone): ?self
+    {
+        $normalized = static::normalizePhone($phone);
+
+        if ($normalized === '') {
+            return null;
+        }
+
+        $customer = static::query()
+            ->wherePhoneMatches($phone)
+            ->where('is_active', true)
+            ->first();
+
+        if ($customer) {
+            return $customer;
+        }
+
+        // Fallback for legacy rows with unexpected formatting that SQL-side
+        // replacement does not normalize cleanly.
+        return static::query()
+            ->where('is_active', true)
+            ->get()
+            ->first(fn (self $activeCustomer) => static::normalizePhone((string) $activeCustomer->phone) === $normalized);
     }
 
     public function serviceRequests(): HasMany

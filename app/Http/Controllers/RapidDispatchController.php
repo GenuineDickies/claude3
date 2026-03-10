@@ -38,13 +38,11 @@ class RapidDispatchController extends Controller
             'send_location_request' => 'nullable|boolean',
         ]);
 
-        $phone = preg_replace('/\D/', '', $validated['phone']);
+        $phone = Customer::normalizePhone($validated['phone']);
 
         $serviceRequest = DB::transaction(function () use ($validated, $phone) {
             // Find or create customer
-            $customer = Customer::where('phone', $phone)
-                ->where('is_active', true)
-                ->first();
+            $customer = Customer::findActiveByPhone($phone);
 
             if ($customer) {
                 $customer->update([

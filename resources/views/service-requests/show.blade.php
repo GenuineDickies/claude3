@@ -10,20 +10,53 @@
     </a>
 
     {{-- Header --}}
-    <div class="bg-white rounded-lg shadow p-6">
-        <div class="flex justify-between items-start">
+    <div class="bg-white rounded-lg shadow p-6" x-data="{ assigning: false, showNotes: false }">
+        <div class="flex justify-between items-start gap-4">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">
                     Service Request #{{ $serviceRequest->id }}
                 </h1>
                 <p class="text-sm text-gray-500 mt-1">Created {{ $serviceRequest->created_at->format('M j, Y g:i A') }}</p>
             </div>
-            <x-status-badge :status="$serviceRequest->status" class="px-3 py-1 text-sm" />
+            <div class="flex items-center gap-3 shrink-0">
+                {{-- Assign Technician --}}
+                @if ($serviceRequest->assignedTechnician)
+                    <span class="inline-flex items-center gap-1.5 text-sm text-gray-700 bg-gray-100 rounded-md px-3 py-1.5">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        {{ $serviceRequest->assignedTechnician->name }}
+                    </span>
+                    <button type="button" @click="assigning = true" x-show="!assigning" class="text-xs text-blue-600 hover:text-blue-800 underline">Change</button>
+                @else
+                    <button type="button" @click="assigning = true" x-show="!assigning"
+                            class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        Assign Technician
+                    </button>
+                @endif
+
+                {{-- Inline assign form --}}
+                <form method="POST" action="{{ route('service-requests.assign-technician', $serviceRequest) }}"
+                      x-show="assigning" x-cloak class="inline-flex items-center gap-2">
+                    @csrf
+                    @method('PATCH')
+                    <select name="assigned_user_id" required
+                            class="text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">Select…</option>
+                        @foreach ($technicians as $tech)
+                            <option value="{{ $tech->id }}" @selected($serviceRequest->assigned_user_id == $tech->id)>{{ $tech->name }}</option>
+                        @endforeach
+                    </select>
+                    <button type="submit" class="px-2 py-1 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">Save</button>
+                    <button type="button" @click="assigning = false" class="text-sm text-gray-500 hover:text-gray-700">Cancel</button>
+                </form>
+
+                <x-status-badge :status="$serviceRequest->status" class="px-3 py-1 text-sm" />
+            </div>
         </div>
 
         {{-- Status transition controls --}}
         @if (! in_array($serviceRequest->status, \App\Models\ServiceRequest::TERMINAL_STATUSES))
-        <div class="mt-4 border-t border-gray-100 pt-4" x-data="{ showNotes: false }">
+        <div class="mt-4 border-t border-gray-100 pt-4">
             @php
                 $nextStatus = $serviceRequest->nextStatus();
                 $canAdvance = $nextStatus ? $serviceRequest->canTransitionTo($nextStatus) : false;
@@ -87,6 +120,106 @@
             </div>
         </div>
         @endif
+    </div>
+
+    {{-- Workflow Progress Tracker --}}
+    @php
+        $isCancelled = $serviceRequest->status === 'cancelled';
+        $hasEstimate = $serviceRequest->estimates->isNotEmpty();
+        $hasWorkOrder = $serviceRequest->workOrders->isNotEmpty();
+        $hasInvoice = $serviceRequest->invoices->isNotEmpty();
+        $isPaid = $serviceRequest->paymentStatus() === 'paid';
+        $isComplete = $serviceRequest->status === 'completed';
+
+        $stages = [
+            ['label' => 'Create Estimate', 'done' => $hasEstimate],
+            ['label' => 'Create Work Order', 'done' => $hasWorkOrder],
+            ['label' => 'Create Invoice', 'done' => $hasInvoice],
+            ['label' => 'Collect Payment', 'done' => $isPaid],
+            ['label' => 'Complete', 'done' => $isComplete],
+        ];
+
+        // Find the first incomplete stage (yellow / current)
+        $currentIndex = null;
+        if (! $isCancelled) {
+            foreach ($stages as $i => $s) {
+                if (! $s['done']) { $currentIndex = $i; break; }
+            }
+        }
+    @endphp
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Workflow Progress</h2>
+        <div class="flex items-center">
+            @foreach ($stages as $i => $stage)
+                @php
+                    if ($isCancelled) {
+                        $color = 'grey';
+                    } elseif ($stage['done']) {
+                        $color = 'green';
+                    } elseif ($i === $currentIndex) {
+                        $color = 'yellow';
+                    } else {
+                        $color = 'grey';
+                    }
+
+                    // Build link for each stage
+                    $link = null;
+                    if ($color === 'green') {
+                        // Link to the existing entity
+                        if ($i === 0 && $serviceRequest->estimates->first()) {
+                            $link = route('estimates.show', [$serviceRequest, $serviceRequest->estimates->first()]);
+                        } elseif ($i === 1 && $serviceRequest->workOrders->first()) {
+                            $link = route('work-orders.show', [$serviceRequest, $serviceRequest->workOrders->first()]);
+                        } elseif ($i === 2 && $serviceRequest->invoices->first()) {
+                            $link = route('invoices.show', [$serviceRequest, $serviceRequest->invoices->first()]);
+                        }
+                    } elseif ($color === 'yellow') {
+                        // Link to create page
+                        if ($i === 0) {
+                            $link = route('estimates.create', $serviceRequest);
+                        } elseif ($i === 1) {
+                            $link = route('work-orders.create', $serviceRequest);
+                        } elseif ($i === 2 && $serviceRequest->workOrders->first()) {
+                            $link = route('invoices.create', [$serviceRequest, $serviceRequest->workOrders->first()]);
+                        }
+                    }
+
+                    $bgClass = match ($color) {
+                        'green'  => 'bg-green-500 text-white',
+                        'yellow' => 'bg-yellow-400 text-yellow-900',
+                        default  => 'bg-gray-200 text-gray-500',
+                    };
+                    $lineClass = ($i > 0 && ($stages[$i - 1]['done'] ?? false)) ? 'bg-green-400' : 'bg-gray-200';
+                @endphp
+
+                {{-- Connector line --}}
+                @if ($i > 0)
+                    <div class="flex-1 h-1 {{ $lineClass }} rounded-full mx-1"></div>
+                @endif
+
+                {{-- Stage circle + label --}}
+                <div class="flex flex-col items-center" style="min-width:4.5rem">
+                    @if ($link)
+                        <a href="{{ $link }}" class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold {{ $bgClass }} ring-2 ring-white shadow-sm hover:scale-110 transition-transform" title="{{ $stage['label'] }}">
+                            @if ($color === 'green')
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            @else
+                                {{ $i + 1 }}
+                            @endif
+                        </a>
+                    @else
+                        <span class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold {{ $bgClass }} ring-2 ring-white shadow-sm" title="{{ $stage['label'] }}">
+                            @if ($color === 'green')
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            @else
+                                {{ $i + 1 }}
+                            @endif
+                        </span>
+                    @endif
+                    <span class="mt-1.5 text-xs text-center leading-tight {{ $color === 'yellow' ? 'font-semibold text-yellow-800' : 'text-gray-600' }}">{{ $stage['label'] }}</span>
+                </div>
+            @endforeach
+        </div>
     </div>
 
     {{-- Customer --}}

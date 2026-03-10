@@ -164,6 +164,7 @@ Route::middleware(['auth', 'active-user', 'page-access'])->group(function () {
     Route::get('/rapid-dispatch/parse', [RapidDispatchController::class, 'parse'])->name('rapid-dispatch.parse');
     Route::get('/service-requests/{serviceRequest}', [ServiceRequestController::class, 'show'])->name('service-requests.show');
     Route::patch('/service-requests/{serviceRequest}', [ServiceRequestController::class, 'update'])->name('service-requests.update');
+    Route::patch('/service-requests/{serviceRequest}/assign-technician', [ServiceRequestController::class, 'assignTechnician'])->name('service-requests.assign-technician');
     Route::post('/service-requests/{serviceRequest}/request-location', [LocationShareController::class, 'request'])->name('service-requests.request-location');
     Route::post('/service-requests/{serviceRequest}/messages', [MessageController::class, 'store'])->name('service-requests.messages.store');
     Route::post('/service-requests/{serviceRequest}/correspondence', [CorrespondenceController::class, 'store'])->name('service-requests.correspondence.store');

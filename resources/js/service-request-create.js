@@ -6,11 +6,26 @@ document.addEventListener('DOMContentLoaded', function () {
     const phoneInput = document.getElementById('phone');
     if (!phoneInput) return; // guard: only run on the create page
 
+    function fallbackCustomerSearchUrl(form) {
+        if (!form?.action) {
+            return '/api/customers/search';
+        }
+
+        const formActionUrl = new URL(form.action, window.location.origin);
+        formActionUrl.pathname = formActionUrl.pathname.replace(/\/service-requests\/?$/, '/api/customers/search');
+        formActionUrl.search = '';
+        formActionUrl.hash = '';
+
+        return formActionUrl.toString();
+    }
+
     // --- DOM refs ---
     const firstNameInput = document.getElementById('first_name');
     const lastNameInput = document.getElementById('last_name');
     const statusDiv = document.getElementById('customer-status');
     const customerActionInput = document.getElementById('customer_action');
+    const serviceRequestForm = document.getElementById('service-request-form');
+    const customerSearchUrl = serviceRequestForm?.dataset.customerSearchUrl || fallbackCustomerSearchUrl(serviceRequestForm);
 
     const modal = document.getElementById('customer-modal');
     const modalName = document.getElementById('modal-customer-name');
@@ -183,8 +198,22 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.target.value.length === 14) {
             statusDiv.innerHTML = '<span class="text-gray-500">Checking records...</span>';
 
-            fetch(`/api/customers/search?phone=${encodeURIComponent(e.target.value)}`)
-                .then(response => response.json())
+            const lookupUrl = new URL(customerSearchUrl, window.location.origin);
+            lookupUrl.searchParams.set('phone', e.target.value);
+
+            fetch(lookupUrl.toString(), {
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Customer lookup failed with status ${response.status}`);
+                    }
+
+                    return response.json();
+                })
                 .then(data => {
                     if (data.customer) {
                         tempCustomer = data.customer;
@@ -195,13 +224,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         // Next stays disabled until modal is resolved
                     } else {
                         customerActionInput.value = 'create_new';
-                        statusDiv.innerHTML = '<span class="text-blue-600 font-medium">New customer.</span>';
+                        statusDiv.innerHTML = '<span class="text-blue-600 font-medium">No matching customer found. Creating new customer record.</span>';
                         customerCheckResolved = true;
                         updateNextButtonState();
                     }
                 })
                 .catch(error => {
-                    statusDiv.innerHTML = '<span class="text-red-600">No match found. Proceeding as new customer.</span>';
+                    customerActionInput.value = 'create_new';
+                    statusDiv.innerHTML = '<span class="text-red-600 font-medium">Customer lookup failed. Proceeding as new customer.</span>';
                     customerCheckResolved = true;
                     updateNextButtonState();
                     console.error('Error fetching customer:', error);

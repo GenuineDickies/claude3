@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Jobs\ReverseGeocodeJob;
 use App\Models\Customer;
 use App\Models\MessageTemplate;
+use App\Models\Setting;
 use App\Models\ServiceRequest;
 use App\Models\User;
 use App\Services\SmsServiceInterface;
@@ -147,8 +148,23 @@ final class LocationShareTest extends TestCase
         $response = $this->get('/locate/' . $sr->location_token);
 
         $response->assertOk();
-        $response->assertSee(json_encode(url('/api/locate/' . $sr->location_token)), false);
+        $response->assertSee(json_encode(route('locate.store', ['token' => $sr->location_token])), false);
         $response->assertDontSee("fetch('/api/locate/" . $sr->location_token, false);
+    }
+
+    public function test_locate_page_uses_company_branding_settings(): void
+    {
+        Setting::setValue('company_name', 'Signal Roadside');
+        Setting::setValue('company_tagline', 'Fast help, clearly tracked');
+
+        [, $sr] = $this->createCustomerWithRequest(withToken: true);
+
+        $response = $this->get('/locate/' . $sr->location_token);
+
+        $response->assertOk();
+        $response->assertSeeText('Signal Roadside');
+        $response->assertSeeText('Fast help, clearly tracked');
+        $response->assertSee('<title>Share Your Location | Signal Roadside</title>', false);
     }
 
     public function test_locate_page_returns_410_for_expired_token(): void
@@ -194,7 +210,7 @@ final class LocationShareTest extends TestCase
 
         [, $sr] = $this->createCustomerWithRequest(withToken: true);
 
-        $response = $this->postJson('/api/locate/' . $sr->location_token, [
+        $response = $this->postJson(route('locate.store', ['token' => $sr->location_token]), [
             'latitude'  => 33.7490,
             'longitude' => -84.3880,
             'accuracy'  => 15.0,
@@ -216,7 +232,7 @@ final class LocationShareTest extends TestCase
         [, $sr] = $this->createCustomerWithRequest(withToken: true);
         $sr->update(['location_token_expires_at' => now()->subHour()]);
 
-        $response = $this->postJson('/api/locate/' . $sr->location_token, [
+        $response = $this->postJson(route('locate.store', ['token' => $sr->location_token]), [
             'latitude'  => 33.7490,
             'longitude' => -84.3880,
         ]);
@@ -227,7 +243,7 @@ final class LocationShareTest extends TestCase
 
     public function test_store_location_rejects_invalid_token(): void
     {
-        $response = $this->postJson('/api/locate/bad-token', [
+        $response = $this->postJson(route('locate.store', ['token' => 'bad-token']), [
             'latitude'  => 33.7490,
             'longitude' => -84.3880,
         ]);
@@ -241,7 +257,7 @@ final class LocationShareTest extends TestCase
         [, $sr] = $this->createCustomerWithRequest(withToken: true);
         $sr->update(['location_shared_at' => now()]);
 
-        $response = $this->postJson('/api/locate/' . $sr->location_token, [
+        $response = $this->postJson(route('locate.store', ['token' => $sr->location_token]), [
             'latitude'  => 33.7490,
             'longitude' => -84.3880,
         ]);
@@ -253,7 +269,7 @@ final class LocationShareTest extends TestCase
     {
         [, $sr] = $this->createCustomerWithRequest(withToken: true);
 
-        $response = $this->postJson('/api/locate/' . $sr->location_token, [
+        $response = $this->postJson(route('locate.store', ['token' => $sr->location_token]), [
             'latitude'  => 91.0,
             'longitude' => -84.3880,
         ]);
@@ -266,7 +282,7 @@ final class LocationShareTest extends TestCase
     {
         [, $sr] = $this->createCustomerWithRequest(withToken: true);
 
-        $response = $this->postJson('/api/locate/' . $sr->location_token, [
+        $response = $this->postJson(route('locate.store', ['token' => $sr->location_token]), [
             'latitude'  => 33.7490,
             'longitude' => -200.0,
         ]);
@@ -279,7 +295,7 @@ final class LocationShareTest extends TestCase
     {
         [, $sr] = $this->createCustomerWithRequest(withToken: true);
 
-        $response = $this->postJson('/api/locate/' . $sr->location_token, []);
+        $response = $this->postJson(route('locate.store', ['token' => $sr->location_token]), []);
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['latitude', 'longitude']);
@@ -291,7 +307,7 @@ final class LocationShareTest extends TestCase
 
         [, $sr] = $this->createCustomerWithRequest(withToken: true);
 
-        $response = $this->postJson('/api/locate/' . $sr->location_token, [
+        $response = $this->postJson(route('locate.store', ['token' => $sr->location_token]), [
             'latitude'  => 40.7128,
             'longitude' => -74.0060,
         ]);

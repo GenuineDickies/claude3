@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 // ── Public endpoints (rate-limited) ───────────────────────────
 Route::middleware('throttle:10,1')->group(function () {
     // Receives GPS coordinates from customer's browser
-    Route::post('/api/locate/{token}', [LocationShareController::class, 'store']);
+    Route::post('/locate/{token}', [LocationShareController::class, 'store'])->name('locate.store');
 });
 
 // ── Webhooks (no auth, no CSRF, moderate throttle) ────────────

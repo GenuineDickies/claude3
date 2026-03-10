@@ -55,16 +55,11 @@ class CustomerController extends Controller
     {
         $phone = $request->query('phone');
 
-        if (!$phone) {
+        if (! $phone) {
             return response()->json(['customer' => null]);
         }
 
-        // Normalize to digits for consistent lookup
-        $phone = preg_replace('/\D/', '', $phone);
-
-        $customer = Customer::where('phone', $phone)
-            ->where('is_active', true)
-            ->first();
+        $customer = Customer::findActiveByPhone($phone);
 
         $vehicle = null;
         if ($customer) {
