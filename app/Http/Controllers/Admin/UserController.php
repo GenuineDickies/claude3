@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\Role;
+use App\Models\TechnicianProfile;
 use App\Models\User;
 use App\Services\Access\AccessControlService;
 use App\Services\Access\AuditLogger;
@@ -83,6 +84,7 @@ class UserController extends Controller
         ]);
 
         $user->roles()->sync($roleIds);
+        $this->syncTechnicianProfile($user, $roleIds);
 
         $this->auditLogger->log('user_created', $request->user(), [
             'managed_user_id' => $user->id,
@@ -140,6 +142,7 @@ class UserController extends Controller
 
         $user->update($payload);
         $user->roles()->sync($roleIds);
+        $this->syncTechnicianProfile($user, $roleIds);
 
         $this->auditLogger->log('user_updated', $request->user(), [
             'managed_user_id' => $user->id,
@@ -171,5 +174,23 @@ class UserController extends Controller
         ], $request);
 
         return back()->with('success', 'User status updated.');
+    }
+
+    /**
+     * Create or remove the TechnicianProfile when the Technician role is added or removed.
+     *
+     * @param  array<int>  $roleIds
+     */
+    private function syncTechnicianProfile(User $user, array $roleIds): void
+    {
+        $hasTechnicianRole = Role::whereIn('id', $roleIds)
+            ->get()
+            ->contains(fn (Role $r) => $r->isTechnician());
+
+        if ($hasTechnicianRole && ! $user->technicianProfile) {
+            TechnicianProfile::create(['user_id' => $user->id]);
+        } elseif (! $hasTechnicianRole && $user->technicianProfile) {
+            $user->technicianProfile->delete();
+        }
     }
 }

@@ -29,4 +29,9 @@ class Role extends Model
     {
         return strcasecmp($this->role_name, 'Administrator') === 0;
     }
+
+    public function isTechnician(): bool
+    {
+        return strcasecmp($this->role_name, 'Technician') === 0;
+    }
 }
