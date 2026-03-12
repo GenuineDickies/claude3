@@ -15,6 +15,8 @@ if (! function_exists('requirePageAccess')) {
 if (! function_exists('canAccessPage')) {
     function canAccessPage(string $pagePath, ?User $user = null): bool
     {
-        return app(AccessControlService::class)->canAccessPage($user ?? auth()->user(), $pagePath);
+        /** @var \Illuminate\Contracts\Auth\Guard $auth */
+        $auth = auth();
+        return app(AccessControlService::class)->canAccessPage($user ?? $auth->user(), $pagePath);
     }
 }

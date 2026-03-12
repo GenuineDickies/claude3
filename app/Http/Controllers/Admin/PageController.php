@@ -40,7 +40,7 @@ class PageController extends Controller
                 });
             })
             ->orderBy('page_name')
-            ->paginate(20)
+            ->paginate(100)
             ->withQueryString();
 
         return view('admin.pages.index', [

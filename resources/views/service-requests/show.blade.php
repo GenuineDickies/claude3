@@ -25,10 +25,10 @@
                         <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                         {{ $serviceRequest->assignedTechnician->name }}
                     </span>
-                    <button type="button" @click="assigning = true" x-show="!assigning" class="text-xs text-blue-600 hover:text-blue-800 underline">Change</button>
+                    <button type="button" @click="assigning = true" x-show="!assigning" class="text-sm text-gray-500 hover:text-gray-700 underline">Change</button>
                 @else
                     <button type="button" @click="assigning = true" x-show="!assigning"
-                            class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition">
+                            class="inline-flex items-center px-3 py-2 min-h-[44px] border border-blue-300 text-blue-600 text-sm font-medium rounded-md hover:bg-blue-50 transition">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                         Assign Technician
                     </button>
@@ -46,8 +46,8 @@
                             <option value="{{ $tech->id }}" @selected($serviceRequest->assigned_user_id == $tech->id)>{{ $tech->name }}</option>
                         @endforeach
                     </select>
-                    <button type="submit" class="px-2 py-1 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">Save</button>
-                    <button type="button" @click="assigning = false" class="text-sm text-gray-500 hover:text-gray-700">Cancel</button>
+                    <button type="submit" class="inline-flex items-center px-4 py-2 min-h-[44px] text-sm font-semibold rounded-md transition bg-green-600 text-white hover:bg-green-700">Save</button>
+                    <button type="button" @click="assigning = false" class="text-sm text-gray-500 hover:text-gray-700 underline">Cancel</button>
                 </form>
 
                 <x-status-badge :status="$serviceRequest->status" class="px-3 py-1 text-sm" />
@@ -87,17 +87,18 @@
                     <input type="hidden" name="notes" x-bind:value="$refs.notesField?.value || ''">
                     <input type="hidden" name="notify_customer" x-bind:value="$refs.notifyCheckbox?.checked ? '1' : '0'">
                     <button type="submit"
-                            class="inline-flex items-center px-3 py-2 min-h-[44px] border border-red-300 text-red-600 text-sm font-medium rounded-md hover:bg-red-50 transition"
+                            class="inline-flex items-center px-4 py-2 min-h-[44px] border border-red-300 text-red-600 text-sm font-semibold rounded-md hover:bg-red-50 transition"
                             onclick="return confirm('Cancel this service request?')">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                         Cancel
                     </button>
                 </form>
 
                 <button type="button"
                         @click="showNotes = !showNotes"
-                        class="text-sm text-gray-500 hover:text-gray-700 underline">
-                    {{ 'Add note' }}
+                        class="inline-flex items-center px-4 py-2 min-h-[44px] border border-gray-300 text-gray-700 text-sm font-semibold rounded-md hover:bg-gray-50 transition">
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    Add note
                 </button>
             </div>
 
@@ -194,29 +195,29 @@
 
                 {{-- Connector line --}}
                 @if ($i > 0)
-                    <div class="flex-1 h-1 {{ $lineClass }} rounded-full mx-1"></div>
+                    <div class="flex-1 h-1.5 {{ $lineClass }} rounded-full mx-1"></div>
                 @endif
 
                 {{-- Stage circle + label --}}
-                <div class="flex flex-col items-center" style="min-width:4.5rem">
+                <div class="flex flex-col items-center" style="min-width:5.5rem">
                     @if ($link)
-                        <a href="{{ $link }}" class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold {{ $bgClass }} ring-2 ring-white shadow-sm hover:scale-110 transition-transform" title="{{ $stage['label'] }}">
+                        <a href="{{ $link }}" class="w-12 h-12 rounded-full flex items-center justify-center text-base font-bold {{ $bgClass }} ring-2 ring-white shadow hover:scale-110 transition-transform" title="{{ $stage['label'] }}">
                             @if ($color === 'green')
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             @else
                                 {{ $i + 1 }}
                             @endif
                         </a>
                     @else
-                        <span class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold {{ $bgClass }} ring-2 ring-white shadow-sm" title="{{ $stage['label'] }}">
+                        <span class="w-12 h-12 rounded-full flex items-center justify-center text-base font-bold {{ $bgClass }} ring-2 ring-white shadow" title="{{ $stage['label'] }}">
                             @if ($color === 'green')
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             @else
                                 {{ $i + 1 }}
                             @endif
                         </span>
                     @endif
-                    <span class="mt-1.5 text-xs text-center leading-tight {{ $color === 'yellow' ? 'font-semibold text-yellow-800' : 'text-gray-600' }}">{{ $stage['label'] }}</span>
+                    <span class="mt-2 text-sm text-center leading-tight {{ $color === 'yellow' ? 'font-semibold text-yellow-800' : 'text-gray-600' }}">{{ $stage['label'] }}</span>
                 </div>
             @endforeach
         </div>

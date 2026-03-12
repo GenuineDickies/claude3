@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto space-y-6">
+<div class="max-w-5xl mx-auto space-y-6">
     <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">Pages</h1>
@@ -37,82 +37,175 @@
         </form>
     </div>
 
-    <div class="overflow-hidden rounded-lg bg-white shadow-sm">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Page</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Path</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Assigned Roles</th>
-                        <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200 bg-white">
-                    @forelse ($pages as $page)
-                        <tr>
-                            <td class="px-4 py-4 align-top">
-                                <div class="font-medium text-gray-900">{{ $page->page_name }}</div>
-                                <div class="text-sm text-gray-500">{{ $page->description ?: 'No description provided.' }}</div>
-                            </td>
-                            <td class="px-4 py-4 align-top text-sm font-mono text-gray-600">{{ $page->page_path }}</td>
-                            <td class="px-4 py-4 align-top">
-                                <div class="flex flex-wrap gap-2">
-                                    @forelse ($page->roles as $role)
-                                        <span class="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">{{ $role->role_name }}</span>
-                                    @empty
-                                        <span class="text-sm text-gray-400">No roles assigned</span>
-                                    @endforelse
-                                </div>
-                            </td>
-                            <td class="px-4 py-4 align-top">
-                                <div class="flex justify-end gap-2">
-                                    <button type="button" x-data @click="$dispatch('open-modal', 'edit-page-{{ $page->id }}')" class="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Edit</button>
-                                    <form method="POST" action="{{ route('admin.pages.destroy', $page) }}">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="rounded-md border border-red-200 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50">Delete</button>
-                                    </form>
-                                </div>
-                                <x-modal name="edit-page-{{ $page->id }}" maxWidth="lg">
-                                    <div class="p-6">
-                                        <h2 class="text-lg font-semibold text-gray-900">Edit {{ $page->page_name }}</h2>
-                                        <form method="POST" action="{{ route('admin.pages.update', $page) }}" class="mt-4 space-y-4">
-                                            @csrf
-                                            @method('PUT')
-                                            <div>
-                                                <label class="mb-1 block text-sm font-medium text-gray-700">Page name</label>
-                                                <input name="page_name" value="{{ $page->page_name }}" class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
-                                            </div>
-                                            <div>
-                                                <label class="mb-1 block text-sm font-medium text-gray-700">Page path</label>
-                                                <input name="page_path" value="{{ $page->page_path }}" class="w-full rounded-md border-gray-300 font-mono text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
-                                            </div>
-                                            <div>
-                                                <label class="mb-1 block text-sm font-medium text-gray-700">Description</label>
-                                                <textarea name="description" rows="3" class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ $page->description }}</textarea>
-                                            </div>
-                                            <div class="flex justify-end gap-3">
-                                                <button type="button" @click="$dispatch('close-modal', 'edit-page-{{ $page->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Cancel</button>
-                                                <button type="submit" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">Save</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </x-modal>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="4" class="px-4 py-12 text-center text-sm text-gray-500">No pages matched the current filter.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+    @php
+        $grouped = $pages->groupBy(function ($page) {
+            $segments = explode('/', trim($page->page_path, '/'));
+            return $segments[0] ?? 'other';
+        })->sortKeys();
 
-        @if ($pages->hasPages())
-            <div class="border-t border-gray-200 px-4 py-3">{{ $pages->links() }}</div>
-        @endif
+        $sectionStyles = [
+            'accounting'          => ['color' => '#7c3aed', 'bg' => '#f5f3ff', 'border' => '#c4b5fd'],
+            'api'                 => ['color' => '#475569', 'bg' => '#f8fafc', 'border' => '#94a3b8'],
+            'catalog'             => ['color' => '#b45309', 'bg' => '#fffbeb', 'border' => '#fbbf24'],
+            'customers'           => ['color' => '#0e7490', 'bg' => '#ecfeff', 'border' => '#22d3ee'],
+            'dashboard'           => ['color' => '#1d4ed8', 'bg' => '#eff6ff', 'border' => '#60a5fa'],
+            'documents'           => ['color' => '#a16207', 'bg' => '#fefce8', 'border' => '#facc15'],
+            'expenses'            => ['color' => '#dc2626', 'bg' => '#fef2f2', 'border' => '#f87171'],
+            'inbox'               => ['color' => '#0284c7', 'bg' => '#f0f9ff', 'border' => '#38bdf8'],
+            'message-templates'   => ['color' => '#4338ca', 'bg' => '#eef2ff', 'border' => '#818cf8'],
+            'profile'             => ['color' => '#334155', 'bg' => '#f8fafc', 'border' => '#64748b'],
+            'rapid-dispatch'      => ['color' => '#c2410c', 'bg' => '#fff7ed', 'border' => '#fb923c'],
+            'reports'             => ['color' => '#0f766e', 'bg' => '#f0fdfa', 'border' => '#2dd4bf'],
+            'service-requests'    => ['color' => '#059669', 'bg' => '#ecfdf5', 'border' => '#34d399'],
+            'settings'            => ['color' => '#3f3f46', 'bg' => '#fafafa', 'border' => '#a1a1aa'],
+            'technician-profiles' => ['color' => '#4d7c0f', 'bg' => '#f7fee7', 'border' => '#a3e635'],
+            'transaction-imports' => ['color' => '#a21caf', 'bg' => '#fdf4ff', 'border' => '#e879f9'],
+            'vendor-documents'    => ['color' => '#e11d48', 'bg' => '#fff1f2', 'border' => '#fb7185'],
+            'vendors'             => ['color' => '#be185d', 'bg' => '#fdf2f8', 'border' => '#f472b6'],
+            'warranties'          => ['color' => '#6d28d9', 'bg' => '#f5f3ff', 'border' => '#a78bfa'],
+        ];
+        $defaultStyle = ['color' => '#6b7280', 'bg' => '#f9fafb', 'border' => '#d1d5db'];
+    @endphp
+
+    <div class="space-y-6">
+        @forelse ($grouped as $section => $sectionPages)
+            @php
+                $sectionLabel = ucwords(str_replace('-', ' ', $section));
+                $s = $sectionStyles[$section] ?? $defaultStyle;
+            @endphp
+            <div x-data="{ open: true }" class="rounded-lg overflow-hidden shadow-sm" style="border: 2px solid {{ $s['border'] }};">
+                {{-- Section header --}}
+                <div class="flex w-full items-center justify-between px-4 py-3.5"
+                    style="background: {{ $s['bg'] }}; border-left: 5px solid {{ $s['color'] }};">
+                    <div class="flex items-center gap-3">
+                        <span class="flex h-8 w-8 items-center justify-center rounded-md text-white text-sm font-bold shadow-sm"
+                              style="background: {{ $s['color'] }};">
+                            {{ strtoupper(substr($section, 0, 1)) }}
+                        </span>
+                        <div>
+                            <span class="text-sm font-bold" style="color: {{ $s['color'] }};">{{ $sectionLabel }}</span>
+                            <span class="ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold text-white" style="background: {{ $s['color'] }};">{{ $sectionPages->count() }}</span>
+                        </div>
+                    </div>
+                    <button type="button" @click="open = !open" class="p-1 rounded hover:bg-black/5 transition-colors" title="Expand/collapse">
+                        <svg :class="open ? 'rotate-90' : ''" class="h-5 w-5 transition-transform" style="color: {{ $s['color'] }};" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
+
+                {{-- Pages within section --}}
+                <div x-show="open" x-transition class="bg-white" style="border-top: 2px solid {{ $s['border'] }};">
+                    <table class="min-w-full divide-y divide-gray-100" style="table-layout: fixed; width: 100%;">
+                        <colgroup>
+                            <col style="width: 30%;">
+                            <col style="width: 30%;">
+                            <col style="width: 25%;">
+                            <col style="width: 15%;">
+                        </colgroup>
+                        <thead>
+                            <tr style="background: {{ $s['bg'] }};">
+                                <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide" style="color: {{ $s['color'] }};">Page</th>
+                                <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide" style="color: {{ $s['color'] }};">Path</th>
+                                <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide" style="color: {{ $s['color'] }};">Roles</th>
+                                <th class="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wide" style="color: {{ $s['color'] }};">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @foreach ($sectionPages as $page)
+                                <tr class="hover:bg-gray-50/50">
+                                    <td class="px-4 py-3 align-top" style="max-width: 0;"
+                                        x-data="{ show: false, x: 0, y: 0 }"
+                                        @mouseenter="let r=$el.getBoundingClientRect(); x=r.left; y=r.top; show=true"
+                                        @mouseleave="show=false">
+                                        <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                            <span class="font-medium text-gray-900 text-sm">{{ $page->page_name }}</span>
+                                        </div>
+                                        @if ($page->description)
+                                            <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.75rem; color: #9ca3af; margin-top: 0.125rem;">{{ $page->description }}</div>
+                                        @endif
+                                        <div x-show="show" x-cloak
+                                            :style="'position:fixed;left:'+x+'px;top:'+y+'px;z-index:9999;white-space:nowrap;background:#fff;padding:0.5rem 0.75rem;border-radius:0.375rem;box-shadow:0 4px 12px rgba(0,0,0,0.15);border:1px solid #e5e7eb;user-select:all;'">
+                                            <div style="font-weight: 500; font-size: 0.875rem; color: #111827;">{{ $page->page_name }}</div>
+                                            @if ($page->description)
+                                                <div style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.125rem;">{{ $page->description }}</div>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 align-top" style="max-width: 0;"
+                                        x-data="{ show: false, x: 0, y: 0 }"
+                                        @mouseenter="let r=$el.getBoundingClientRect(); x=r.left; y=r.top; show=true"
+                                        @mouseleave="show=false">
+                                        <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                            <span class="text-xs font-mono" style="color: {{ $s['color'] }};">{{ $page->page_path }}</span>
+                                        </div>
+                                        <div x-show="show" x-cloak
+                                            :style="'position:fixed;left:'+x+'px;top:'+y+'px;z-index:9999;white-space:nowrap;background:#fff;padding:0.5rem 0.75rem;border-radius:0.375rem;box-shadow:0 4px 12px rgba(0,0,0,0.15);border:1px solid #e5e7eb;user-select:all;'">
+                                            <span style="font-size: 0.75rem; font-family: monospace; color: {{ $s['color'] }};">{{ $page->page_path }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 align-top" style="max-width: 0;"
+                                        x-data="{ show: false, x: 0, y: 0 }"
+                                        @mouseenter="let r=$el.getBoundingClientRect(); x=r.left; y=r.top; show=true"
+                                        @mouseleave="show=false">
+                                        <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                            <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium" style="background: {{ $s['bg'] }}; color: {{ $s['color'] }}; border: 1px solid {{ $s['border'] }};">Administrator</span>
+                                            @foreach ($page->roles->reject(fn ($r) => $r->isAdministrator()) as $role)
+                                                <span class="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">{{ $role->role_name }}</span>
+                                            @endforeach
+                                        </div>
+                                        <div x-show="show" x-cloak
+                                            :style="'position:fixed;left:'+x+'px;top:'+y+'px;z-index:9999;white-space:nowrap;background:#fff;padding:0.5rem 0.75rem;border-radius:0.375rem;box-shadow:0 4px 12px rgba(0,0,0,0.15);border:1px solid #e5e7eb;'">
+                                            <div style="display: flex; flex-wrap: wrap; gap: 0.375rem;">
+                                                <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium" style="background: {{ $s['bg'] }}; color: {{ $s['color'] }}; border: 1px solid {{ $s['border'] }};">Administrator</span>
+                                                @foreach ($page->roles->reject(fn ($r) => $r->isAdministrator()) as $role)
+                                                    <span class="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">{{ $role->role_name }}</span>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 align-top" style="white-space: nowrap;">
+                                        <div class="flex justify-end gap-2">
+                                            <button type="button" x-data @click="$dispatch('open-modal', 'edit-page-{{ $page->id }}')" class="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">Edit</button>
+                                            <form method="POST" action="{{ route('admin.pages.destroy', $page) }}">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50">Delete</button>
+                                            </form>
+                                        </div>
+                                        <x-modal name="edit-page-{{ $page->id }}" maxWidth="lg">
+                                            <div class="p-6">
+                                                <h2 class="text-lg font-semibold text-gray-900">Edit {{ $page->page_name }}</h2>
+                                                <form method="POST" action="{{ route('admin.pages.update', $page) }}" class="mt-4 space-y-4">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <div>
+                                                        <label class="mb-1 block text-sm font-medium text-gray-700">Page name</label>
+                                                        <input name="page_name" value="{{ $page->page_name }}" class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                                                    </div>
+                                                    <div>
+                                                        <label class="mb-1 block text-sm font-medium text-gray-700">Page path</label>
+                                                        <input name="page_path" value="{{ $page->page_path }}" class="w-full rounded-md border-gray-300 font-mono text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                                                    </div>
+                                                    <div>
+                                                        <label class="mb-1 block text-sm font-medium text-gray-700">Description</label>
+                                                        <textarea name="description" rows="3" class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ $page->description }}</textarea>
+                                                    </div>
+                                                    <div class="flex justify-end gap-3">
+                                                        <button type="button" @click="$dispatch('close-modal', 'edit-page-{{ $page->id }}')" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Cancel</button>
+                                                        <button type="submit" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">Save</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </x-modal>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @empty
+            <div class="rounded-lg border border-dashed border-gray-300 px-4 py-10 text-center text-sm text-gray-500">No pages matched the current filter.</div>
+        @endforelse
     </div>
 
     <x-modal name="create-page" maxWidth="lg">
