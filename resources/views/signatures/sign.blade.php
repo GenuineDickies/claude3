@@ -7,27 +7,27 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f3f4f6; color: #374151; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-        .card { background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,.1); max-width: 480px; width: 100%; padding: 1.5rem; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0e17; color: #e5e7eb; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+        .card { background: rgba(26, 32, 53, 0.95); border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,.4); border: 1px solid rgba(255,255,255,0.08); max-width: 480px; width: 100%; padding: 1.5rem; }
         h1 { font-size: 1.25rem; font-weight: 700; margin-bottom: .25rem; }
-        .subtitle { font-size: .875rem; color: #6b7280; margin-bottom: 1rem; }
-        .info { font-size: .8rem; color: #6b7280; background: #f9fafb; border-radius: 8px; padding: .75rem; margin-bottom: 1rem; }
-        .info strong { color: #374151; }
-        .canvas-wrap { border: 2px solid #d1d5db; border-radius: 8px; position: relative; touch-action: none; margin-bottom: .75rem; background: #fff; height: 150px; }
+        .subtitle { font-size: .875rem; color: #9ca3af; margin-bottom: 1rem; }
+        .info { font-size: .8rem; color: #9ca3af; background: rgba(255,255,255,0.05); border-radius: 8px; padding: .75rem; margin-bottom: 1rem; }
+        .info strong { color: #e5e7eb; }
+        .canvas-wrap { border: 2px solid rgba(255,255,255,0.15); border-radius: 8px; position: relative; touch-action: none; margin-bottom: .75rem; background: rgba(26, 32, 53, 0.95); height: 150px; }
         @media (min-width: 480px) { .canvas-wrap { height: 200px; } }
         canvas { display: block; width: 100%; height: 100%; border-radius: 6px; cursor: crosshair; }
-        .label { display: block; font-size: .8rem; font-weight: 600; color: #374151; margin-bottom: .25rem; }
-        input[type="text"] { width: 100%; padding: .5rem .75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: .875rem; outline: none; }
-        input[type="text"]:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.2); }
+        .label { display: block; font-size: .8rem; font-weight: 600; color: #e5e7eb; margin-bottom: .25rem; }
+        input[type="text"] { width: 100%; padding: .5rem .75rem; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; font-size: .875rem; outline: none; }
+        input[type="text"]:focus { border-color: #06b6d4; box-shadow: 0 0 0 2px rgba(6,182,212,.2); }
         .actions { display: flex; gap: .5rem; margin-top: 1rem; }
         .btn { flex: 1; padding: .625rem; font-size: .875rem; font-weight: 600; border-radius: 6px; border: none; cursor: pointer; text-align: center; min-height: 44px; }
-        .btn-primary { background: #16a34a; color: #fff; }
-        .btn-primary:hover { background: #15803d; }
-        .btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
-        .btn-secondary { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
-        .btn-secondary:hover { background: #e5e7eb; }
-        .error { color: #dc2626; font-size: .8rem; margin-top: .25rem; }
-        .hint { font-size: .75rem; color: #9ca3af; text-align: center; margin-bottom: .5rem; }
+        .btn-primary { background: #06b6d4; color: #fff; }
+        .btn-primary:hover { background: #0891b2; }
+        .btn-primary:disabled { background: #4b5563; cursor: not-allowed; }
+        .btn-secondary { background: #0a0e17; color: #e5e7eb; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+        .error { color: #f87171; font-size: .8rem; margin-top: .25rem; }
+        .hint { font-size: .75rem; color: #6b7280; text-align: center; margin-bottom: .5rem; }
     </style>
 </head>
 <body>

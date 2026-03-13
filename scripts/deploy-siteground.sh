@@ -34,6 +34,8 @@ SYNC_DIRS=(
   bootstrap
   config
   database
+  public/build
+  public/images
   resources
   routes
 )
@@ -108,6 +110,16 @@ for dir in "${SYNC_DIRS[@]}"; do
     -e ssh \
     "$ROOT_DIR/$dir/" "$SSH_ALIAS:~/$REMOTE_APP/$dir/"
 done
+
+# ---------------------------------------------------------------------------
+# Production uses a flat layout (index.php at app root, not inside public/).
+# The Vite manifest and build assets must also exist at the root-level build/
+# directory so @vite() resolves correctly.
+# ---------------------------------------------------------------------------
+echo "Syncing build assets to root-level build/ (flat hosting layout) ..."
+rsync -az --delete $DRY_RUN \
+  -e ssh \
+  "$ROOT_DIR/public/build/" "$SSH_ALIAS:~/$REMOTE_APP/build/"
 
 # ---------------------------------------------------------------------------
 # Sync individual root files (no --delete, just overwrite)

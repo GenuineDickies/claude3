@@ -14,6 +14,7 @@ use Illuminate\Notifications\Notifiable;
  * @property int $id
  * @property string $name
  * @property string $email
+ * @property string|null $phone
  * @property \Illuminate\Support\Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $remember_token
@@ -50,6 +51,7 @@ class User extends Authenticatable
         'name',
         'username',
         'email',
+        'phone',
         'password',
         'status',
     ];
@@ -75,6 +77,30 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public static function normalizePhone(?string $phone): ?string
+    {
+        if ($phone === null) {
+            return null;
+        }
+
+        $normalized = preg_replace('/\D/', '', $phone);
+
+        if ($normalized === '') {
+            return null;
+        }
+
+        if (strlen($normalized) === 11 && str_starts_with($normalized, '1')) {
+            return substr($normalized, 1);
+        }
+
+        return $normalized;
+    }
+
+    public function setPhoneAttribute(?string $value): void
+    {
+        $this->attributes['phone'] = self::normalizePhone($value);
     }
 
     public function technicianProfile(): HasOne

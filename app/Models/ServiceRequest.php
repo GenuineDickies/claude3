@@ -178,8 +178,8 @@ class ServiceRequest extends Model
     /**
      * Build the public URL for this location token.
      *
-     * Uses LOCATION_BASE_URL (pointing to the standalone hosting script)
-     * so the link works from a phone over HTTPS.
+     * Uses LOCATION_BASE_URL when configured, but normalizes legacy values
+     * like /locate.php to the current /locate/{token} public route.
      */
     public function locationShareUrl(): ?string
     {
@@ -190,15 +190,18 @@ class ServiceRequest extends Model
         $base = Setting::getValue('location_base_url', config('services.location.base_url'));
 
         if ($base) {
-            // Normalise the base URL: fix common typos like https:// → https://
+            // Normalise the base URL: fix common typos like https:/example.com.
             $base = preg_replace('#^(https?):/{0,2}#i', '$1://', $base);
 
-            // Standalone hosting script uses ?t= query param
-            return rtrim($base, '/') . '?t=' . $this->location_token;
+            // Strip legacy endpoint suffixes so all configured values resolve to
+            // the current public route format.
+            $base = preg_replace('#/locate(?:\.php)?/?$#i', '', rtrim($base, '/'));
+
+            return $base . '/locate/' . $this->location_token;
         }
 
         // Fallback to Laravel route (local dev)
-        return url('/locate/' . $this->location_token);
+        return route('locate.show', ['token' => $this->location_token]);
     }
 
     public function customer(): BelongsTo

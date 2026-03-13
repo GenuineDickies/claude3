@@ -4,38 +4,38 @@
 <div class="max-w-3xl mx-auto space-y-6">
 
     {{-- Breadcrumb --}}
-    <a href="{{ route('service-requests.show', $serviceRequest) }}" class="inline-flex items-center text-sm text-gray-500 hover:text-blue-600">
+    <a href="{{ route('service-requests.show', $serviceRequest) }}" class="inline-flex items-center text-sm text-gray-500 hover:text-cyan-400">
         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
         Ticket #{{ $serviceRequest->id }}
     </a>
 
     {{-- Header --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="surface-1 p-6">
         <div class="flex justify-between items-start">
             <div>
                 <div class="flex items-center gap-3">
-                    <h1 class="text-2xl font-bold text-gray-800">Invoice {{ $invoice->displayNumber() }}</h1>
+                    <h1 class="text-2xl font-bold text-white">Invoice {{ $invoice->displayNumber() }}</h1>
                     @if($invoice->version > 1)
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-700">
                             V{{ $invoice->version }}
                         </span>
                     @endif
                     @if($invoice->is_locked)
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-gray-200 text-gray-600">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-white/10 text-gray-400">
                             <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
                             Locked
                         </span>
                     @endif
                     @php
                         $statusColors = [
-                            'draft'     => 'bg-gray-100 text-gray-700',
-                            'sent'      => 'bg-blue-100 text-blue-700',
+                            'draft'     => 'bg-white/5 text-gray-300',
+                            'sent'      => 'bg-blue-100 text-cyan-400',
                             'paid'      => 'bg-green-100 text-green-700',
                             'overdue'   => 'bg-red-100 text-red-700',
-                            'cancelled' => 'bg-gray-100 text-gray-500',
+                            'cancelled' => 'bg-white/5 text-gray-500',
                         ];
                     @endphp
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $statusColors[$invoice->status] ?? 'bg-gray-100 text-gray-700' }}">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $statusColors[$invoice->status] ?? 'bg-white/5 text-gray-300' }}">
                         {{ ucfirst($invoice->status) }}
                     </span>
                 </div>
@@ -48,7 +48,7 @@
                 {{-- Edit (draft only) --}}
                 @if (!$invoice->is_locked && $invoice->status === 'draft')
                 <a href="{{ route('invoices.edit', [$serviceRequest, $invoice]) }}"
-                   class="inline-flex items-center px-3 py-2 bg-gray-200 text-gray-700 text-sm font-semibold rounded-md hover:bg-gray-300 transition">
+                   class="inline-flex items-center px-3 py-2 bg-white/10 text-gray-300 text-sm font-semibold rounded-md hover:bg-gray-300 transition">
                     Edit
                 </a>
                 @endif
@@ -70,7 +70,7 @@
                     @method('PATCH')
                     @if ($invoice->status === 'draft')
                         <input type="hidden" name="status" value="sent">
-                        <button type="submit" class="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm font-semibold rounded-md hover:bg-blue-700 transition">
+                        <button type="submit" class="inline-flex items-center px-3 py-2 btn-crystal text-sm font-semibold rounded-md  transition">
                             Mark Sent
                         </button>
                     @elseif ($invoice->status === 'sent' || $invoice->status === 'overdue')
@@ -83,7 +83,7 @@
                 @endif
 
                 <a href="{{ route('invoices.pdf', [$serviceRequest, $invoice]) }}"
-                   class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-md hover:bg-blue-700 transition">
+                   class="inline-flex items-center px-4 py-2 btn-crystal text-sm font-semibold rounded-md  transition">
                     <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     Download PDF
                 </a>
@@ -101,18 +101,18 @@
     </div>
 
     {{-- Company info --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="surface-1 p-6">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-                <h2 class="text-lg font-semibold text-gray-700 mb-2">{{ $invoice->company_snapshot['name'] ?? '' }}</h2>
+                <h2 class="text-lg font-semibold text-gray-300 mb-2">{{ $invoice->company_snapshot['name'] ?? '' }}</h2>
                 @if ($invoice->company_snapshot['address'] ?? '')
-                    <p class="text-sm text-gray-600 whitespace-pre-line">{{ $invoice->company_snapshot['address'] }}</p>
+                    <p class="text-sm text-gray-400 whitespace-pre-line">{{ $invoice->company_snapshot['address'] }}</p>
                 @endif
                 @if ($invoice->company_snapshot['phone'] ?? '')
-                    <p class="text-sm text-gray-600">{{ $invoice->company_snapshot['phone'] }}</p>
+                    <p class="text-sm text-gray-400">{{ $invoice->company_snapshot['phone'] }}</p>
                 @endif
                 @if ($invoice->company_snapshot['email'] ?? '')
-                    <p class="text-sm text-gray-600">{{ $invoice->company_snapshot['email'] }}</p>
+                    <p class="text-sm text-gray-400">{{ $invoice->company_snapshot['email'] }}</p>
                 @endif
             </div>
             <div class="text-sm space-y-1">
@@ -134,10 +134,10 @@
     </div>
 
     {{-- Line Items --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
-        <h2 class="text-lg font-semibold text-gray-700 mb-3">Items</h2>
+    <div class="surface-1 p-6">
+        <h2 class="text-lg font-semibold text-gray-300 mb-3">Items</h2>
         <div class="overflow-x-auto">
-            <table class="min-w-full text-sm">
+            <table class="table-crystal min-w-full text-sm">
                 <thead>
                     <tr class="border-b text-left text-gray-500">
                         <th class="pb-2 pr-4">Item</th>
@@ -150,11 +150,11 @@
                 </thead>
                 <tbody>
                     @foreach ($invoice->line_items as $item)
-                    <tr class="border-b border-gray-100">
+                    <tr class="border-b border-white/10">
                         <td class="py-2 pr-4 font-medium">{{ $item['name'] }}</td>
-                        <td class="py-2 pr-4 text-gray-600">{{ $item['description'] ?? '' }}</td>
+                        <td class="py-2 pr-4 text-gray-400">{{ $item['description'] ?? '' }}</td>
                         <td class="py-2 pr-4 text-right">{{ $item['quantity'] }}</td>
-                        <td class="py-2 pr-4 text-gray-600">{{ $item['unit'] ?? '' }}</td>
+                        <td class="py-2 pr-4 text-gray-400">{{ $item['unit'] ?? '' }}</td>
                         <td class="py-2 pr-4 text-right">${{ number_format($item['unit_price'], 2) }}</td>
                         <td class="py-2 text-right font-medium">${{ number_format($item['quantity'] * $item['unit_price'], 2) }}</td>
                     </tr>
@@ -165,12 +165,12 @@
 
         <div class="mt-4 border-t pt-4 space-y-1 max-w-xs ml-auto text-sm">
             <div class="flex justify-between">
-                <span class="text-gray-600">Subtotal</span>
+                <span class="text-gray-400">Subtotal</span>
                 <span class="font-medium">${{ number_format($invoice->subtotal, 2) }}</span>
             </div>
             @if ($invoice->tax_rate > 0)
             <div class="flex justify-between">
-                <span class="text-gray-600">Tax ({{ $invoice->tax_rate + 0 }}%)</span>
+                <span class="text-gray-400">Tax ({{ $invoice->tax_rate + 0 }}%)</span>
                 <span class="font-medium">${{ number_format($invoice->tax_amount, 2) }}</span>
             </div>
             @endif
@@ -183,44 +183,44 @@
 
     {{-- Payment Terms --}}
     @if ($invoice->payment_terms)
-    <div class="bg-white rounded-lg shadow-sm p-6">
-        <h2 class="text-lg font-semibold text-gray-700 mb-2">Payment Terms</h2>
-        <p class="text-sm text-gray-600">{{ $invoice->payment_terms }}</p>
+    <div class="surface-1 p-6">
+        <h2 class="text-lg font-semibold text-gray-300 mb-2">Payment Terms</h2>
+        <p class="text-sm text-gray-400">{{ $invoice->payment_terms }}</p>
     </div>
     @endif
 
     {{-- Notes --}}
     @if ($invoice->notes)
-    <div class="bg-white rounded-lg shadow-sm p-6">
-        <h2 class="text-lg font-semibold text-gray-700 mb-2">Notes</h2>
-        <p class="text-sm text-gray-600 whitespace-pre-line">{{ $invoice->notes }}</p>
+    <div class="surface-1 p-6">
+        <h2 class="text-lg font-semibold text-gray-300 mb-2">Notes</h2>
+        <p class="text-sm text-gray-400 whitespace-pre-line">{{ $invoice->notes }}</p>
     </div>
     @endif
 
     {{-- Version History --}}
     @if($versions->count() > 1)
-    <div class="bg-white rounded-lg shadow-sm p-6">
-        <h2 class="text-lg font-semibold text-gray-700 mb-3">Version History</h2>
+    <div class="surface-1 p-6">
+        <h2 class="text-lg font-semibold text-gray-300 mb-3">Version History</h2>
         <div class="space-y-2">
             @foreach($versions as $v)
                 <div @class([
                     'flex items-center justify-between px-4 py-2.5 rounded-lg text-sm',
-                    'bg-blue-50 border border-blue-200' => $v->id === $invoice->id,
-                    'bg-gray-50' => $v->id !== $invoice->id,
+                    'bg-cyan-500/10 border border-cyan-500/30' => $v->id === $invoice->id,
+                    'bg-white/5' => $v->id !== $invoice->id,
                 ])>
                     <div class="flex items-center gap-3">
-                        <span class="font-semibold text-gray-700">V{{ $v->version }}</span>
-                        @php $sc = ['draft'=>'bg-gray-100 text-gray-700','sent'=>'bg-blue-100 text-blue-700','paid'=>'bg-green-100 text-green-700','overdue'=>'bg-red-100 text-red-700','cancelled'=>'bg-gray-100 text-gray-500']; @endphp
-                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold {{ $sc[$v->status] ?? 'bg-gray-100 text-gray-700' }}">{{ ucfirst($v->status) }}</span>
+                        <span class="font-semibold text-gray-300">V{{ $v->version }}</span>
+                        @php $sc = ['draft'=>'bg-white/5 text-gray-300','sent'=>'bg-blue-100 text-cyan-400','paid'=>'bg-green-100 text-green-700','overdue'=>'bg-red-100 text-red-700','cancelled'=>'bg-white/5 text-gray-500']; @endphp
+                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold {{ $sc[$v->status] ?? 'bg-white/5 text-gray-300' }}">{{ ucfirst($v->status) }}</span>
                         @if($v->is_locked)
                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
                         @endif
                         <span class="text-gray-400">{{ $v->created_at->format('M j, Y g:i A') }}</span>
                     </div>
                     @if($v->id !== $invoice->id)
-                        <a href="{{ route('invoices.show', [$serviceRequest, $v]) }}" class="text-blue-600 hover:text-blue-800 text-xs font-medium">View</a>
+                        <a href="{{ route('invoices.show', [$serviceRequest, $v]) }}" class="text-cyan-400 hover:text-cyan-300 text-xs font-medium">View</a>
                     @else
-                        <span class="text-xs text-blue-600 font-medium">Current</span>
+                        <span class="text-xs text-cyan-400 font-medium">Current</span>
                     @endif
                 </div>
             @endforeach
@@ -236,7 +236,7 @@
 
     {{-- Back --}}
     <div class="flex gap-3">
-        <a href="{{ route('service-requests.show', $serviceRequest) }}" class="text-sm text-gray-500 hover:text-blue-600 underline">&larr; Back to Ticket</a>
+        <a href="{{ route('service-requests.show', $serviceRequest) }}" class="text-sm text-gray-500 hover:text-cyan-400 underline">&larr; Back to Ticket</a>
     </div>
 </div>
 @endsection

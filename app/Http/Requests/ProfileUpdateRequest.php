@@ -25,6 +25,18 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
+            'phone' => [
+                'nullable',
+                'string',
+                'max:20',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    $normalized = User::normalizePhone(is_string($value) ? $value : null);
+
+                    if ($normalized !== null && strlen($normalized) < 10) {
+                        $fail('The mobile phone must contain at least 10 digits.');
+                    }
+                },
+            ],
         ];
     }
 }

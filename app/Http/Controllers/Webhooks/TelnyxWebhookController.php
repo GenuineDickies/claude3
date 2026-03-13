@@ -128,8 +128,18 @@ final class TelnyxWebhookController
         // Update consent based on keyword
         if ($customer) {
             match ($keyword) {
-                'START' => $customer->grantSmsConsent(),
-                'STOP'  => $customer->revokeSmsConsent(),
+                'START' => $customer->grantSmsConsent([
+                    'source' => 'sms_keyword',
+                    'keyword' => 'START',
+                    'phone' => $from,
+                    'telnyx_message_id' => $telnyxMessageId,
+                ]),
+                'STOP'  => $customer->revokeSmsConsent([
+                    'source' => 'sms_keyword',
+                    'keyword' => 'STOP',
+                    'phone' => $from,
+                    'telnyx_message_id' => $telnyxMessageId,
+                ]),
                 default => null,
             };
         }

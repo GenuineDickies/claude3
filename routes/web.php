@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\AccountingController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\ApiMonitorController;
+use App\Http\Controllers\BrandingController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\VendorDocumentController;
 use App\Http\Controllers\CorrespondenceController;
@@ -54,6 +55,8 @@ Route::get('/', function () {
 });
 
 // Public location share page (customer facing — no auth)
+Route::get('/branding/logo', [BrandingController::class, 'logo'])->name('branding.logo');
+Route::get('/locate.php', [LocationShareController::class, 'legacyShow'])->name('locate.legacy');
 Route::get('/locate/{token}', [LocationShareController::class, 'show'])->name('locate.show');
 
 // Public signature capture page (customer facing — token-based, no auth)
@@ -165,6 +168,7 @@ Route::middleware(['auth', 'active-user', 'page-access'])->group(function () {
     Route::get('/service-requests/{serviceRequest}', [ServiceRequestController::class, 'show'])->name('service-requests.show');
     Route::patch('/service-requests/{serviceRequest}', [ServiceRequestController::class, 'update'])->name('service-requests.update');
     Route::patch('/service-requests/{serviceRequest}/assign-technician', [ServiceRequestController::class, 'assignTechnician'])->name('service-requests.assign-technician');
+    Route::post('/service-requests/{serviceRequest}/send-technician-location', [ServiceRequestController::class, 'sendLocationToTechnician'])->name('service-requests.send-technician-location');
     Route::post('/service-requests/{serviceRequest}/request-location', [LocationShareController::class, 'request'])->name('service-requests.request-location');
     Route::post('/service-requests/{serviceRequest}/messages', [MessageController::class, 'store'])->name('service-requests.messages.store');
     Route::post('/service-requests/{serviceRequest}/correspondence', [CorrespondenceController::class, 'store'])->name('service-requests.correspondence.store');

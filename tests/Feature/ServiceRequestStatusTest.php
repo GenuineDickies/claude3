@@ -391,8 +391,8 @@ class ServiceRequestStatusTest extends TestCase
     public function test_status_badge_uses_correct_color_classes(): void
     {
         $view = $this->blade('<x-status-badge status="completed" />');
-        $view->assertSee('bg-green-100');
-        $view->assertSee('text-green-800');
+        $view->assertSee('badge-crystal');
+        $view->assertSee('badge-completed');
     }
 
     // ── Show page renders status controls ─────────────────────

@@ -11,18 +11,18 @@
         default => null,
     };
 
-    $classes = match($status) {
-        'expired', 'failed' => 'bg-red-100 text-red-800',
-        'expiring', 'pending' => 'bg-amber-100 text-amber-800',
-        'valid', 'clear' => 'bg-green-100 text-green-800',
+    $badgeClass = match($status) {
+        'expired', 'failed' => 'badge-expired',
+        'expiring', 'pending' => 'badge-expiring',
+        'valid', 'clear' => 'badge-valid',
         default => '',
     };
 @endphp
 
 @if($label)
-    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $classes }}">
+    <span class="badge-crystal {{ $badgeClass }}">
         {{ $label }}
     </span>
 @else
-    <span class="text-gray-400">—</span>
+    <span class="text-gray-500">—</span>
 @endif

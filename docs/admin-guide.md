@@ -4,6 +4,10 @@ Last audited: 2026-03-08
 
 This guide covers the administrator-facing workflows that are implemented in the current codebase.
 
+Related reference:
+
+- See `docs/workflow-context.md` for the actor-channel-stage decision framework that should be applied to consent, approvals, payments, evidence capture, and other workflow-sensitive changes.
+
 ## 1. Accessing Administration
 
 Prerequisites:
@@ -189,7 +193,52 @@ Route anchors:
 
 Use this area to maintain external endpoint health checks surfaced on the dashboard.
 
-## 8. Audit Logging
+## 8. SMS Consent Workflow
+
+Current operational rule:
+
+- Customer SMS consent is recorded by staff based on verbal consent during intake.
+- Technicians must grant their own SMS consent while signed in to their own account.
+- The application should reuse an existing phone number when possible instead of asking for it again.
+
+Customer workflow:
+
+1. During service-request intake, confirm verbal SMS consent with the customer.
+2. Record that consent using the intake workflow before sending location or status texts.
+3. If verbal consent is not recorded, the system blocks customer SMS sends and tells staff to obtain consent first.
+
+Technician workflow:
+
+1. Assign the Technician role from `Administration -> Users`.
+2. Have the technician sign in and open their own profile or technician compliance screen.
+3. The technician enters their mobile number once if needed.
+4. The technician grants SMS consent for dispatch/location texts on their own account.
+
+Important behavior:
+
+- Administrators can create the technician profile by role assignment, but they do not grant SMS consent on another person's behalf.
+- The assigned technician must have both a mobile phone number and technician-recorded SMS consent before dispatch location texts can be sent.
+- STOP and HELP keyword handling remains active for compliance on inbound SMS.
+
+### Workflow decision matrix
+
+Use this matrix when deciding how consent or approval should be collected:
+
+| Actor | Channel | Workflow stage | Decision owner | Correct mechanism | Avoid |
+| --- | --- | --- | --- | --- | --- |
+| Customer | Phone call with staff | Intake | Customer | Verbal consent recorded by staff | Website or SMS self-consent flow |
+| Customer | Public website | Website intake or form submission | Customer | Written/web consent in that form flow | Assuming verbal consent exists |
+| Technician | Signed-in app account | Onboarding or profile completion | Technician | Self-service consent in own account | Admin granting consent for them |
+| Staff/Admin | Internal app | Dispatch or status updates | Staff is operator, not consent owner | Use already-recorded consent only | Recording a new third-party consent without the owner present |
+
+Decision rule:
+
+1. Identify who is acting.
+2. Identify the current interaction channel.
+3. Identify when in the workflow the action happens.
+4. Match the consent or approval mechanism to that exact context instead of defaulting to a generic provider pattern.
+
+## 9. Audit Logging
 
 The following admin actions are explicitly audit-logged:
 
@@ -199,7 +248,7 @@ The following admin actions are explicitly audit-logged:
 - Role page-access updates
 - Page access denials and disabled-user session blocks
 
-## 9. Operational Checklist For New Protected Pages
+## 10. Operational Checklist For New Protected Pages
 
 1. Add the route inside the authenticated middleware group.
 2. Sync the page registry.

@@ -5,16 +5,16 @@
 
     {{-- Header + Date Range Selector --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h1 class="text-2xl font-bold text-gray-900">Financial Dashboard</h1>
+        <h1 class="text-2xl font-bold text-white">Financial Dashboard</h1>
 
         <div class="flex items-center gap-2">
             <span class="text-sm text-gray-500">Period:</span>
             @foreach (['1' => 'Today', '7' => '7 days', '30' => '30 days', '90' => '90 days'] as $val => $label)
                 <a href="{{ route('reports.financial', ['range' => $val]) }}"
                    @class([
-                       'px-3 py-1.5 text-sm font-medium rounded-md transition',
-                       'bg-blue-600 text-white' => $range == $val,
-                       'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50' => $range != $val,
+                       'px-3 py-1.5 text-sm font-medium rounded-md transition min-h-[44px] inline-flex items-center',
+                       'btn-crystal' => $range == $val,
+                       'btn-crystal-secondary' => $range != $val,
                    ])>
                     {{ $label }}
                 </a>
@@ -69,27 +69,27 @@
     </div>
 
     {{-- ═══ A/R Aging Buckets ═══ --}}
-    <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-sm font-semibold text-gray-700 mb-4">Accounts Receivable Aging</h2>
+    <div class="surface-1 p-6">
+        <h2 class="text-sm font-semibold text-gray-300 mb-4">Accounts Receivable Aging</h2>
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="border-l-4 border-green-500 bg-green-50 rounded-r-md p-4">
+            <div class="border-l-4 border-green-500 bg-green-500/10 rounded-r-md p-4">
                 <p class="text-xs font-medium text-gray-500 uppercase">Current</p>
-                <p class="text-xl font-bold text-gray-900 mt-1 font-mono">${{ number_format($agingBuckets['current'], 2) }}</p>
+                <p class="text-xl font-bold text-white mt-1 font-mono">${{ number_format($agingBuckets['current'], 2) }}</p>
                 <p class="text-xs text-gray-400 mt-0.5">Not yet due</p>
             </div>
             <div class="border-l-4 border-yellow-500 bg-yellow-50 rounded-r-md p-4">
                 <p class="text-xs font-medium text-gray-500 uppercase">1–30 Days</p>
-                <p class="text-xl font-bold text-gray-900 mt-1 font-mono">${{ number_format($agingBuckets['1_30'], 2) }}</p>
+                <p class="text-xl font-bold text-white mt-1 font-mono">${{ number_format($agingBuckets['1_30'], 2) }}</p>
                 <p class="text-xs text-gray-400 mt-0.5">Slightly overdue</p>
             </div>
             <div class="border-l-4 border-orange-500 bg-orange-50 rounded-r-md p-4">
                 <p class="text-xs font-medium text-gray-500 uppercase">31–60 Days</p>
-                <p class="text-xl font-bold text-gray-900 mt-1 font-mono">${{ number_format($agingBuckets['31_60'], 2) }}</p>
+                <p class="text-xl font-bold text-white mt-1 font-mono">${{ number_format($agingBuckets['31_60'], 2) }}</p>
                 <p class="text-xs text-gray-400 mt-0.5">Needs follow-up</p>
             </div>
             <div class="border-l-4 border-red-500 bg-red-50 rounded-r-md p-4">
                 <p class="text-xs font-medium text-gray-500 uppercase">61+ Days</p>
-                <p class="text-xl font-bold text-gray-900 mt-1 font-mono">${{ number_format($agingBuckets['61_plus'], 2) }}</p>
+                <p class="text-xl font-bold text-white mt-1 font-mono">${{ number_format($agingBuckets['61_plus'], 2) }}</p>
                 <p class="text-xs text-gray-400 mt-0.5">At risk</p>
             </div>
         </div>
@@ -97,14 +97,14 @@
 
     {{-- ═══ 14-Day Trend Charts ═══ --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white rounded-lg shadow p-6">
-            <h2 class="text-sm font-semibold text-gray-700 mb-4">Jobs — 14 Day Trend</h2>
+        <div class="surface-1 p-6">
+            <h2 class="text-sm font-semibold text-gray-300 mb-4">Jobs — 14 Day Trend</h2>
             <div class="relative" style="height: 260px;">
                 <canvas id="jobsTrendChart"></canvas>
             </div>
         </div>
-        <div class="bg-white rounded-lg shadow p-6">
-            <h2 class="text-sm font-semibold text-gray-700 mb-4">Revenue — 14 Day Trend</h2>
+        <div class="surface-1 p-6">
+            <h2 class="text-sm font-semibold text-gray-300 mb-4">Revenue — 14 Day Trend</h2>
             <div class="relative" style="height: 260px;">
                 <canvas id="revenueTrendChart"></canvas>
             </div>
@@ -115,30 +115,30 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {{-- Operational Metrics --}}
-        <div class="bg-white rounded-lg shadow p-6 space-y-4">
-            <h2 class="text-sm font-semibold text-gray-700">Operational Metrics</h2>
+        <div class="surface-1 p-6 space-y-4">
+            <h2 class="text-sm font-semibold text-gray-300">Operational Metrics</h2>
             <div class="grid grid-cols-3 gap-3">
-                <div class="text-center p-3 bg-gray-50 rounded-md">
+                <div class="text-center p-3 surface-0 rounded-md border border-white/10">
                     <p class="text-xs text-gray-500">Completion Rate</p>
-                    <p class="text-xl font-bold text-gray-900 mt-1">{{ $completionRate !== null ? $completionRate . '%' : '—' }}</p>
+                    <p class="text-xl font-bold text-white mt-1">{{ $completionRate !== null ? $completionRate . '%' : '—' }}</p>
                     <p class="text-xs text-gray-400">{{ $completedInRange }} / {{ $totalRequestsInRange }}</p>
                 </div>
-                <div class="text-center p-3 bg-gray-50 rounded-md">
+                <div class="text-center p-3 surface-0 rounded-md border border-white/10">
                     <p class="text-xs text-gray-500">Open Queue</p>
-                    <p class="text-xl font-bold {{ $openQueue > 10 ? 'text-red-600' : 'text-gray-900' }} mt-1">{{ $openQueue }}</p>
+                    <p class="text-xl font-bold {{ $openQueue > 10 ? 'text-red-400' : 'text-white' }} mt-1">{{ $openQueue }}</p>
                     <p class="text-xs text-gray-400">Active requests</p>
                 </div>
-                <div class="text-center p-3 bg-gray-50 rounded-md">
+                <div class="text-center p-3 surface-0 rounded-md border border-white/10">
                     <p class="text-xs text-gray-500">Urgent Unassigned</p>
-                    <p class="text-xl font-bold {{ $urgentUnassigned > 0 ? 'text-red-600' : 'text-green-600' }} mt-1">{{ $urgentUnassigned }}</p>
+                    <p class="text-xl font-bold {{ $urgentUnassigned > 0 ? 'text-red-400' : 'text-green-400' }} mt-1">{{ $urgentUnassigned }}</p>
                     <p class="text-xs text-gray-400">Needs attention</p>
                 </div>
             </div>
         </div>
 
         {{-- Service Mix by Type --}}
-        <div class="bg-white rounded-lg shadow p-6">
-            <h2 class="text-sm font-semibold text-gray-700 mb-4">Service Mix</h2>
+        <div class="surface-1 p-6">
+            <h2 class="text-sm font-semibold text-gray-300 mb-4">Service Mix</h2>
             @if (count($serviceMix) > 0)
                 <div class="relative" style="height: 220px;">
                     <canvas id="serviceMixChart"></canvas>
@@ -151,12 +151,12 @@
 
     {{-- ═══ Top Technicians ═══ --}}
     @if (count($topTechnicians) > 0)
-    <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-sm font-semibold text-gray-700 mb-4">Top Technicians</h2>
+    <div class="surface-1 p-6">
+        <h2 class="text-sm font-semibold text-gray-300 mb-4">Top Technicians</h2>
         <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <table class="table-crystal w-full text-sm">
                 <thead>
-                    <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                    <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-white/10">
                         <th class="pb-2 pr-4">#</th>
                         <th class="pb-2 pr-4">Technician</th>
                         <th class="pb-2 pr-4 text-right">Jobs</th>
@@ -167,7 +167,7 @@
                     @foreach ($topTechnicians as $i => $tech)
                         <tr>
                             <td class="py-2 pr-4 text-gray-400 font-mono text-xs">{{ $i + 1 }}</td>
-                            <td class="py-2 pr-4 font-medium text-gray-900">{{ $tech['name'] }}</td>
+                            <td class="py-2 pr-4 font-medium text-white">{{ $tech['name'] }}</td>
                             <td class="py-2 pr-4 text-right tabular-nums">{{ $tech['jobs'] }}</td>
                             <td class="py-2 text-right tabular-nums font-medium">${{ number_format($tech['revenue'], 2) }}</td>
                         </tr>
@@ -182,14 +182,14 @@
 
 <style>
     .stat-card {
-        @apply bg-white rounded-lg shadow p-5 border-l-4 transition hover:-translate-y-0.5 hover:shadow-md;
+        @apply surface-1 p-5 border-l-4 transition hover:-translate-y-0.5 hover:shadow-md;
     }
     .stat-card--default { @apply border-blue-900; }
     .stat-card--good    { @apply border-green-500; }
     .stat-card--warn    { @apply border-amber-500; }
     .stat-card--danger  { @apply border-red-500; }
     .stat-card__label   { @apply text-xs font-medium text-gray-500 uppercase tracking-wide; }
-    .stat-card__value   { @apply text-2xl font-bold text-gray-900 mt-1 font-mono tabular-nums; }
+    .stat-card__value   { @apply text-2xl font-bold text-white mt-1 font-mono tabular-nums; }
     .stat-card__sub     { @apply text-xs text-gray-400 mt-0.5; }
 </style>
 @endsection

@@ -5,15 +5,15 @@
 
     {{-- Breadcrumb --}}
     <div class="flex items-center gap-2 text-sm text-gray-500">
-        <a href="{{ route('service-requests.index') }}" class="hover:text-blue-600">All Tickets</a>
+        <a href="{{ route('service-requests.index') }}" class="hover:text-cyan-400">All Tickets</a>
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-        <a href="{{ route('service-requests.show', $serviceRequest) }}" class="hover:text-blue-600">SR #{{ $serviceRequest->id }}</a>
+        <a href="{{ route('service-requests.show', $serviceRequest) }}" class="hover:text-cyan-400">SR #{{ $serviceRequest->id }}</a>
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-        <span class="text-gray-700 font-medium">{{ $estimate->displayNumber() }}</span>
+        <span class="text-gray-300 font-medium">{{ $estimate->displayNumber() }}</span>
     </div>
 
     @if(session('success'))
-        <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-sm">
+        <div class="bg-green-500/10 border border-green-500/30 text-green-800 px-4 py-3 rounded-lg text-sm">
             {{ session('success') }}
         </div>
     @endif
@@ -23,14 +23,14 @@
         <div class="flex justify-between items-start">
             <div>
                 <div class="flex items-center gap-3">
-                    <h1 class="text-2xl font-bold text-gray-900">{{ $estimate->displayNumber() }}</h1>
+                    <h1 class="text-2xl font-bold text-white">{{ $estimate->displayNumber() }}</h1>
                     @if($estimate->version > 1)
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-700">
                             V{{ $estimate->version }}
                         </span>
                     @endif
                     @if($estimate->is_locked)
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-gray-200 text-gray-600">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-white/10 text-gray-400">
                             <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
                             Locked
                         </span>
@@ -45,8 +45,8 @@
             </div>
             <span @class([
                 'px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide',
-                'bg-gray-100 text-gray-600' => $estimate->status === 'draft',
-                'bg-blue-100 text-blue-700' => $estimate->status === 'sent',
+                'bg-white/5 text-gray-400' => $estimate->status === 'draft',
+                'bg-blue-100 text-cyan-400' => $estimate->status === 'sent',
                 'bg-amber-100 text-amber-700' => $estimate->status === 'pending_approval',
                 'bg-green-100 text-green-700' => $estimate->status === 'accepted',
                 'bg-red-100 text-red-700' => $estimate->status === 'declined',
@@ -57,8 +57,8 @@
     </div>
 
     {{-- Details --}}
-    <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-        <h2 class="text-lg font-semibold text-gray-800 mb-3">Details</h2>
+    <div class="surface-1 p-6 border border-white/10">
+        <h2 class="text-lg font-semibold text-white mb-3">Details</h2>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
             <div>
                 <span class="block text-gray-500">Customer</span>
@@ -85,35 +85,35 @@
     </div>
 
     {{-- Line Items --}}
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
-        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <h2 class="text-lg font-semibold text-gray-800">Estimate Items</h2>
+    <div class="surface-1 overflow-hidden border border-white/10">
+        <div class="px-6 py-4 border-b border-white/10 bg-white/5">
+            <h2 class="text-lg font-semibold text-white">Estimate Items</h2>
         </div>
 
         <div class="overflow-x-auto">
         <table class="w-full text-sm">
-            <thead class="bg-gray-100 border-b border-gray-300">
+            <thead class="bg-white/5 border-b border-white/10">
                 <tr>
-                    <th class="text-left px-4 py-2.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Item</th>
-                    <th class="text-right px-3 py-2.5 text-xs font-semibold text-gray-600 uppercase tracking-wider w-28">Price</th>
-                    <th class="text-center px-3 py-2.5 text-xs font-semibold text-gray-600 uppercase tracking-wider w-20">Qty</th>
-                    <th class="text-center px-3 py-2.5 text-xs font-semibold text-gray-600 uppercase tracking-wider w-24">Unit</th>
-                    <th class="text-right px-3 py-2.5 text-xs font-semibold text-gray-600 uppercase tracking-wider w-24">Amount</th>
+                    <th class="text-left px-4 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Item</th>
+                    <th class="text-right px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wider w-28">Price</th>
+                    <th class="text-center px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wider w-20">Qty</th>
+                    <th class="text-center px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wider w-24">Unit</th>
+                    <th class="text-right px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wider w-24">Amount</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @foreach($estimate->items as $item)
-                    <tr class="even:bg-gray-50/60">
+                    <tr class="even:bg-white/5/60">
                         <td class="px-4 py-2.5">
-                            <span class="font-medium text-gray-800">{{ $item->name }}</span>
+                            <span class="font-medium text-white">{{ $item->name }}</span>
                             @if($item->description)
                                 <p class="text-xs text-gray-400 mt-0.5">{{ $item->description }}</p>
                             @endif
                         </td>
-                        <td class="text-right px-3 py-2.5 font-mono text-gray-700">${{ number_format($item->unit_price, 2) }}</td>
-                        <td class="text-center px-3 py-2.5 text-gray-700">{{ $item->quantity + 0 }}</td>
+                        <td class="text-right px-3 py-2.5 font-mono text-gray-300">${{ number_format($item->unit_price, 2) }}</td>
+                        <td class="text-center px-3 py-2.5 text-gray-300">{{ $item->quantity + 0 }}</td>
                         <td class="text-center px-3 py-2.5 text-gray-500">{{ ucfirst($item->unit) }}</td>
-                        <td class="text-right px-3 py-2.5 font-mono font-semibold text-gray-800">${{ number_format($item->lineTotal(), 2) }}</td>
+                        <td class="text-right px-3 py-2.5 font-mono font-semibold text-white">${{ number_format($item->lineTotal(), 2) }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -121,11 +121,11 @@
         </div>
 
         {{-- Totals --}}
-        <div class="border-t-2 border-gray-200 bg-blue-50/60 px-6 py-4">
+        <div class="border-t-2 border-white/10 bg-cyan-500/10/60 px-6 py-4">
             <div class="flex flex-col items-end space-y-1.5 text-sm">
                 <div class="flex justify-between w-56">
                     <span class="text-gray-500">Subtotal</span>
-                    <span class="font-mono font-medium text-gray-700">${{ number_format($estimate->subtotal, 2) }}</span>
+                    <span class="font-mono font-medium text-gray-300">${{ number_format($estimate->subtotal, 2) }}</span>
                 </div>
                 <div class="flex justify-between w-56">
                     <span class="text-gray-500">
@@ -136,11 +136,11 @@
                             <span class="text-gray-400">({{ $estimate->tax_rate + 0 }}%)</span>
                         @endif
                     </span>
-                    <span class="font-mono font-medium text-gray-700">${{ number_format($estimate->tax_amount, 2) }}</span>
+                    <span class="font-mono font-medium text-gray-300">${{ number_format($estimate->tax_amount, 2) }}</span>
                 </div>
-                <div class="flex justify-between w-56 border-t-2 border-blue-200 pt-2 mt-1">
-                    <span class="font-bold text-gray-900">Total</span>
-                    <span class="text-lg font-bold font-mono text-blue-700">${{ number_format($estimate->total, 2) }}</span>
+                <div class="flex justify-between w-56 border-t-2 border-cyan-500/30 pt-2 mt-1">
+                    <span class="font-bold text-white">Total</span>
+                    <span class="text-lg font-bold font-mono text-cyan-400">${{ number_format($estimate->total, 2) }}</span>
                 </div>
                 @if($estimate->approved_total !== null)
                 <div class="flex justify-between w-56 mt-1">
@@ -154,39 +154,39 @@
 
     {{-- Notes --}}
     @if($estimate->notes)
-        <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-            <h2 class="text-lg font-semibold text-gray-800 mb-2">Notes</h2>
-            <p class="text-sm text-gray-600 leading-relaxed">{{ $estimate->notes }}</p>
+        <div class="surface-1 p-6 border border-white/10">
+            <h2 class="text-lg font-semibold text-white mb-2">Notes</h2>
+            <p class="text-sm text-gray-400 leading-relaxed">{{ $estimate->notes }}</p>
         </div>
     @endif
 
     {{-- Approval Info --}}
     @if($estimate->approved_at)
-        <div class="bg-green-50 rounded-lg shadow-sm p-6 border border-green-200">
+        <div class="bg-green-500/10 rounded-lg shadow-sm p-6 border border-green-500/30">
             <h2 class="text-lg font-semibold text-green-800 mb-3">Customer Approval</h2>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
                 <div>
-                    <span class="block text-green-600">Signed By</span>
-                    <span class="font-medium text-gray-800">{{ $estimate->signer_name }}</span>
+                    <span class="block text-green-400">Signed By</span>
+                    <span class="font-medium text-white">{{ $estimate->signer_name }}</span>
                 </div>
                 <div>
-                    <span class="block text-green-600">Approved At</span>
-                    <span class="font-medium text-gray-800">{{ $estimate->approved_at->format('M j, Y g:i A') }}</span>
+                    <span class="block text-green-400">Approved At</span>
+                    <span class="font-medium text-white">{{ $estimate->approved_at->format('M j, Y g:i A') }}</span>
                 </div>
                 <div>
-                    <span class="block text-green-600">Approved Total</span>
-                    <span class="font-medium text-gray-800">${{ number_format($estimate->approved_total, 2) }}</span>
+                    <span class="block text-green-400">Approved Total</span>
+                    <span class="font-medium text-white">${{ number_format($estimate->approved_total, 2) }}</span>
                 </div>
             </div>
             @if($estimate->signature_data)
                 <div class="mt-4">
-                    <span class="block text-green-600 text-sm mb-1">Signature</span>
-                    <img src="{{ $estimate->signature_data }}" alt="Customer signature" class="max-h-24 border border-green-200 rounded bg-white p-1">
+                    <span class="block text-green-400 text-sm mb-1">Signature</span>
+                    <img src="{{ $estimate->signature_data }}" alt="Customer signature" class="max-h-24 border border-green-500/30 rounded bg-white/10 p-1">
                 </div>
             @endif
         </div>
     @elseif($estimate->status === 'pending_approval')
-        <div class="bg-amber-50 rounded-lg shadow-sm p-6 border border-amber-200">
+        <div class="bg-amber-50 rounded-lg shadow-sm p-6 border border-amber-500/30">
             <h2 class="text-lg font-semibold text-amber-800 mb-2">Awaiting Customer Approval</h2>
             <p class="text-sm text-amber-700">An approval link has been sent to the customer. The link expires {{ $estimate->approval_token_expires_at?->diffForHumans() ?? 'in 7 days' }}.</p>
         </div>
@@ -200,7 +200,7 @@
     {{-- Actions --}}
     <div class="flex justify-between items-center">
         <a href="{{ route('service-requests.show', $serviceRequest) }}"
-           class="text-sm text-gray-500 hover:text-blue-600 underline">&larr; Back to SR #{{ $serviceRequest->id }}</a>
+           class="text-sm text-gray-500 hover:text-cyan-400 underline">&larr; Back to SR #{{ $serviceRequest->id }}</a>
 
         <div class="flex gap-3 flex-wrap">
             @if(in_array($estimate->status, ['sent', 'pending_approval']) && $estimate->requiresApproval() && !$estimate->isApproved())
@@ -228,7 +228,7 @@
             @endif
             @if(!$estimate->is_locked && !in_array($estimate->status, ['accepted', 'declined']))
                 <a href="{{ route('estimates.edit', [$serviceRequest, $estimate]) }}"
-                   class="bg-blue-600 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-blue-700 shadow-xs transition">
+                   class="btn-crystal text-sm font-medium px-5 py-2.5 rounded-md  shadow-xs transition">
                     Edit Estimate
                 </a>
             @endif
@@ -238,7 +238,7 @@
                     @csrf
                     @method('DELETE')
                     <button type="submit"
-                            class="bg-white text-red-600 text-sm font-medium px-5 py-2.5 rounded-md border border-red-200 hover:bg-red-50 transition">
+                            class="bg-transparent text-red-400 text-sm font-medium px-5 py-2.5 rounded-md border border-red-500/30 hover:bg-red-500/10 transition">
                         Delete
                     </button>
                 </form>
@@ -248,21 +248,21 @@
 
     {{-- Version History --}}
     @if($versions->count() > 1)
-    <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-        <h2 class="text-lg font-semibold text-gray-800 mb-3">Version History</h2>
+    <div class="surface-1 p-6 border border-white/10">
+        <h2 class="text-lg font-semibold text-white mb-3">Version History</h2>
         <div class="space-y-2">
             @foreach($versions as $v)
                 <div @class([
                     'flex items-center justify-between px-4 py-2.5 rounded-lg text-sm',
-                    'bg-blue-50 border border-blue-200' => $v->id === $estimate->id,
-                    'bg-gray-50' => $v->id !== $estimate->id,
+                    'bg-cyan-500/10 border border-cyan-500/30' => $v->id === $estimate->id,
+                    'bg-white/5' => $v->id !== $estimate->id,
                 ])>
                     <div class="flex items-center gap-3">
-                        <span class="font-semibold text-gray-700">V{{ $v->version }}</span>
+                        <span class="font-semibold text-gray-300">V{{ $v->version }}</span>
                         <span @class([
                             'px-2 py-0.5 rounded-full text-xs font-semibold',
-                            'bg-gray-100 text-gray-600' => $v->status === 'draft',
-                            'bg-blue-100 text-blue-700' => $v->status === 'sent',
+                            'bg-white/5 text-gray-400' => $v->status === 'draft',
+                            'bg-blue-100 text-cyan-400' => $v->status === 'sent',
                             'bg-amber-100 text-amber-700' => $v->status === 'pending_approval',
                             'bg-green-100 text-green-700' => $v->status === 'accepted',
                             'bg-red-100 text-red-700' => $v->status === 'declined',
@@ -273,9 +273,9 @@
                         <span class="text-gray-400">{{ $v->created_at->format('M j, Y g:i A') }}</span>
                     </div>
                     @if($v->id !== $estimate->id)
-                        <a href="{{ route('estimates.show', [$serviceRequest, $v]) }}" class="text-blue-600 hover:text-blue-800 text-xs font-medium">View</a>
+                        <a href="{{ route('estimates.show', [$serviceRequest, $v]) }}" class="text-cyan-400 hover:text-cyan-300 text-xs font-medium">View</a>
                     @else
-                        <span class="text-xs text-blue-600 font-medium">Current</span>
+                        <span class="text-xs text-cyan-400 font-medium">Current</span>
                     @endif
                 </div>
             @endforeach

@@ -50,6 +50,7 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with('companyName', Setting::getValue('company_name', config('app.name')));
             $view->with('companyTagline', Setting::getValue('company_tagline', 'Dispatch management'));
+            $view->with('companyLogoUrl', Setting::companyLogoUrl());
             $view->with('currentUserCanManageAccess',
                 $accessControl->canAccessPage($user, '/admin/users')
                 || $accessControl->canAccessPage($user, '/admin/roles')

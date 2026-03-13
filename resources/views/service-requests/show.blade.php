@@ -4,16 +4,16 @@
 <div class="max-w-3xl mx-auto space-y-6">
 
     {{-- Breadcrumb --}}
-    <a href="{{ route('service-requests.index') }}" class="inline-flex items-center text-sm text-gray-500 hover:text-blue-600">
+    <a href="{{ route('service-requests.index') }}" class="inline-flex items-center text-sm text-gray-500 hover:text-cyan-400">
         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
         All Tickets
     </a>
 
     {{-- Header --}}
-    <div class="bg-white rounded-lg shadow p-6" x-data="{ assigning: false, showNotes: false }">
+    <div class="surface-1 p-6" x-data="{ assigning: false, showNotes: false }">
         <div class="flex justify-between items-start gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">
+                <h1 class="text-2xl font-bold text-white">
                     Service Request #{{ $serviceRequest->id }}
                 </h1>
                 <p class="text-sm text-gray-500 mt-1">Created {{ $serviceRequest->created_at->format('M j, Y g:i A') }}</p>
@@ -21,14 +21,14 @@
             <div class="flex items-center gap-3 shrink-0">
                 {{-- Assign Technician --}}
                 @if ($serviceRequest->assignedTechnician)
-                    <span class="inline-flex items-center gap-1.5 text-sm text-gray-700 bg-gray-100 rounded-md px-3 py-1.5">
+                    <span class="inline-flex items-center gap-1.5 text-sm text-gray-200 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 shadow-sm">
                         <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                         {{ $serviceRequest->assignedTechnician->name }}
                     </span>
-                    <button type="button" @click="assigning = true" x-show="!assigning" class="text-sm text-gray-500 hover:text-gray-700 underline">Change</button>
+                    <button type="button" @click="assigning = true" x-show="!assigning" class="text-sm text-gray-500 hover:text-gray-300 underline">Change</button>
                 @else
                     <button type="button" @click="assigning = true" x-show="!assigning"
-                            class="inline-flex items-center px-3 py-2 min-h-[44px] border border-blue-300 text-blue-600 text-sm font-medium rounded-md hover:bg-blue-50 transition">
+                            class="inline-flex items-center px-3 py-2 min-h-[44px] btn-crystal text-sm font-medium rounded-md">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                         Assign Technician
                     </button>
@@ -40,14 +40,14 @@
                     @csrf
                     @method('PATCH')
                     <select name="assigned_user_id" required
-                            class="text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            class="text-sm border-white/10 rounded-md shadow-sm input-crystal">
                         <option value="">Select…</option>
                         @foreach ($technicians as $tech)
                             <option value="{{ $tech->id }}" @selected($serviceRequest->assigned_user_id == $tech->id)>{{ $tech->name }}</option>
                         @endforeach
                     </select>
-                    <button type="submit" class="inline-flex items-center px-4 py-2 min-h-[44px] text-sm font-semibold rounded-md transition bg-green-600 text-white hover:bg-green-700">Save</button>
-                    <button type="button" @click="assigning = false" class="text-sm text-gray-500 hover:text-gray-700 underline">Cancel</button>
+                    <button type="submit" class="inline-flex items-center px-4 py-2 min-h-[44px] btn-crystal-success text-sm font-semibold rounded-md">Save</button>
+                    <button type="button" @click="assigning = false" class="text-sm text-gray-500 hover:text-gray-300 underline">Cancel</button>
                 </form>
 
                 <x-status-badge :status="$serviceRequest->status" class="px-3 py-1 text-sm" />
@@ -56,7 +56,7 @@
 
         {{-- Status transition controls --}}
         @if (! in_array($serviceRequest->status, \App\Models\ServiceRequest::TERMINAL_STATUSES))
-        <div class="mt-4 border-t border-gray-100 pt-4">
+        <div class="mt-4 border-t border-white/10 pt-4">
             @php
                 $nextStatus = $serviceRequest->nextStatus();
                 $canAdvance = $nextStatus ? $serviceRequest->canTransitionTo($nextStatus) : false;
@@ -73,7 +73,7 @@
                     <button type="submit"
                             @disabled(! $canAdvance)
                             aria-disabled="{{ $canAdvance ? 'false' : 'true' }}"
-                            class="inline-flex items-center px-4 py-2 min-h-[44px] text-sm font-semibold rounded-md transition {{ $canAdvance ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-200 text-gray-500 cursor-not-allowed' }}">
+                            class="inline-flex items-center px-4 py-2 min-h-[44px] text-sm font-semibold rounded-md transition {{ $canAdvance ? 'btn-crystal-success' : 'bg-white/10 text-gray-500 cursor-not-allowed border border-white/10' }}">
                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                         Mark as {{ \App\Models\ServiceRequest::STATUS_LABELS[$nextStatus] }}
                     </button>
@@ -87,7 +87,7 @@
                     <input type="hidden" name="notes" x-bind:value="$refs.notesField?.value || ''">
                     <input type="hidden" name="notify_customer" x-bind:value="$refs.notifyCheckbox?.checked ? '1' : '0'">
                     <button type="submit"
-                            class="inline-flex items-center px-4 py-2 min-h-[44px] border border-red-300 text-red-600 text-sm font-semibold rounded-md hover:bg-red-50 transition"
+                            class="inline-flex items-center px-4 py-2 min-h-[44px] border border-red-500/30 text-red-400 text-sm font-semibold rounded-md hover:bg-red-500/10 transition"
                             onclick="return confirm('Cancel this service request?')">
                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                         Cancel
@@ -95,8 +95,8 @@
                 </form>
 
                 <button type="button"
-                        @click="showNotes = !showNotes"
-                        class="inline-flex items-center px-4 py-2 min-h-[44px] border border-gray-300 text-gray-700 text-sm font-semibold rounded-md hover:bg-gray-50 transition">
+                    @click="showNotes = !showNotes"
+                    class="inline-flex items-center px-4 py-2 min-h-[44px] btn-crystal-secondary text-sm font-semibold rounded-md">
                     <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                     Add note
                 </button>
@@ -111,10 +111,10 @@
                           rows="2"
                           maxlength="1000"
                           placeholder="Optional note about this status change…"
-                          class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 resize-none"></textarea>
-                <label class="flex items-center gap-2 text-sm text-gray-600">
+                          class="w-full text-sm border-white/10 rounded-md shadow-sm input-crystal resize-none"></textarea>
+                <label class="flex items-center gap-2 text-sm text-gray-400">
                     <input type="checkbox" x-ref="notifyCheckbox" value="1"
-                           class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                           class="rounded border-white/10 text-cyan-400 focus:ring-cyan-500"
                            {{ $serviceRequest->customer?->hasSmsConsent() ? 'checked' : '' }}>
                     Notify customer via SMS
                 </label>
@@ -148,7 +148,7 @@
             }
         }
     @endphp
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="surface-1 p-6">
         <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Workflow Progress</h2>
         <div class="flex items-center">
             @foreach ($stages as $i => $stage)
@@ -186,11 +186,11 @@
                     }
 
                     $bgClass = match ($color) {
-                        'green'  => 'bg-green-500 text-white',
-                        'yellow' => 'bg-yellow-400 text-yellow-900',
-                        default  => 'bg-gray-200 text-gray-500',
+                        'green'  => 'border border-green-500/30 bg-green-500/15 text-green-200',
+                        'yellow' => 'border border-cyan-400/30 bg-cyan-500/15 text-cyan-200',
+                        default  => 'border border-white/10 bg-white/5 text-gray-500',
                     };
-                    $lineClass = ($i > 0 && ($stages[$i - 1]['done'] ?? false)) ? 'bg-green-400' : 'bg-gray-200';
+                    $lineClass = ($i > 0 && ($stages[$i - 1]['done'] ?? false)) ? 'bg-green-400/70' : 'bg-white/10';
                 @endphp
 
                 {{-- Connector line --}}
@@ -201,7 +201,7 @@
                 {{-- Stage circle + label --}}
                 <div class="flex flex-col items-center" style="min-width:5.5rem">
                     @if ($link)
-                        <a href="{{ $link }}" class="w-12 h-12 rounded-full flex items-center justify-center text-base font-bold {{ $bgClass }} ring-2 ring-white shadow hover:scale-110 transition-transform" title="{{ $stage['label'] }}">
+                        <a href="{{ $link }}" class="w-12 h-12 rounded-full flex items-center justify-center text-base font-bold {{ $bgClass }} ring-2 ring-white/10 shadow hover:scale-110 transition-transform" title="{{ $stage['label'] }}">
                             @if ($color === 'green')
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             @else
@@ -209,7 +209,7 @@
                             @endif
                         </a>
                     @else
-                        <span class="w-12 h-12 rounded-full flex items-center justify-center text-base font-bold {{ $bgClass }} ring-2 ring-white shadow" title="{{ $stage['label'] }}">
+                        <span class="w-12 h-12 rounded-full flex items-center justify-center text-base font-bold {{ $bgClass }} ring-2 ring-white/10 shadow" title="{{ $stage['label'] }}">
                             @if ($color === 'green')
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             @else
@@ -217,7 +217,7 @@
                             @endif
                         </span>
                     @endif
-                    <span class="mt-2 text-sm text-center leading-tight {{ $color === 'yellow' ? 'font-semibold text-yellow-800' : 'text-gray-600' }}">{{ $stage['label'] }}</span>
+                    <span class="mt-2 text-sm text-center leading-tight {{ $color === 'yellow' ? 'font-semibold text-cyan-300' : 'text-gray-400' }}">{{ $stage['label'] }}</span>
                 </div>
             @endforeach
         </div>
@@ -225,8 +225,8 @@
 
     {{-- Customer --}}
     @if ($serviceRequest->customer)
-    <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-lg font-semibold text-gray-700 mb-3">Customer</h2>
+    <div class="surface-1 p-6">
+        <h2 class="text-lg font-semibold text-gray-300 mb-3">Customer</h2>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
             <div>
                 <span class="block text-gray-500">Name</span>
@@ -239,9 +239,9 @@
             <div>
                 <span class="block text-gray-500">SMS Consent</span>
                 @if ($serviceRequest->customer->hasSmsConsent())
-                    <span class="text-green-600 font-medium">Opted in</span>
+                    <span class="text-green-400 font-medium">Opted in</span>
                 @else
-                    <span class="text-red-600 font-medium">Not opted in</span>
+                    <span class="text-red-400 font-medium">Not opted in</span>
                 @endif
             </div>
         </div>
@@ -250,8 +250,8 @@
 
     {{-- Vehicle & Service --}}
     @if ($serviceRequest->vehicle_make || $serviceRequest->catalogItem)
-    <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-lg font-semibold text-gray-700 mb-3">Vehicle & Service</h2>
+    <div class="surface-1 p-6">
+        <h2 class="text-lg font-semibold text-gray-300 mb-3">Vehicle & Service</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             @if ($serviceRequest->vehicle_make)
             <div>
@@ -287,23 +287,55 @@
     @endif
 
     {{-- Location --}}
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="surface-1 p-6">
+        @php
+            $assignedTechnician = $serviceRequest->assignedTechnician;
+            $technicianSmsPhone = $assignedTechnician?->phone;
+            $technicianHasSmsConsent = $assignedTechnician?->technicianProfile?->hasSmsConsent() ?? false;
+            $hasDispatchAddress = filled($serviceRequest->location);
+            $canSendTechnicianLocation = $hasDispatchAddress && $assignedTechnician && filled($technicianSmsPhone) && $technicianHasSmsConsent;
+            $technicianLocationDisabledReason = ! $hasDispatchAddress
+                ? 'Add an address before texting the technician.'
+                : (! $assignedTechnician
+                    ? 'Assign a technician to enable this SMS action.'
+                    : (! filled($technicianSmsPhone)
+                        ? 'Add a mobile phone number to the assigned technician account.'
+                        : (! $technicianHasSmsConsent
+                            ? 'The assigned technician must grant SMS consent before dispatch texts can be sent.'
+                            : null)));
+        @endphp
         <div class="flex justify-between items-center mb-3">
-            <h2 class="text-lg font-semibold text-gray-700">Location</h2>
-            @if (! $serviceRequest->location_shared_at)
-                <form action="{{ route('service-requests.request-location', $serviceRequest) }}" method="POST" class="inline">
+            <h2 class="text-lg font-semibold text-gray-300">Location</h2>
+            <div class="flex flex-wrap items-center justify-end gap-2">
+                <form action="{{ route('service-requests.send-technician-location', $serviceRequest) }}" method="POST" class="inline">
                     @csrf
                     <button type="submit"
-                            class="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-blue-700 transition">
-                        Send Location Request
+                            @disabled(! $canSendTechnicianLocation)
+                            class="text-sm font-medium px-4 py-2 rounded-md transition {{ $canSendTechnicianLocation ? 'btn-crystal-success' : 'border border-white/10 bg-white/5 text-gray-500 cursor-not-allowed' }}">
+                        Send Location to Technician
                     </button>
                 </form>
-            @endif
+                @if (! $serviceRequest->location_shared_at)
+                    <form action="{{ route('service-requests.request-location', $serviceRequest) }}" method="POST" class="inline">
+                        @csrf
+                        <button type="submit"
+                                class="btn-crystal text-sm font-medium px-4 py-2 rounded-md  transition">
+                            Send Location Request
+                        </button>
+                    </form>
+                @endif
+            </div>
         </div>
+
+        @if ($technicianLocationDisabledReason)
+            <p class="mb-4 text-sm text-amber-700">{{ $technicianLocationDisabledReason }}</p>
+        @elseif ($assignedTechnician)
+            <p class="mb-4 text-sm text-gray-400">Technician SMS will be sent to {{ $assignedTechnician->name }} at {{ $technicianSmsPhone }}.</p>
+        @endif
 
         @if ($serviceRequest->latitude && $serviceRequest->longitude)
             {{-- Location has been shared --}}
-            <div class="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
+            <div class="bg-green-500/10 border border-green-500/30 rounded-md p-4 mb-4">
                 <div class="flex items-center text-green-700 mb-2">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
@@ -329,7 +361,7 @@
             <div class="flex flex-wrap gap-3 mb-4">
                 <a href="https://www.google.com/maps?q={{ $serviceRequest->latitude }},{{ $serviceRequest->longitude }}"
                    target="_blank"
-                   class="inline-flex items-center bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-blue-700 transition">
+                   class="inline-flex items-center btn-crystal text-sm font-medium px-4 py-2 rounded-md  transition">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -348,7 +380,7 @@
 
             {{-- Embedded map --}}
             @php $mapsApiKey = \App\Models\Setting::getValue('google_maps_api_key', config('services.google_maps.api_key', '')); @endphp
-            <div class="rounded-md overflow-hidden border border-gray-200">
+            <div class="rounded-md overflow-hidden border border-white/10">
                 @if($mapsApiKey)
                 <iframe
                     width="100%"
@@ -400,11 +432,11 @@
     </div>
 
     {{-- Estimates --}}
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="surface-1 p-6">
         <div class="flex justify-between items-center mb-3">
-            <h2 class="text-lg font-semibold text-gray-700">Estimates</h2>
+            <h2 class="text-lg font-semibold text-gray-300">Estimates</h2>
             <a href="{{ route('estimates.create', $serviceRequest) }}"
-               class="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-blue-700 transition inline-flex items-center">
+               class="btn-crystal text-sm font-medium px-4 py-2 rounded-md  transition inline-flex items-center">
                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                 Create Estimate
             </a>
@@ -414,17 +446,17 @@
             <div class="space-y-3">
                 @foreach ($serviceRequest->estimates->sortByDesc('created_at') as $estimate)
                     <a href="{{ route('estimates.show', [$serviceRequest, $estimate]) }}"
-                       class="block border border-gray-200 rounded-md p-4 hover:bg-gray-50 transition">
+                       class="block border border-white/10 rounded-md p-4 hover:bg-white/5 transition">
                         <div class="flex justify-between items-center">
                             <div>
-                                <span class="font-medium text-gray-800">Estimate #{{ $estimate->id }}</span>
+                                <span class="font-medium text-white">Estimate #{{ $estimate->id }}</span>
                                 <span class="text-xs text-gray-400 ml-2">{{ $estimate->created_at->format('M j, Y g:i A') }}</span>
                             </div>
                             <div class="flex items-center gap-3">
-                                <span class="text-lg font-bold text-gray-900">${{ number_format($estimate->total, 2) }}</span>
+                                <span class="text-lg font-bold text-white">${{ number_format($estimate->total, 2) }}</span>
                                 <span @class([
                                     'px-2 py-0.5 rounded-full text-xs font-semibold',
-                                    'bg-gray-100 text-gray-700' => $estimate->status === 'draft',
+                                    'bg-white/5 text-gray-300' => $estimate->status === 'draft',
                                     'bg-blue-100 text-blue-800' => $estimate->status === 'sent',
                                     'bg-green-100 text-green-800' => $estimate->status === 'accepted',
                                     'bg-red-100 text-red-800' => $estimate->status === 'declined',
@@ -450,9 +482,9 @@
     </div>
 
     {{-- Work Orders --}}
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="surface-1 p-6">
         <div class="flex justify-between items-center mb-3">
-            <h2 class="text-lg font-semibold text-gray-700">Work Orders</h2>
+            <h2 class="text-lg font-semibold text-gray-300">Work Orders</h2>
             <a href="{{ route('work-orders.create', $serviceRequest) }}"
                class="bg-amber-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-amber-700 transition inline-flex items-center">
                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -464,11 +496,11 @@
             <div class="space-y-3">
                 @foreach ($serviceRequest->workOrders->sortByDesc('created_at') as $workOrder)
                     <a href="{{ route('work-orders.show', [$serviceRequest, $workOrder]) }}"
-                       class="block border border-gray-200 rounded-md p-4 hover:border-amber-300 hover:bg-amber-50/40 transition">
+                       class="block border border-white/10 rounded-md p-4 hover:border-amber-300 hover:bg-amber-50/40 transition">
                         <div class="flex justify-between items-center">
                             <div class="flex items-center gap-3">
-                                <span class="font-semibold text-gray-800">{{ $workOrder->work_order_number }}</span>
-                                <span class="text-lg font-bold text-gray-900">${{ number_format($workOrder->total, 2) }}</span>
+                                <span class="font-semibold text-white">{{ $workOrder->work_order_number }}</span>
+                                <span class="text-lg font-bold text-white">${{ number_format($workOrder->total, 2) }}</span>
                             </div>
                             <div class="flex items-center gap-2">
                                 @php
@@ -476,19 +508,19 @@
                                         'pending'     => 'bg-amber-100 text-amber-700',
                                         'in_progress' => 'bg-blue-100 text-blue-800',
                                         'completed'   => 'bg-green-100 text-green-800',
-                                        'cancelled'   => 'bg-gray-100 text-gray-600',
+                                        'cancelled'   => 'bg-white/5 text-gray-400',
                                     ];
                                     $woPriorityColors = [
-                                        'low'    => 'bg-gray-100 text-gray-600',
-                                        'normal' => 'bg-blue-50 text-blue-600',
+                                        'low'    => 'bg-white/5 text-gray-400',
+                                        'normal' => 'bg-cyan-500/10 text-cyan-400',
                                         'high'   => 'bg-amber-100 text-amber-700',
                                         'urgent' => 'bg-red-100 text-red-700',
                                     ];
                                 @endphp
-                                <span class="px-2 py-0.5 rounded-full text-xs font-semibold {{ $woPriorityColors[$workOrder->priority] ?? 'bg-gray-100 text-gray-600' }}">
+                                <span class="px-2 py-0.5 rounded-full text-xs font-semibold {{ $woPriorityColors[$workOrder->priority] ?? 'bg-white/5 text-gray-400' }}">
                                     {{ \App\Models\WorkOrder::PRIORITY_LABELS[$workOrder->priority] ?? ucfirst($workOrder->priority) }}
                                 </span>
-                                <span class="px-2 py-0.5 rounded-full text-xs font-semibold {{ $woStatusColors[$workOrder->status] ?? 'bg-gray-100 text-gray-600' }}">
+                                <span class="px-2 py-0.5 rounded-full text-xs font-semibold {{ $woStatusColors[$workOrder->status] ?? 'bg-white/5 text-gray-400' }}">
                                     {{ \App\Models\WorkOrder::STATUS_LABELS[$workOrder->status] ?? ucfirst($workOrder->status) }}
                                 </span>
                             </div>
@@ -509,25 +541,25 @@
     </div>
 
     {{-- Receipts --}}
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="surface-1 p-6">
         <div class="flex justify-between items-center mb-3">
-            <h2 class="text-lg font-semibold text-gray-700">Receipts</h2>
+            <h2 class="text-lg font-semibold text-gray-300">Receipts</h2>
         </div>
 
         @if ($serviceRequest->receipts->isNotEmpty())
             <div class="space-y-3">
                 @foreach ($serviceRequest->receipts->sortByDesc('created_at') as $receipt)
-                    <div class="border border-gray-200 rounded-md p-4 flex justify-between items-center">
+                    <div class="border border-white/10 rounded-md p-4 flex justify-between items-center">
                         <div>
-                            <span class="font-medium text-gray-800">{{ $receipt->receipt_number }}</span>
+                            <span class="font-medium text-white">{{ $receipt->receipt_number }}</span>
                             <span class="text-xs text-gray-400 ml-2">{{ $receipt->created_at->format('M j, Y g:i A') }}</span>
-                            <span class="text-lg font-bold text-gray-900 ml-3">${{ number_format($receipt->total, 2) }}</span>
+                            <span class="text-lg font-bold text-white ml-3">${{ number_format($receipt->total, 2) }}</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <a href="{{ route('receipts.show', [$serviceRequest, $receipt]) }}"
-                               class="text-sm text-blue-600 hover:text-blue-800 underline">View</a>
+                               class="text-sm text-cyan-400 hover:text-cyan-300 underline">View</a>
                             <a href="{{ route('receipts.pdf', [$serviceRequest, $receipt]) }}"
-                               class="inline-flex items-center text-sm text-gray-600 hover:text-gray-800">
+                               class="inline-flex items-center text-sm text-gray-400 hover:text-white">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                 PDF
                             </a>
@@ -541,9 +573,9 @@
     </div>
 
     {{-- Photos --}}
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="surface-1 p-6">
         <div class="flex justify-between items-center mb-3">
-            <h2 class="text-lg font-semibold text-gray-700">Photos</h2>
+            <h2 class="text-lg font-semibold text-gray-300">Photos</h2>
         </div>
 
         @if ($serviceRequest->photos->isNotEmpty())
@@ -557,7 +589,7 @@
                                 <a href="{{ route('photos.show', [$serviceRequest, $photo]) }}" target="_blank">
                                     <img src="{{ route('photos.show', [$serviceRequest, $photo]) }}"
                                          alt="{{ $photo->caption ?: $label . ' photo' }}"
-                                         class="w-full h-24 object-cover rounded-md border border-gray-200">
+                                         class="w-full h-24 object-cover rounded-md border border-white/10">
                                 </a>
                                 <form method="POST" action="{{ route('photos.destroy', [$serviceRequest, $photo]) }}"
                                       class="absolute top-1 right-1 hidden group-hover:block"
@@ -580,46 +612,46 @@
 
         {{-- Upload form --}}
         <form method="POST" action="{{ route('photos.store', $serviceRequest) }}" enctype="multipart/form-data"
-              class="mt-4 border-t border-gray-100 pt-4" x-data="{ fileName: '' }">
+              class="mt-4 border-t border-white/10 pt-4" x-data="{ fileName: '' }">
             @csrf
             <div class="flex flex-wrap items-end gap-3">
                 <div class="flex-1 min-w-[150px]">
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Photo</label>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Photo</label>
                     <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" required
                            @change="fileName = $event.target.files[0]?.name || ''"
-                           class="block w-full text-sm text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                           class="block w-full text-sm text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-cyan-500/10 file:text-cyan-400 hover:file:bg-cyan-500/20">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
-                    <select name="type" class="text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Type</label>
+                    <select name="type" class="select-crystal text-sm rounded-md border-white/10 shadow-sm input-crystal">
                         <option value="before">Before</option>
                         <option value="during" selected>During</option>
                         <option value="after">After</option>
                     </select>
                 </div>
                 <div class="flex-1 min-w-[120px]">
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Caption</label>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Caption</label>
                     <input type="text" name="caption" maxlength="500" placeholder="Optional"
-                           class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                           class="w-full text-sm rounded-md border-white/10 shadow-sm input-crystal">
                 </div>
-                <button type="submit" class="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-blue-700 transition">Upload</button>
+                <button type="submit" class="btn-crystal text-sm font-medium px-4 py-2 rounded-md  transition">Upload</button>
             </div>
             @error('photo') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
         </form>
     </div>
 
     {{-- Signature --}}
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="surface-1 p-6">
         <div class="flex justify-between items-center mb-3">
-            <h2 class="text-lg font-semibold text-gray-700">Customer Signature</h2>
+            <h2 class="text-lg font-semibold text-gray-300">Customer Signature</h2>
         </div>
 
         @php $capturedSig = $serviceRequest->signatures->first(fn($s) => !empty($s->signature_data)); @endphp
 
         @if ($capturedSig)
-            <div class="border border-gray-200 rounded-md p-4">
+            <div class="border border-white/10 rounded-md p-4">
                 <img src="{{ $capturedSig->signature_data }}" alt="Customer signature" class="max-h-32 mx-auto">
-                <p class="text-sm text-gray-600 text-center mt-2">
+                <p class="text-sm text-gray-400 text-center mt-2">
                     Signed by <span class="font-medium">{{ $capturedSig->signer_name }}</span>
                     on {{ $capturedSig->signed_at->format('M j, Y g:i A') }}
                 </p>
@@ -629,13 +661,13 @@
             <p class="text-sm text-gray-400 italic mb-3">No signature captured yet.</p>
             <form method="POST" action="{{ route('signatures.request', $serviceRequest) }}" class="flex items-center gap-3">
                 @csrf
-                <label class="flex items-center gap-2 text-sm text-gray-600">
+                <label class="flex items-center gap-2 text-sm text-gray-400">
                     <input type="checkbox" name="send_sms" value="1"
-                           class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                           class="rounded border-white/10 text-cyan-400 focus:ring-cyan-500"
                            {{ $serviceRequest->customer?->hasSmsConsent() ? 'checked' : '' }}>
                     Send signing link via SMS
                 </label>
-                <button type="submit" class="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-blue-700 transition">
+                <button type="submit" class="btn-crystal text-sm font-medium px-4 py-2 rounded-md  transition">
                     Request Signature
                 </button>
             </form>
@@ -643,9 +675,9 @@
     </div>
 
     {{-- Payments --}}
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="surface-1 p-6">
         <div class="flex justify-between items-center mb-3">
-            <h2 class="text-lg font-semibold text-gray-700">Payments</h2>
+            <h2 class="text-lg font-semibold text-gray-300">Payments</h2>
             @php
                 $paymentStatus = $serviceRequest->paymentStatus();
                 $totalPaid = $serviceRequest->totalPayments();
@@ -654,7 +686,7 @@
                 'px-2 py-0.5 rounded-full text-xs font-semibold',
                 'bg-green-100 text-green-800' => $paymentStatus === 'paid',
                 'bg-yellow-100 text-yellow-800' => $paymentStatus === 'partial',
-                'bg-gray-100 text-gray-600' => $paymentStatus === 'unpaid',
+                'bg-white/5 text-gray-400' => $paymentStatus === 'unpaid',
             ])>
                 {{ ucfirst($paymentStatus) }}
                 @if ($totalPaid > 0)
@@ -666,7 +698,7 @@
         @if ($serviceRequest->paymentRecords->isNotEmpty())
             <div class="space-y-2">
                 @foreach ($serviceRequest->paymentRecords->sortByDesc('collected_at') as $payment)
-                    <div class="flex justify-between items-center border border-gray-100 rounded-md p-3 text-sm">
+                    <div class="flex justify-between items-center border border-white/10 rounded-md p-3 text-sm">
                         <div>
                             <span class="font-medium">${{ number_format($payment->amount, 2) }}</span>
                             <span class="text-gray-500 ml-2">{{ $payment->methodLabel() }}</span>
@@ -679,7 +711,7 @@
                               onsubmit="return confirm('Delete this payment record?')">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="text-red-400 hover:text-red-600 text-xs">Delete</button>
+                            <button type="submit" class="text-red-400 hover:text-red-400 text-xs">Delete</button>
                         </form>
                     </div>
                 @endforeach
@@ -688,26 +720,26 @@
 
         {{-- Record payment form --}}
         <form method="POST" action="{{ route('payments.store', $serviceRequest) }}"
-              class="mt-4 border-t border-gray-100 pt-4">
+              class="mt-4 border-t border-white/10 pt-4">
             @csrf
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Method <span class="text-red-500">*</span></label>
-                    <select name="method" required class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Method <span class="text-red-500">*</span></label>
+                    <select name="method" required class="select-crystal w-full text-sm rounded-md border-white/10 shadow-sm input-crystal">
                         @foreach (\App\Models\PaymentRecord::METHOD_LABELS as $val => $label)
                             <option value="{{ $val }}">{{ $label }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Amount <span class="text-red-500">*</span></label>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Amount <span class="text-red-500">*</span></label>
                     <input type="number" name="amount" step="0.01" min="0.01" required
-                           class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                           class="w-full text-sm rounded-md border-white/10 shadow-sm input-crystal">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Reference</label>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Reference</label>
                     <input type="text" name="reference" maxlength="200" placeholder="Transaction ID"
-                           class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                           class="w-full text-sm rounded-md border-white/10 shadow-sm input-crystal">
                 </div>
                 <div class="flex items-end">
                     <button type="submit" class="w-full bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-green-700 transition">Record Payment</button>
@@ -719,11 +751,11 @@
     </div>
 
     {{-- Service Log --}}
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="surface-1 p-6">
         <div class="flex justify-between items-center mb-3">
-            <h2 class="text-lg font-semibold text-gray-700">Activity Log</h2>
+            <h2 class="text-lg font-semibold text-gray-300">Activity Log</h2>
             <a href="{{ route('service-requests.evidence', $serviceRequest) }}"
-               class="text-sm text-blue-600 hover:text-blue-800 underline">View Evidence Package</a>
+               class="text-sm text-cyan-400 hover:text-cyan-300 underline">View Evidence Package</a>
         </div>
 
         @if ($serviceRequest->serviceLogs->isNotEmpty())
@@ -740,7 +772,7 @@
                             ])></div>
                         </div>
                         <div class="flex-1">
-                            <span class="font-medium text-gray-700">{{ $log->eventLabel() }}</span>
+                            <span class="font-medium text-gray-300">{{ $log->eventLabel() }}</span>
                             @if ($log->user)
                                 <span class="text-gray-400">by {{ $log->user->name }}</span>
                             @endif
@@ -761,6 +793,22 @@
                                         @if (!empty($log->details['method'])) via {{ $log->details['method'] }} @endif
                                     </p>
                                 @endif
+                                @if (!empty($log->details['technician_name']) || !empty($log->details['address']))
+                                    <p class="text-xs text-gray-500 mt-0.5">
+                                        @if (!empty($log->details['technician_name']))
+                                            {{ $log->details['technician_name'] }}
+                                        @endif
+                                        @if (!empty($log->details['recipient_phone']))
+                                            &middot; {{ $log->details['recipient_phone'] }}
+                                        @endif
+                                        @if (!empty($log->details['address']))
+                                            &middot; {{ $log->details['address'] }}
+                                        @endif
+                                    </p>
+                                @endif
+                                @if (!empty($log->details['sms_error']))
+                                    <p class="text-xs text-red-400 mt-0.5">{{ $log->details['sms_error'] }}</p>
+                                @endif
                             @endif
                         </div>
                     </div>
@@ -777,8 +825,8 @@
     </div>
 
     {{-- Messages --}}
-    <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-lg font-semibold text-gray-700 mb-3">Messages</h2>
+    <div class="surface-1 p-6">
+        <h2 class="text-lg font-semibold text-gray-300 mb-3">Messages</h2>
 
         {{-- Conversation thread (chronological) --}}
         <div class="space-y-3 mb-6 max-h-96 overflow-y-auto" id="message-thread">
@@ -791,7 +839,7 @@
                 <div @class([
                     'max-w-xs sm:max-w-sm md:max-w-md rounded-lg px-4 py-2 text-sm',
                     'bg-blue-600 text-white'            => $message->direction === 'outbound',
-                    'bg-gray-100 text-gray-800 border border-gray-200' => $message->direction === 'inbound',
+                    'bg-white/5 text-white border border-white/10' => $message->direction === 'inbound',
                 ])>
                     <p class="whitespace-pre-wrap">{{ $message->body }}</p>
                     <p @class([
@@ -813,7 +861,7 @@
 
         {{-- Compose form --}}
         @if ($serviceRequest->customer)
-        <div class="border-t border-gray-200 pt-4" x-data="messageCompose({{ $serviceRequest->id }})">
+        <div class="border-t border-white/10 pt-4" x-data="messageCompose({{ $serviceRequest->id }})">
             @if (! $serviceRequest->customer->hasSmsConsent())
                 <div class="bg-yellow-50 border border-yellow-200 rounded-md p-3 text-sm text-yellow-700">
                     Customer has not opted in to SMS. Send a location request or have them text <strong>START</strong> to opt in.
@@ -826,7 +874,7 @@
                     <div class="mb-3">
                         <select x-model="selectedTemplateId"
                                 @change="loadTemplate()"
-                                class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                class="w-full text-sm border-white/10 rounded-md shadow-sm input-crystal">
                             <option value="">Write a custom message&hellip;</option>
                             @foreach ($messageTemplates->groupBy('category') as $category => $templates)
                                 <optgroup label="{{ ucfirst(str_replace('_', ' ', $category)) }}">
@@ -847,10 +895,10 @@
                                   rows="2"
                                   maxlength="1600"
                                   placeholder="Type a message&hellip;"
-                                  class="flex-1 text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 resize-none"
+                                  class="flex-1 text-sm border-white/10 rounded-md shadow-sm input-crystal resize-none"
                                   required></textarea>
                         <button type="submit"
-                                class="self-end bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-blue-700 transition whitespace-nowrap">
+                                class="self-end btn-crystal text-sm font-medium px-4 py-2 rounded-md  transition whitespace-nowrap">
                             Send
                         </button>
                     </div>
@@ -911,8 +959,8 @@
 
     {{-- Status History --}}
     @if ($serviceRequest->statusLogs->isNotEmpty())
-    <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-lg font-semibold text-gray-700 mb-3">Status History</h2>
+    <div class="surface-1 p-6">
+        <h2 class="text-lg font-semibold text-gray-300 mb-3">Status History</h2>
         <div class="space-y-3">
             @foreach ($serviceRequest->statusLogs->sortByDesc('created_at') as $log)
             <div class="flex items-start gap-3 text-sm">
@@ -932,7 +980,7 @@
                         @endif
                     </p>
                     @if ($log->notes)
-                        <p class="text-gray-600 text-xs mt-0.5 italic">{{ $log->notes }}</p>
+                        <p class="text-gray-400 text-xs mt-0.5 italic">{{ $log->notes }}</p>
                     @endif
                 </div>
             </div>
@@ -950,9 +998,9 @@
     {{-- Back link --}}
     <div class="flex gap-3">
         <a href="{{ route('service-requests.index') }}"
-           class="text-sm text-gray-500 hover:text-blue-600 underline">&larr; All Tickets</a>
+           class="text-sm text-gray-500 hover:text-cyan-400 underline">&larr; All Tickets</a>
         <a href="{{ route('service-requests.create') }}"
-           class="text-sm text-blue-600 hover:text-blue-800 underline">+ New Ticket</a>
+           class="text-sm text-cyan-400 hover:text-cyan-300 underline">+ New Ticket</a>
     </div>
 </div>
 @endsection

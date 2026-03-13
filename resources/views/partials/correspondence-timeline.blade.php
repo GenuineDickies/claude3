@@ -1,11 +1,11 @@
 {{-- Correspondence Log --}}
-<div class="bg-white rounded-lg shadow p-6">
+<div class="surface-1 p-6">
     <div class="flex justify-between items-center mb-3">
-        <h2 class="text-lg font-semibold text-gray-700">Correspondence Log</h2>
+        <h2 class="text-lg font-semibold text-gray-300">Correspondence Log</h2>
         @if ($serviceRequest->customer)
             <button type="button"
                     @click="showCorrespondenceForm = !showCorrespondenceForm"
-                    class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                    class="text-sm text-cyan-400 hover:text-cyan-300 font-medium">
                 + Log Entry
             </button>
         @endif
@@ -13,14 +13,14 @@
 
     {{-- Manual entry form (hidden by default) --}}
     @if ($serviceRequest->customer)
-    <div x-show="showCorrespondenceForm" x-cloak class="mb-4 border border-gray-200 rounded-lg p-4 bg-gray-50">
+    <div x-show="showCorrespondenceForm" x-cloak class="mb-4 border border-white/10 rounded-lg p-4 bg-white/5">
         <form action="{{ route('service-requests.correspondence.store', $serviceRequest) }}" method="POST">
             @csrf
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Channel</label>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Channel</label>
                     <select name="channel" required
-                            class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            class="w-full text-sm border-white/10 rounded-md shadow-sm input-crystal">
                         <option value="phone">Phone Call</option>
                         <option value="email">Email</option>
                         <option value="in_person">In Person</option>
@@ -28,9 +28,9 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Direction</label>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Direction</label>
                     <select name="direction" required
-                            class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            class="w-full text-sm border-white/10 rounded-md shadow-sm input-crystal">
                         <option value="outbound">Outbound (we contacted)</option>
                         <option value="inbound">Inbound (they contacted)</option>
                     </select>
@@ -39,36 +39,36 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Subject</label>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Subject</label>
                     <input type="text" name="subject" maxlength="255" placeholder="Brief topic…"
-                           class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                           class="w-full text-sm border-white/10 rounded-md shadow-sm input-crystal">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Duration (minutes)</label>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Duration (minutes)</label>
                     <input type="number" name="duration_minutes" min="0" max="9999" placeholder="0"
-                           class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                           class="w-full text-sm border-white/10 rounded-md shadow-sm input-crystal">
                 </div>
             </div>
 
             <div class="mb-3">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Notes</label>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Notes</label>
                 <textarea name="body" rows="2" maxlength="5000" placeholder="Describe the interaction…"
-                          class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 resize-none"></textarea>
+                          class="w-full text-sm border-white/10 rounded-md shadow-sm input-crystal resize-none"></textarea>
             </div>
 
             <div class="mb-3">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Outcome</label>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Outcome</label>
                 <input type="text" name="outcome" maxlength="100" placeholder="e.g. Scheduled for tomorrow, Left voicemail…"
-                       class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                       class="w-full text-sm border-white/10 rounded-md shadow-sm input-crystal">
             </div>
 
             <div class="flex justify-end gap-2">
                 <button type="button" @click="showCorrespondenceForm = false"
-                        class="text-sm text-gray-500 hover:text-gray-700 px-3 py-1.5">
+                        class="text-sm text-gray-500 hover:text-gray-300 px-3 py-1.5">
                     Cancel
                 </button>
                 <button type="submit"
-                        class="bg-blue-600 text-white text-sm font-medium px-4 py-1.5 rounded-md hover:bg-blue-700 transition">
+                        class="btn-crystal text-sm font-medium px-4 py-1.5 rounded-md  transition">
                     Log Entry
                 </button>
             </div>
@@ -101,10 +101,10 @@
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2 flex-wrap">
-                            <span class="font-medium text-gray-700">{{ $entry->channel_label }}</span>
+                            <span class="font-medium text-gray-300">{{ $entry->channel_label }}</span>
                             <span @class([
                                 'inline-block text-xs px-1.5 py-0.5 rounded-full',
-                                'bg-blue-100 text-blue-700' => $entry->direction === 'outbound',
+                                'bg-blue-100 text-cyan-400' => $entry->direction === 'outbound',
                                 'bg-green-100 text-green-700' => $entry->direction === 'inbound',
                             ])>
                                 {{ ucfirst($entry->direction) }}
@@ -115,7 +115,7 @@
                         </div>
 
                         @if ($entry->body)
-                            <p class="text-gray-600 text-xs mt-0.5 line-clamp-2">{{ $entry->body }}</p>
+                            <p class="text-gray-400 text-xs mt-0.5 line-clamp-2">{{ $entry->body }}</p>
                         @endif
 
                         <div class="flex items-center gap-3 mt-1 text-xs text-gray-400">

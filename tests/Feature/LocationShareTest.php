@@ -10,7 +10,9 @@ use App\Models\ServiceRequest;
 use App\Models\User;
 use App\Services\SmsServiceInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 final class LocationShareTest extends TestCase
@@ -98,28 +100,19 @@ final class LocationShareTest extends TestCase
         $response->assertSessionHas('success');
     }
 
-    public function test_request_location_sends_opt_in_when_no_consent(): void
+    public function test_request_location_requires_verbal_opt_in_when_no_consent(): void
     {
-        MessageTemplate::create([
-            'slug'     => 'welcome-message',
-            'name'     => 'Welcome',
-            'category' => 'general',
-            'body'     => 'Welcome! Reply START to opt in.',
-        ]);
-
-        [$customer, $sr] = $this->createCustomerWithRequest(optedIn: false);
+        [, $sr] = $this->createCustomerWithRequest(optedIn: false);
 
         $smsMock = $this->mock(SmsServiceInterface::class);
-        $smsMock->shouldReceive('sendTemplate')
-            ->once()
-            ->withArgs(fn ($template) => $template->slug === 'welcome-message')
-            ->andReturn(['success' => true, 'message_id' => null, 'rendered_text' => '', 'error' => null]);
+        $smsMock->shouldNotReceive('sendTemplate');
+        $smsMock->shouldNotReceive('sendRawWithLog');
 
         $response = $this->actingAs(User::factory()->create())
             ->post(route('service-requests.request-location', $sr));
 
         $response->assertRedirect();
-        $response->assertSessionHas('warning');
+        $response->assertSessionHas('warning', 'Customer has not opted in to SMS. Record verbal consent before sending location request messages.');
 
         $sr->refresh();
         $this->assertNull($sr->location_token, 'Token should NOT be generated when customer lacks consent');
@@ -167,6 +160,21 @@ final class LocationShareTest extends TestCase
         $response->assertSee('<title>Share Your Location | Signal Roadside</title>', false);
     }
 
+    public function test_locate_page_uses_uploaded_company_logo_when_present(): void
+    {
+        Storage::fake('local');
+
+        $path = UploadedFile::fake()->image('logo.png', 300, 300)->store('branding', 'local');
+        Setting::setValue('company_logo', $path);
+
+        [, $sr] = $this->createCustomerWithRequest(withToken: true);
+
+        $response = $this->get('/locate/' . $sr->location_token);
+
+        $response->assertOk();
+        $response->assertSee(route('branding.logo'), false);
+    }
+
     public function test_locate_page_returns_410_for_expired_token(): void
     {
         [, $sr] = $this->createCustomerWithRequest(withToken: true);
@@ -196,6 +204,22 @@ final class LocationShareTest extends TestCase
     public function test_locate_page_returns_404_for_invalid_token(): void
     {
         $response = $this->get('/locate/nonexistent-token-abc123');
+
+        $response->assertStatus(404);
+    }
+
+    public function test_legacy_locate_php_route_redirects_to_current_route(): void
+    {
+        [, $sr] = $this->createCustomerWithRequest(withToken: true);
+
+        $response = $this->get('/locate.php?t=' . $sr->location_token);
+
+        $response->assertRedirect('/locate/' . $sr->location_token);
+    }
+
+    public function test_legacy_locate_php_route_returns_404_without_token(): void
+    {
+        $response = $this->get('/locate.php');
 
         $response->assertStatus(404);
     }
@@ -348,8 +372,18 @@ final class LocationShareTest extends TestCase
 
         $url = $sr->locationShareUrl();
 
-        $this->assertStringStartsWith('https://example.com/webhook-proxy/locate.php?t=', $url);
-        $this->assertStringContainsString($sr->location_token, $url);
+        $this->assertSame('https://example.com/webhook-proxy/locate/' . $sr->location_token, $url);
+    }
+
+    public function test_location_share_url_uses_base_app_url_when_configured(): void
+    {
+        config(['services.location.base_url' => 'https://example.com/webhook-proxy']);
+
+        [, $sr] = $this->createCustomerWithRequest(withToken: true);
+
+        $url = $sr->locationShareUrl();
+
+        $this->assertSame('https://example.com/webhook-proxy/locate/' . $sr->location_token, $url);
     }
 
     public function test_location_share_url_falls_back_to_laravel_route(): void

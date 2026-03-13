@@ -19,6 +19,8 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * @property \Illuminate\Support\Carbon|null $sms_consent_at
  * @property \Illuminate\Support\Carbon|null $sms_opt_out_at
  * @property array<array-key, mixed>|null $notification_preferences
+ * @property array<array-key, mixed>|null $sms_consent_meta
+ * @property array<array-key, mixed>|null $sms_opt_out_meta
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Correspondence> $correspondences
@@ -61,6 +63,8 @@ class Customer extends Model
         'sms_consent_at',
         'sms_opt_out_at',
         'notification_preferences',
+        'sms_consent_meta',
+        'sms_opt_out_meta',
     ];
 
     protected function casts(): array
@@ -70,6 +74,8 @@ class Customer extends Model
             'sms_consent_at'           => 'datetime',
             'sms_opt_out_at'           => 'datetime',
             'notification_preferences' => 'array',
+            'sms_consent_meta'         => 'array',
+            'sms_opt_out_meta'         => 'array',
         ];
     }
 
@@ -104,11 +110,13 @@ class Customer extends Model
     /**
      * Record SMS opt-in consent.
      */
-    public function grantSmsConsent(): void
+    public function grantSmsConsent(array $meta = []): void
     {
         $this->update([
             'sms_consent_at' => now(),
             'sms_opt_out_at' => null,
+            'sms_consent_meta' => $meta,
+            'sms_opt_out_meta' => null,
         ]);
 
         CustomerOptedIn::dispatch($this);
@@ -117,10 +125,11 @@ class Customer extends Model
     /**
      * Record SMS opt-out.
      */
-    public function revokeSmsConsent(): void
+    public function revokeSmsConsent(array $meta = []): void
     {
         $this->update([
             'sms_opt_out_at' => now(),
+            'sms_opt_out_meta' => $meta,
         ]);
 
         CustomerOptedOut::dispatch($this);

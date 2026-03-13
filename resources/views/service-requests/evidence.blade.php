@@ -6,11 +6,11 @@
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row justify-between items-start gap-3">
         <div>
-            <a href="{{ route('service-requests.show', $serviceRequest) }}" class="inline-flex items-center text-sm text-gray-500 hover:text-blue-600 mb-2">
+            <a href="{{ route('service-requests.show', $serviceRequest) }}" class="inline-flex items-center text-sm text-gray-500 hover:text-cyan-400 mb-2">
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                 Ticket #{{ $serviceRequest->id }}
             </a>
-            <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Evidence Package</h1>
+            <h1 class="text-xl sm:text-2xl font-bold text-white">Evidence Package</h1>
             <p class="text-sm text-gray-500">Service Request #{{ $serviceRequest->id }} &middot; {{ $serviceRequest->created_at->format('M j, Y') }}</p>
         </div>
         <button onclick="window.print()" class="bg-gray-600 text-white text-sm font-medium px-4 py-2 min-h-[44px] rounded-md hover:bg-gray-700 transition print:hidden">
@@ -19,8 +19,8 @@
     </div>
 
     {{-- Service Details --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
-        <h2 class="text-lg font-semibold text-gray-700 mb-3">Service Details</h2>
+    <div class="surface-1 p-6">
+        <h2 class="text-lg font-semibold text-gray-300 mb-3">Service Details</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
                 <span class="block text-gray-500">Customer</span>
@@ -57,8 +57,8 @@
     </div>
 
     {{-- Photos --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
-        <h2 class="text-lg font-semibold text-gray-700 mb-3">Photos ({{ $serviceRequest->photos->count() }})</h2>
+    <div class="surface-1 p-6">
+        <h2 class="text-lg font-semibold text-gray-300 mb-3">Photos ({{ $serviceRequest->photos->count() }})</h2>
         @if ($serviceRequest->photos->isNotEmpty())
             @foreach (['before' => 'Before', 'during' => 'During', 'after' => 'After'] as $type => $label)
                 @php $typed = $serviceRequest->photos->where('type', $type); @endphp
@@ -69,7 +69,7 @@
                             <div>
                                 <img src="{{ route('photos.show', [$serviceRequest, $photo]) }}"
                                      alt="{{ $photo->caption ?: $label }}"
-                                     class="w-full h-32 object-cover rounded-md border border-gray-200">
+                                     class="w-full h-32 object-cover rounded-md border border-white/10">
                                 @if ($photo->caption)
                                     <p class="text-xs text-gray-500 mt-1">{{ $photo->caption }}</p>
                                 @endif
@@ -85,13 +85,13 @@
     </div>
 
     {{-- Customer Signature --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
-        <h2 class="text-lg font-semibold text-gray-700 mb-3">Customer Signature</h2>
+    <div class="surface-1 p-6">
+        <h2 class="text-lg font-semibold text-gray-300 mb-3">Customer Signature</h2>
         @php $sig = $serviceRequest->signatures->first(fn($s) => !empty($s->signature_data)); @endphp
         @if ($sig)
-            <div class="border border-gray-200 rounded-md p-4 text-center">
+            <div class="border border-white/10 rounded-md p-4 text-center">
                 <img src="{{ $sig->signature_data }}" alt="Signature" class="max-h-24 mx-auto">
-                <p class="text-sm text-gray-600 mt-2">
+                <p class="text-sm text-gray-400 mt-2">
                     <strong>{{ $sig->signer_name }}</strong> &middot; {{ $sig->signed_at->format('M j, Y g:i A') }}
                 </p>
                 <p class="text-xs text-gray-400">IP: {{ $sig->ip_address }} &middot; {{ $sig->user_agent }}</p>
@@ -102,10 +102,10 @@
     </div>
 
     {{-- Payment Records --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
-        <h2 class="text-lg font-semibold text-gray-700 mb-3">Payment Records</h2>
+    <div class="surface-1 p-6">
+        <h2 class="text-lg font-semibold text-gray-300 mb-3">Payment Records</h2>
         @if ($serviceRequest->paymentRecords->isNotEmpty())
-            <table class="min-w-full text-sm">
+            <table class="table-crystal min-w-full text-sm">
                 <thead>
                     <tr class="border-b text-left text-gray-500">
                         <th class="pb-2">Method</th>
@@ -138,12 +138,12 @@
     </div>
 
     {{-- SMS Consent Record --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
-        <h2 class="text-lg font-semibold text-gray-700 mb-3">SMS Consent</h2>
+    <div class="surface-1 p-6">
+        <h2 class="text-lg font-semibold text-gray-300 mb-3">SMS Consent</h2>
         @if ($serviceRequest->customer)
             <div class="text-sm">
                 @if ($serviceRequest->customer->hasSmsConsent())
-                    <p class="text-green-600 font-medium">✓ Customer opted in to SMS</p>
+                    <p class="text-green-400 font-medium">✓ Customer opted in to SMS</p>
                     @if ($serviceRequest->customer->sms_consent_at)
                         <p class="text-gray-500 text-xs mt-1">Consent granted: {{ $serviceRequest->customer->sms_consent_at->format('M j, Y g:i A') }}</p>
                     @endif
@@ -156,24 +156,24 @@
 
     {{-- Receipts --}}
     @if ($serviceRequest->receipts->isNotEmpty())
-    <div class="bg-white rounded-lg shadow-sm p-6">
-        <h2 class="text-lg font-semibold text-gray-700 mb-3">Receipts</h2>
+    <div class="surface-1 p-6">
+        <h2 class="text-lg font-semibold text-gray-300 mb-3">Receipts</h2>
         @foreach ($serviceRequest->receipts as $receipt)
-            <div class="border border-gray-200 rounded-md p-3 flex justify-between items-center">
+            <div class="border border-white/10 rounded-md p-3 flex justify-between items-center">
                 <div class="text-sm">
                     <span class="font-medium">{{ $receipt->receipt_number }}</span>
                     <span class="text-gray-400 ml-2">{{ $receipt->created_at->format('M j, Y') }}</span>
                     <span class="font-bold ml-2">${{ number_format($receipt->total, 2) }}</span>
                 </div>
-                <a href="{{ route('receipts.pdf', [$serviceRequest, $receipt]) }}" class="text-sm text-blue-600 hover:underline">Download PDF</a>
+                <a href="{{ route('receipts.pdf', [$serviceRequest, $receipt]) }}" class="text-sm text-cyan-400 hover:underline">Download PDF</a>
             </div>
         @endforeach
     </div>
     @endif
 
     {{-- Complete Activity Log --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
-        <h2 class="text-lg font-semibold text-gray-700 mb-3">Complete Activity Log</h2>
+    <div class="surface-1 p-6">
+        <h2 class="text-lg font-semibold text-gray-300 mb-3">Complete Activity Log</h2>
         @php
             // Merge status logs and service logs into a unified timeline
             $timeline = collect();
@@ -204,7 +204,7 @@
                     <div class="flex items-start gap-3 border-b border-gray-50 pb-2">
                         <div class="shrink-0 mt-1"><div class="w-2 h-2 rounded-full bg-gray-400"></div></div>
                         <div>
-                            <span class="font-medium text-gray-700">{{ $entry->label }}</span>
+                            <span class="font-medium text-gray-300">{{ $entry->label }}</span>
                             @if ($entry->by)
                                 <span class="text-gray-400">by {{ $entry->by }}</span>
                             @endif
@@ -222,8 +222,8 @@
     </div>
 
     {{-- Evidence Completeness --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
-        <h2 class="text-lg font-semibold text-gray-700 mb-3">Evidence Completeness</h2>
+    <div class="surface-1 p-6">
+        <h2 class="text-lg font-semibold text-gray-300 mb-3">Evidence Completeness</h2>
         @php
             $checks = [
                 'GPS Location'       => (bool) ($serviceRequest->latitude && $serviceRequest->longitude),
@@ -242,17 +242,17 @@
                 <span class="font-medium">{{ $score }} / {{ $total }} items</span>
                 <span @class([
                     'font-semibold',
-                    'text-green-600' => $score === $total,
+                    'text-green-400' => $score === $total,
                     'text-yellow-600' => $score >= $total / 2 && $score < $total,
-                    'text-red-600' => $score < $total / 2,
+                    'text-red-400' => $score < $total / 2,
                 ])>
                     {{ round($score / $total * 100) }}%
                 </span>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-2">
+            <div class="w-full bg-white/10 rounded-full h-2">
                 <div @class([
                     'h-2 rounded-full',
-                    'bg-green-500' => $score === $total,
+                    'bg-green-500/100' => $score === $total,
                     'bg-yellow-500' => $score >= $total / 2 && $score < $total,
                     'bg-red-500' => $score < $total / 2,
                 ]) style="width: {{ round($score / $total * 100) }}%"></div>
@@ -266,7 +266,7 @@
                     @else
                         <span class="text-red-400">✗</span>
                     @endif
-                    <span @class(['text-gray-700' => $passed, 'text-gray-400' => !$passed])>{{ $label }}</span>
+                    <span @class(['text-gray-300' => $passed, 'text-gray-400' => !$passed])>{{ $label }}</span>
                 </div>
             @endforeach
         </div>

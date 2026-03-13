@@ -2,8 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 final class SecurityHardeningTest extends TestCase
@@ -149,6 +152,52 @@ final class SecurityHardeningTest extends TestCase
 
         $response->assertSessionHasNoErrors();
         $response->assertRedirect(route('settings.edit'));
+    }
+
+    public function test_settings_update_accepts_company_logo_upload(): void
+    {
+        Storage::fake('local');
+
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->put(route('settings.update-single', 'company_logo'), [
+            'value' => UploadedFile::fake()->image('logo.png', 300, 300),
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect(route('settings.edit'));
+
+        $path = Setting::getValue('company_logo');
+
+        $this->assertIsString($path);
+        Storage::disk('local')->assertExists($path);
+    }
+
+    public function test_settings_update_accepts_common_webp_company_logo_upload(): void
+    {
+        Storage::fake('local');
+
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->put(route('settings.update-single', 'company_logo'), [
+            'value' => UploadedFile::fake()->create('logo.webp', 256, 'image/webp'),
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect(route('settings.edit'));
+    }
+
+    public function test_settings_update_rejects_invalid_company_logo_upload(): void
+    {
+        Storage::fake('local');
+
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->put(route('settings.update-single', 'company_logo'), [
+            'value' => UploadedFile::fake()->create('logo.pdf', 100, 'application/pdf'),
+        ]);
+
+        $response->assertSessionHasErrors('value');
     }
 
     public function test_settings_update_rejects_unknown_key(): void

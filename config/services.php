@@ -49,8 +49,11 @@ return [
     ],
 
     'location' => [
-        // Public HTTPS URL to the standalone locate.php on your hosting.
-        // e.g. https://yourdomain.com/webhook-proxy/locate.php
+        // Public base URL for customer location sharing.
+        // Examples:
+        // - https://yourdomain.com/webhook-proxy
+        // - https://yourdomain.com/webhook-proxy/locate
+        // Legacy values ending in /locate.php are normalized automatically.
         'base_url' => env('LOCATION_BASE_URL'),
     ],
 

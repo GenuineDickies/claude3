@@ -5,12 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Share Your Location | {{ $companyName }}</title>
     <style>
+        :root {
+            color-scheme: dark;
+            --bg-deep: #040811;
+            --bg-mid: #0a1221;
+            --panel: rgba(15, 24, 45, 0.9);
+            --panel-strong: rgba(21, 33, 61, 0.96);
+            --panel-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f3f7ff;
+            --text-body: #c2cde1;
+            --text-muted: #8fa0ba;
+            --accent: #1ed6f2;
+            --accent-strong: #11b7d6;
+            --success: #22c55e;
+            --danger: #fb7185;
+            --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.45);
+            --shadow-glow: 0 0 0 1px rgba(255,255,255,0.05), 0 18px 50px rgba(0,0,0,0.35), 0 0 40px rgba(30, 214, 242, 0.08);
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { width: 100%; min-height: 100%; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #f8fafc;
-            color: #1a202c;
+            position: relative;
+            font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background:
+                radial-gradient(circle at top center, rgba(30, 214, 242, 0.18), transparent 30%),
+                radial-gradient(circle at bottom left, rgba(124, 58, 237, 0.16), transparent 26%),
+                linear-gradient(180deg, var(--bg-mid), var(--bg-deep));
+            color: var(--text-main);
             min-height: 100vh;
             min-height: 100dvh;
             display: flex;
@@ -18,8 +40,23 @@
             justify-content: stretch;
             overflow-x: hidden;
         }
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.18;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+            background-size: 24px 24px;
+            mask-image: radial-gradient(circle at center, black, transparent 78%);
+        }
         .card {
-            background: #fff;
+            position: relative;
+            isolation: isolate;
+            background:
+                linear-gradient(180deg, rgba(24, 36, 67, 0.92), rgba(10, 16, 31, 0.98));
             width: 100%;
             min-height: 100vh;
             min-height: 100dvh;
@@ -28,127 +65,239 @@
             flex-direction: column;
             align-items: stretch;
             justify-content: flex-start;
-            padding: 1.5rem 1rem 2rem;
+            padding: 1.25rem 1rem 1.75rem;
             text-align: center;
+            overflow: hidden;
         }
-        @media (min-width: 600px) {
+        .card::before,
+        .card::after {
+            content: "";
+            position: absolute;
+            border-radius: 9999px;
+            pointer-events: none;
+            z-index: -1;
+        }
+        .card::before {
+            top: -12rem;
+            right: -7rem;
+            width: 20rem;
+            height: 20rem;
+            background: radial-gradient(circle, rgba(30, 214, 242, 0.24), transparent 66%);
+            filter: blur(14px);
+        }
+        .card::after {
+            bottom: -9rem;
+            left: -6rem;
+            width: 16rem;
+            height: 16rem;
+            background: radial-gradient(circle, rgba(124, 58, 237, 0.22), transparent 68%);
+            filter: blur(18px);
+        }
+        @media (min-width: 720px) {
             body {
                 align-items: center;
                 justify-content: center;
                 padding: 2rem;
-                background: #f0f4f8;
             }
             .card {
-                width: min(100%, 720px);
-                min-height: min(100dvh - 4rem, 880px);
-                border-radius: 1.5rem;
-                box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+                width: min(100%, 680px);
+                min-height: min(100dvh - 4rem, 920px);
+                border-radius: 2rem;
+                border: 1px solid var(--panel-border);
+                box-shadow: var(--shadow-glow);
                 flex: none;
-                padding: 2rem 1.75rem 2.25rem;
+                padding: 1.5rem 1.5rem 2rem;
             }
         }
-        .icon { font-size: 3.5rem; margin-bottom: 1rem; }
-        h1 { font-size: clamp(1.8rem, 4vw, 2.35rem); margin-bottom: 0.75rem; }
-        p { color: #4a5568; font-size: 1.05rem; line-height: 1.6; margin-bottom: 1.25rem; }
+        .icon {
+            font-size: clamp(3.1rem, 7vw, 4.4rem);
+            margin: 0.4rem 0 0.75rem;
+            filter: drop-shadow(0 12px 22px rgba(30, 214, 242, 0.12));
+        }
+        h1 {
+            font-size: clamp(2.15rem, 8vw, 3.2rem);
+            line-height: 1.04;
+            letter-spacing: -0.04em;
+            margin-bottom: 0.9rem;
+            color: var(--text-main);
+            text-wrap: balance;
+        }
+        p {
+            color: var(--text-body);
+            font-size: 1.02rem;
+            line-height: 1.7;
+            margin-bottom: 1.15rem;
+        }
         .brand {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 0.875rem;
-            margin-bottom: 1rem;
+            justify-content: flex-start;
+            gap: 0.95rem;
+            margin-bottom: 1.1rem;
             text-align: left;
         }
         .brand-mark {
-            width: 3.5rem;
-            height: 3.5rem;
+            position: relative;
+            width: 4.75rem;
+            height: 4rem;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: linear-gradient(145deg, rgba(26, 42, 72, 0.95), rgba(14, 22, 39, 0.95));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 24px rgba(0, 0, 0, 0.28);
+            overflow: hidden;
         }
         .brand-mark img {
             display: block;
+            max-width: 84%;
+            max-height: 84%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 18px rgba(15, 23, 42, 0.32));
+        }
+        .brand-fallback {
+            display: none;
+            align-items: center;
+            justify-content: center;
             width: 100%;
             height: 100%;
-            object-fit: contain;
-            filter: drop-shadow(0 8px 20px rgba(15, 23, 42, 0.18));
+            color: #a5f3fc;
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
         }
         .brand-copy {
             min-width: 0;
         }
         .brand-name {
             display: block;
-            color: #0f172a;
-            font-size: 1rem;
-            font-weight: 700;
+            color: var(--text-main);
+            font-size: 1.08rem;
+            font-weight: 800;
             line-height: 1.2;
         }
         .brand-tagline {
             display: block;
-            color: #64748b;
-            font-size: 0.82rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
             line-height: 1.35;
-            margin-top: 0.15rem;
+            margin-top: 0.2rem;
         }
         .eyebrow {
             display: inline-flex;
             align-self: center;
-            padding: 0.3rem 0.7rem;
+            padding: 0.4rem 0.85rem;
             border-radius: 9999px;
-            background: #dbeafe;
-            color: #1d4ed8;
-            font-size: 0.78rem;
+            background: rgba(232, 248, 255, 0.92);
+            color: #24568e;
+            font-size: 0.74rem;
             font-weight: 700;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+        }
+        .hero-copy {
+            max-width: 32rem;
+            margin: 0 auto 1rem;
+            color: var(--text-body);
+        }
+        .helper-note {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.55rem;
+            margin: 0 auto 1.2rem;
+            padding: 0.65rem 0.9rem;
+            border-radius: 9999px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-muted);
+            font-size: 0.84rem;
+            line-height: 1.4;
         }
         .btn {
             display: inline-block;
-            background: #2563eb;
-            color: #fff;
-            border: none;
-            border-radius: 0.75rem;
-            padding: 1.1rem 2rem;
-            font-size: 1.2rem;
-            font-weight: 600;
+            background: linear-gradient(180deg, #20d8f4, #14b8d8);
+            color: #03131d;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 1rem;
+            padding: 1.1rem 1.35rem;
+            font-size: 1.08rem;
+            font-weight: 800;
+            letter-spacing: 0.01em;
             cursor: pointer;
             width: 100%;
-            transition: background 0.2s;
+            box-shadow: 0 20px 34px rgba(20, 184, 216, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
         }
-        .btn:hover { background: #1d4ed8; }
-        .btn:disabled { background: #94a3b8; cursor: not-allowed; }
+        .btn:hover,
+        .btn:focus-visible {
+            background: linear-gradient(180deg, #48e2fb, #1bb8dd);
+            transform: translateY(-1px);
+            box-shadow: 0 22px 40px rgba(20, 184, 216, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+            outline: none;
+        }
+        .btn:disabled {
+            background: linear-gradient(180deg, rgba(128, 145, 170, 0.8), rgba(110, 122, 146, 0.8));
+            color: rgba(255,255,255,0.85);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
         .spinner {
             display: none;
             margin: 1rem auto;
             width: 40px; height: 40px;
-            border: 4px solid #e2e8f0;
-            border-top-color: #2563eb;
+            border: 4px solid rgba(255,255,255,0.18);
+            border-top-color: var(--accent);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .status { margin-top: 1rem; font-size: 0.9rem; }
-        .status.success { color: #16a34a; }
-        .status.error { color: #dc2626; }
-        .expired { color: #dc2626; }
+        .status {
+            margin-top: 1rem;
+            padding: 0.95rem 1rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.04);
+            color: var(--text-body);
+            font-size: 0.96rem;
+            line-height: 1.55;
+        }
+        .status.success {
+            color: #d8ffe5;
+            border-color: rgba(34, 197, 94, 0.3);
+            background: rgba(34, 197, 94, 0.14);
+        }
+        .status.error,
+        .expired {
+            color: #ffe0e6;
+            border-color: rgba(251, 113, 133, 0.28);
+            background: rgba(244, 63, 94, 0.14);
+        }
         .card-inner {
             width: 100%;
-            max-width: none;
-            padding: 0;
+            max-width: 34rem;
+            padding: 0.25rem 0.1rem 0;
             display: flex;
             flex: 1 1 auto;
             flex-direction: column;
             justify-content: center;
-            gap: 0.75rem;
+            gap: 0.85rem;
             margin: 0 auto;
         }
         #map-container {
             display: none;
             margin-top: 1.25rem;
-            border-radius: 0.75rem;
+            border-radius: 1.2rem;
             overflow: hidden;
-            border: 1px solid #e2e8f0;
-            background: #e2e8f0;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.03);
+            box-shadow: var(--shadow-lg);
         }
         #map-container iframe {
             width: 100%;
@@ -156,92 +305,99 @@
             border: 0;
         }
         .map-label {
-            font-size: 0.85rem;
-            color: #4a5568;
+            font-size: 0.9rem;
+            color: var(--text-muted);
             margin-top: 0.75rem;
         }
         .confirm-row {
             display: none;
             margin-top: 1rem;
-            gap: 0.5rem;
+            gap: 0.7rem;
             flex-direction: column;
         }
         .btn-confirm {
             display: inline-block;
-            background: #16a34a;
+            background: linear-gradient(180deg, #33d17a, #16a34a);
             color: #fff;
-            border: none;
-            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 1rem;
             padding: 1rem 1.5rem;
-            font-size: 1.15rem;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 18px 30px rgba(22, 163, 74, 0.22);
+        }
+        .btn-retry {
+            display: inline-block;
+            background: rgba(255,255,255,0.06);
+            color: var(--text-main);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 1rem;
+            padding: 0.85rem 1.5rem;
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             width: 100%;
         }
-        .btn-retry {
-            display: inline-block;
-            background: #e2e8f0;
-            color: #1a202c;
-            border: none;
-            border-radius: 0.75rem;
-            padding: 0.85rem 1.5rem;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            width: 100%;
+        .btn-confirm:hover,
+        .btn-confirm:focus-visible {
+            background: linear-gradient(180deg, #4ce288, #1aa14f);
+            outline: none;
         }
-        .btn-confirm:hover { background: #15803d; }
-        .btn-retry:hover { background: #cbd5e1; }
+        .btn-retry:hover,
+        .btn-retry:focus-visible {
+            background: rgba(255,255,255,0.1);
+            outline: none;
+        }
 
-        @media (max-width: 599px) {
+        @media (max-width: 719px) {
             .card {
                 padding-top: calc(1rem + env(safe-area-inset-top));
-                padding-right: 0;
-                padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
-                padding-left: 0;
+                padding-bottom: calc(1.2rem + env(safe-area-inset-bottom));
             }
 
             .card-inner {
                 justify-content: flex-start;
-                gap: 0.875rem;
-                padding: 0.5rem 1rem 0;
+                gap: 0.95rem;
+                padding: 0.2rem 0.35rem 0;
             }
 
             .brand {
-                justify-content: flex-start;
-                margin-bottom: 0.25rem;
+                margin-bottom: 0.35rem;
             }
 
             .brand-mark {
-                width: 3rem;
-                height: 3rem;
+                width: 4.1rem;
+                height: 3.5rem;
             }
 
             .brand-name {
-                font-size: 0.95rem;
+                font-size: 1rem;
             }
 
             .brand-tagline {
-                font-size: 0.78rem;
+                font-size: 0.84rem;
             }
 
             .icon {
-                font-size: 3rem;
-                margin-bottom: 0.5rem;
+                font-size: 3.4rem;
+                margin-bottom: 0.25rem;
             }
 
             p {
                 font-size: 1rem;
-                margin-bottom: 1rem;
+                margin-bottom: 0.9rem;
+            }
+
+            h1 {
+                font-size: clamp(2rem, 9vw, 2.6rem);
             }
 
             #map-container {
                 margin-top: 1rem;
-                margin-right: -1rem;
-                margin-left: -1rem;
-                border-right: 0;
-                border-left: 0;
-                border-radius: 0;
+                margin-right: 0;
+                margin-left: 0;
             }
 
             #map-container iframe {
@@ -252,10 +408,8 @@
             .confirm-row {
                 position: sticky;
                 bottom: 0;
-                margin-right: -1rem;
-                margin-left: -1rem;
-                padding: 0.875rem 1rem calc(0.875rem + env(safe-area-inset-bottom));
-                background: linear-gradient(to top, rgba(248, 250, 252, 0.98), rgba(248, 250, 252, 0.88));
+                padding: 0.95rem 0 calc(0.95rem + env(safe-area-inset-bottom));
+                background: linear-gradient(to top, rgba(6, 10, 19, 0.98), rgba(6, 10, 19, 0.7));
                 backdrop-filter: blur(10px);
             }
 
@@ -263,17 +417,33 @@
             .btn-confirm,
             .btn-retry {
                 max-width: none;
-                border-radius: 1rem;
+                min-height: 3.5rem;
+            }
+        }
+
+        @media (min-width: 720px) {
+            .helper-note {
+                margin-bottom: 1.35rem;
             }
         }
     </style>
 </head>
 <body>
+    @php
+        $brandInitials = collect(preg_split('/\s+/', trim($companyName)) ?: [])
+            ->filter()
+            ->take(2)
+            ->map(fn ($part) => strtoupper(substr($part, 0, 1)))
+            ->implode('');
+    @endphp
     <div class="card">
         <div class="card-inner">
             <div class="brand" aria-label="{{ $companyName }} branding">
                 <div class="brand-mark" aria-hidden="true">
-                    <img src="{{ asset('images/company-logo.jpg') }}" alt="" loading="eager" decoding="async">
+                    @if(!empty($companyLogoUrl))
+                        <img src="{{ $companyLogoUrl }}" alt="" loading="eager" decoding="async" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+                    @endif
+                    <span class="brand-fallback" @if(!empty($companyLogoUrl)) style="display:none;" @endif>{{ $brandInitials }}</span>
                 </div>
                 <div class="brand-copy">
                     <span class="brand-name">{{ $companyName }}</span>
@@ -288,10 +458,11 @@
             <div class="eyebrow">Secure Location Check-In</div>
             <div class="icon">📍</div>
             <h1>Share Your Location</h1>
-            <p>
+            <p class="hero-copy">
                 Your {{ $companyName }} team needs your location to reach you.
                 Tap the button below to share your current GPS position.
             </p>
+            <div class="helper-note">Only your current location is shared for this request.</div>
 
             <input type="hidden" id="maps-api-key" value="{{ $mapsApiKey ?? '' }}">
             <button id="shareBtn" class="btn" onclick="getLocation()">Share My Location</button>

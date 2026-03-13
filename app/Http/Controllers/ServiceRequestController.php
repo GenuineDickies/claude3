@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreServiceRequestRequest;
+use App\Models\Correspondence;
 use App\Models\Customer;
 use App\Models\MessageTemplate;
 use App\Models\ServiceLog;
@@ -73,7 +74,7 @@ class ServiceRequestController extends Controller
             $this->syncLocationFromCapture($serviceRequest);
         }
 
-        $serviceRequest->load(['customer', 'catalogItem', 'messages', 'estimates.items', 'statusLogs.user', 'receipts', 'photos', 'signatures', 'paymentRecords', 'serviceLogs.user', 'workOrders.items', 'correspondences.logger', 'documents.uploader', 'assignedTechnician', 'invoices']);
+        $serviceRequest->load(['customer', 'catalogItem', 'messages', 'estimates.items', 'statusLogs.user', 'receipts', 'photos', 'signatures', 'paymentRecords', 'serviceLogs.user', 'workOrders.items', 'correspondences.logger', 'documents.uploader', 'assignedTechnician.technicianProfile', 'invoices']);
 
         $messageTemplates = MessageTemplate::active()
             ->whereNotIn('category', ['compliance'])
@@ -145,7 +146,13 @@ class ServiceRequestController extends Controller
         if ($request->boolean('verbal_opt_in')) {
             $customer = $serviceRequest->customer;
             if (! $customer->hasSmsConsent()) {
-                $customer->grantSmsConsent();
+                $customer->grantSmsConsent([
+                    'source' => 'verbal_intake',
+                    'recorded_by_user_id' => Auth::id(),
+                    'service_request_id' => $serviceRequest->id,
+                    'ip' => $request->ip(),
+                    'user_agent' => (string) $request->userAgent(),
+                ]);
             }
         }
 
@@ -155,20 +162,9 @@ class ServiceRequestController extends Controller
             $sms = app(SmsServiceInterface::class);
 
             if (! $customer->hasSmsConsent()) {
-                // Send opt-in message first
-                $optInTemplate = MessageTemplate::where('slug', 'welcome-message')->first();
-                if ($optInTemplate) {
-                    $sms->sendTemplate(
-                        template: $optInTemplate,
-                        to: $customer->phone,
-                        customer: $customer,
-                        serviceRequest: $serviceRequest,
-                    );
-                }
-
                 return redirect()->route('service-requests.show', $serviceRequest)
                     ->with('success', 'Service request #' . $serviceRequest->id . ' created.')
-                    ->with('warning', 'Customer has not opted in to SMS. An opt-in message was sent to ' . $customer->phone . '. Once they reply START, you can request their location from the detail page.');
+                    ->with('warning', 'Customer has not opted in to SMS. Record verbal consent before sending location or status text messages.');
             }
 
             $serviceRequest->generateLocationToken();
@@ -278,6 +274,60 @@ class ServiceRequestController extends Controller
             ->with('success', 'Technician assigned: ' . $user->name);
     }
 
+    public function sendLocationToTechnician(ServiceRequest $serviceRequest, SmsServiceInterface $sms)
+    {
+        $serviceRequest->loadMissing(['customer', 'assignedTechnician.technicianProfile']);
+
+        if (! filled((string) $serviceRequest->location)) {
+            return back()->with('error', 'Add a service address before sending the location to a technician.');
+        }
+
+        $technician = $serviceRequest->assignedTechnician;
+
+        if (! $technician) {
+            return back()->with('error', 'Assign a technician before sending the location by SMS.');
+        }
+
+        $smsPhone = $technician->phone;
+
+        if (! filled((string) $smsPhone)) {
+            return back()->with('error', 'The assigned technician does not have a mobile phone number yet.');
+        }
+
+        if (! $technician->technicianProfile?->hasSmsConsent()) {
+            return back()->with('error', 'The assigned technician must grant SMS consent before dispatch texts can be sent.');
+        }
+
+        $text = $this->buildTechnicianLocationSms($serviceRequest);
+        $result = $sms->sendRaw($smsPhone, $text);
+
+        Correspondence::create([
+            'customer_id' => $serviceRequest->customer_id,
+            'service_request_id' => $serviceRequest->id,
+            'channel' => Correspondence::CHANNEL_SMS,
+            'direction' => Correspondence::DIRECTION_OUTBOUND,
+            'subject' => 'Technician location SMS',
+            'body' => $text,
+            'logged_by' => Auth::id(),
+            'logged_at' => now(),
+            'outcome' => $result['success'] ? 'sent_to_technician' : 'failed_to_technician',
+        ]);
+
+        ServiceLog::log($serviceRequest, 'technician_location_sent', [
+            'technician_name' => $technician->name,
+            'recipient_phone' => $smsPhone,
+            'address' => $serviceRequest->location,
+            'sms_status' => $result['success'] ? 'sent' : 'failed',
+            'sms_error' => $result['error'],
+        ], Auth::id());
+
+        if (! $result['success']) {
+            return back()->with('error', 'The technician SMS could not be sent: ' . ($result['error'] ?: 'Unknown error.'));
+        }
+
+        return back()->with('success', 'Location sent to technician ' . $technician->name . '.');
+    }
+
     /**
      * Send an SMS for a status change if a matching template exists.
      */
@@ -320,6 +370,32 @@ class ServiceRequestController extends Controller
             customer: $customer,
             serviceRequest: $serviceRequest,
         );
+    }
+
+
+    private function buildTechnicianLocationSms(ServiceRequest $serviceRequest): string
+    {
+        $companyName = Setting::getValue('company_name', config('app.name'));
+        $customerName = trim(($serviceRequest->customer?->first_name ?? '') . ' ' . ($serviceRequest->customer?->last_name ?? ''));
+        $mapsUrl = $this->technicianLocationMapsUrl($serviceRequest);
+
+        return sprintf(
+            '%s dispatch: Ticket #%d%s. Service address: %s. Directions: %s Reply STOP to stop dispatch texts or HELP for support.',
+            $companyName,
+            $serviceRequest->id,
+            $customerName !== '' ? ' for ' . $customerName : '',
+            trim((string) $serviceRequest->location),
+            $mapsUrl,
+        );
+    }
+
+    private function technicianLocationMapsUrl(ServiceRequest $serviceRequest): string
+    {
+        if ($serviceRequest->latitude && $serviceRequest->longitude) {
+            return 'https://www.google.com/maps/dir/?api=1&destination=' . $serviceRequest->latitude . ',' . $serviceRequest->longitude;
+        }
+
+        return 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode((string) $serviceRequest->location);
     }
 
     /**

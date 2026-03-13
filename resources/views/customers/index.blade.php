@@ -5,9 +5,9 @@
 
     {{-- Header --}}
     <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-bold text-gray-900">Customers</h1>
+        <h1 class="text-2xl font-bold text-white">Customers</h1>
         <a href="{{ route('service-requests.create') }}"
-           class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
+           class="inline-flex items-center px-4 py-2 btn-crystal text-sm">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
             </svg>
@@ -16,19 +16,19 @@
     </div>
 
     {{-- Filters --}}
-    <div class="bg-white rounded-lg shadow-sm p-4">
+    <div class="surface-1 p-4">
         <form method="GET" action="{{ route('customers.index') }}" class="flex flex-wrap items-end gap-3">
             <div class="flex-1 min-w-[200px]">
                 <label for="search" class="block text-xs font-medium text-gray-500 mb-1">Search</label>
                 <input type="text" name="search" id="search" value="{{ $currentSearch }}"
                        placeholder="Name or phone number…"
-                       class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                       class="w-full rounded-md border-white/10 text-sm shadow-sm input-crystal">
             </div>
 
             <div>
                 <label for="consent" class="block text-xs font-medium text-gray-500 mb-1">SMS Consent</label>
                 <select name="consent" id="consent"
-                        class="rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        class="rounded-md border-white/10 text-sm shadow-sm input-crystal">
                     <option value="">All</option>
                     <option value="yes" @selected($currentConsent === 'yes')>Opted In</option>
                     <option value="no" @selected($currentConsent === 'no')>Opted Out</option>
@@ -38,7 +38,7 @@
             <div>
                 <label for="active" class="block text-xs font-medium text-gray-500 mb-1">Status</label>
                 <select name="active" id="active"
-                        class="rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        class="rounded-md border-white/10 text-sm shadow-sm input-crystal">
                     <option value="">All</option>
                     <option value="1" @selected($currentActive === '1')>Active</option>
                     <option value="0" @selected($currentActive === '0')>Inactive</option>
@@ -46,19 +46,19 @@
             </div>
 
             <button type="submit"
-                    class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
+                    class="inline-flex items-center px-4 py-2 btn-crystal text-sm">
                 Filter
             </button>
 
             @if ($currentSearch || $currentConsent || $currentActive !== null && $currentActive !== '')
                 <a href="{{ route('customers.index') }}"
-                   class="text-sm text-gray-500 hover:text-gray-700 underline">Clear</a>
+                   class="text-sm text-gray-500 hover:text-gray-300 underline">Clear</a>
             @endif
         </form>
     </div>
 
     {{-- Results --}}
-    <div class="bg-white rounded-lg shadow-sm">
+    <div class="surface-1">
         @if ($customers->isEmpty())
             <div class="p-6 text-center">
                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -68,8 +68,8 @@
             </div>
         @else
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+                <table class="table-crystal min-w-full divide-y divide-white/5">
+                    <thead class="bg-white/5">
                         <tr>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
@@ -80,29 +80,29 @@
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><span class="sr-only">Actions</span></th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="bg-transparent divide-y divide-white/5">
                         @foreach ($customers as $customer)
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-4 py-3 text-sm font-medium text-gray-900">
+                            <tr class="hover:bg-white/5">
+                                <td class="px-4 py-3 text-sm font-medium text-white">
                                     {{ $customer->first_name }} {{ $customer->last_name }}
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-600 font-mono">
+                                <td class="px-4 py-3 text-sm text-gray-400 font-mono">
                                     {{ $customer->phone }}
                                 </td>
                                 <td class="px-4 py-3 text-sm">
                                     @if ($customer->hasSmsConsent())
-                                        <span class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-green-600/20 ring-inset">
+                                        <span class="inline-flex items-center rounded-full bg-green-500/10 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-green-600/20 ring-inset">
                                             Opted In
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-gray-500/10 ring-inset">
+                                        <span class="inline-flex items-center rounded-full bg-white/5 px-2 py-1 text-xs font-medium text-gray-400 ring-1 ring-gray-500/10 ring-inset">
                                             No Consent
                                         </span>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-sm">
                                     @if ($customer->is_active)
-                                        <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-blue-700/10 ring-inset">
+                                        <span class="inline-flex items-center rounded-full bg-cyan-500/10 px-2 py-1 text-xs font-medium text-cyan-400 ring-1 ring-blue-700/10 ring-inset">
                                             Active
                                         </span>
                                     @else
@@ -111,7 +111,7 @@
                                         </span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-600">
+                                <td class="px-4 py-3 text-sm text-gray-400">
                                     {{ $customer->service_requests_count }}
                                 </td>
                                 <td class="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
@@ -119,7 +119,7 @@
                                 </td>
                                 <td class="px-4 py-3 text-sm text-right whitespace-nowrap">
                                     <a href="{{ route('service-requests.index', ['search' => $customer->phone]) }}"
-                                       class="text-gray-400 hover:text-blue-600" title="View tickets">
+                                       class="text-gray-400 hover:text-cyan-400" title="View tickets">
                                         <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/>
                                         </svg>
@@ -132,7 +132,7 @@
             </div>
 
             @if ($customers->hasPages())
-                <div class="px-4 py-3 border-t border-gray-200">
+                <div class="px-4 py-3 border-t border-white/10">
                     {{ $customers->withQueryString()->links() }}
                 </div>
             @endif

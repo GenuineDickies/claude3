@@ -21,6 +21,9 @@ use Illuminate\Support\Carbon;
  * @property array<array-key, mixed>|null $certifications
  * @property string|null $emergency_contact_name
  * @property string|null $emergency_contact_phone
+ * @property string|null $sms_phone
+ * @property Carbon|null $sms_consent_at
+ * @property array<array-key, mixed>|null $sms_consent_meta
  * @property string|null $vehicle_year
  * @property string|null $vehicle_make
  * @property string|null $vehicle_model
@@ -44,6 +47,7 @@ use Illuminate\Support\Carbon;
  * @method static Builder<static>|TechnicianProfile whereDrugScreenStatus($value)
  * @method static Builder<static>|TechnicianProfile whereEmergencyContactName($value)
  * @method static Builder<static>|TechnicianProfile whereEmergencyContactPhone($value)
+ * @method static Builder<static>|TechnicianProfile whereSmsPhone($value)
  * @method static Builder<static>|TechnicianProfile whereId($value)
  * @method static Builder<static>|TechnicianProfile whereInsuranceExpiry($value)
  * @method static Builder<static>|TechnicianProfile whereInsurancePolicyNumber($value)
@@ -70,6 +74,9 @@ class TechnicianProfile extends Model
         'certifications',
         'emergency_contact_name',
         'emergency_contact_phone',
+        'sms_phone',
+        'sms_consent_at',
+        'sms_consent_meta',
         'vehicle_year',
         'vehicle_make',
         'vehicle_model',
@@ -84,6 +91,8 @@ class TechnicianProfile extends Model
             'background_check_date'  => 'date',
             'drug_screen_date'       => 'date',
             'certifications'         => 'array',
+            'sms_consent_at'         => 'datetime',
+            'sms_consent_meta'       => 'array',
         ];
     }
 
@@ -92,6 +101,43 @@ class TechnicianProfile extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public static function normalizePhone(?string $phone): ?string
+    {
+        if ($phone === null) {
+            return null;
+        }
+
+        $normalized = preg_replace('/\D/', '', $phone);
+
+        if ($normalized === '') {
+            return null;
+        }
+
+        if (strlen($normalized) === 11 && str_starts_with($normalized, '1')) {
+            return substr($normalized, 1);
+        }
+
+        return $normalized;
+    }
+
+    public function setSmsPhoneAttribute(?string $value): void
+    {
+        $this->attributes['sms_phone'] = self::normalizePhone($value);
+    }
+
+    public function hasSmsConsent(): bool
+    {
+        return $this->sms_consent_at !== null;
+    }
+
+    public function grantSmsConsent(array $meta = []): void
+    {
+        $this->update([
+            'sms_consent_at' => now(),
+            'sms_consent_meta' => $meta,
+        ]);
     }
 
     // ── Compliance helpers ──────────────────────────────

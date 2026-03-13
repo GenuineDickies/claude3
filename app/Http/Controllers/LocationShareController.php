@@ -17,6 +17,20 @@ use Illuminate\Support\Facades\Log;
 class LocationShareController extends Controller
 {
     /**
+     * GET /locate.php?t={token}
+     *
+     * Backwards-compatible entrypoint for legacy SMS links.
+     */
+    public function legacyShow(Request $request): RedirectResponse
+    {
+        $token = (string) $request->query('t', '');
+
+        abort_if($token === '', 404);
+
+        return redirect()->route('locate.show', ['token' => $token]);
+    }
+
+    /**
      * POST /service-requests/{serviceRequest}/request-location
      *
      * Generate a location token and send the SMS.
@@ -36,19 +50,7 @@ class LocationShareController extends Controller
 
         // ── Consent gate ──────────────────────────────────────────
         if (! $customer->hasSmsConsent()) {
-            // Send the opt-in / welcome message and tell operator to wait
-            $optInTemplate = MessageTemplate::where('slug', 'welcome-message')->first();
-
-            if ($optInTemplate) {
-                $sms->sendTemplate(
-                    template: $optInTemplate,
-                    to: $customer->phone,
-                    customer: $customer,
-                    serviceRequest: $serviceRequest,
-                );
-            }
-
-            return back()->with('warning', 'Customer has not opted in to SMS. An opt-in message was sent to ' . $customer->phone . '. Once they reply START, you can request their location.');
+            return back()->with('warning', 'Customer has not opted in to SMS. Record verbal consent before sending location request messages.');
         }
 
         // ── Generate token & send location link ───────────────────

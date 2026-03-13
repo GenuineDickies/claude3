@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
 
 class SettingsController extends Controller
 {
@@ -49,6 +50,19 @@ class SettingsController extends Controller
 
         foreach ($definitions as $group => $section) {
             foreach ($section['fields'] as $key => $field) {
+                if (($field['type'] ?? null) === 'image') {
+                    if ($request->hasFile('settings.' . $key)) {
+                        $path = $this->storeUploadedImage($request->file('settings.' . $key), $key);
+                        $this->replaceStoredImage($key, $path);
+                    }
+
+                    if ($request->boolean('settings_clear.' . $key)) {
+                        $this->replaceStoredImage($key, null);
+                    }
+
+                    continue;
+                }
+
                 $inputValue = $request->input('settings.' . $key);
 
                 // For encrypted fields: skip if the user left the masked placeholder unchanged
@@ -85,6 +99,24 @@ class SettingsController extends Controller
         $request->validate([
             'value' => $this->validationRulesFor($field),
         ]);
+
+        if (($field['type'] ?? null) === 'image') {
+            if ($request->hasFile('value')) {
+                $path = $this->storeUploadedImage($request->file('value'), $key);
+                $this->replaceStoredImage($key, $path);
+
+                return redirect()->route('settings.edit')->with('success', $field['label'] . ' saved.');
+            }
+
+            if ($request->boolean('clear')) {
+                $this->replaceStoredImage($key, null);
+
+                return redirect()->route('settings.edit')->with('success', $field['label'] . ' cleared.');
+            }
+
+            return redirect()->route('settings.edit')
+                ->withErrors(['value' => 'Please choose an image to upload or clear the current logo.']);
+        }
 
         $inputValue = $request->input('value');
 
@@ -143,6 +175,7 @@ class SettingsController extends Controller
         $type = $field['type'] ?? 'text';
 
         return match ($type) {
+            'image'    => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif,bmp,avif', 'max:10240'],
             'url'      => ['nullable', 'string', 'max:2048', 'url:https'],
             'email'    => ['nullable', 'string', 'max:255', 'email'],
             'number'   => ['nullable', 'numeric', 'min:0', 'max:10000'],
@@ -189,5 +222,30 @@ class SettingsController extends Controller
         $url = preg_replace('#^(https?)\s*:+\s*/+#i', '$1://', $url);
 
         return $url;
+    }
+
+    /**
+     * Persist an uploaded branding image on the local disk.
+     */
+    private function storeUploadedImage(UploadedFile $file, string $key): string
+    {
+        $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'png');
+        $filename = $key . '-' . Str::random(12) . '.' . $extension;
+
+        return $file->storeAs('branding', $filename, 'local');
+    }
+
+    /**
+     * Replace the stored company image and clean up the previous file.
+     */
+    private function replaceStoredImage(string $key, ?string $path): void
+    {
+        $currentValue = Setting::getValue($key);
+
+        if ($currentValue !== $path) {
+            Setting::deleteStoredLogo(is_string($currentValue) ? $currentValue : null);
+        }
+
+        Setting::setValue($key, $path);
     }
 }

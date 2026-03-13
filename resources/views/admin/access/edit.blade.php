@@ -3,39 +3,39 @@
 @section('content')
 <div class="max-w-5xl mx-auto space-y-6">
     <div>
-        <a href="{{ route('admin.roles.index') }}" class="text-sm text-blue-600 hover:text-blue-700">&larr; Back to roles</a>
-        <h1 class="mt-2 text-2xl font-bold text-gray-900">Role Access: {{ $role->role_name }}</h1>
+        <a href="{{ route('admin.roles.index') }}" class="text-sm text-cyan-400 hover:text-cyan-300">&larr; Back to roles</a>
+        <h1 class="mt-2 text-2xl font-bold text-white">Role Access: {{ $role->role_name }}</h1>
         <p class="mt-1 text-sm text-gray-500">Select which registered pages this role can open.</p>
     </div>
 
     @if (session('success'))
-        <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ session('success') }}</div>
+        <div class="rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-800">{{ session('success') }}</div>
     @endif
 
     @if ($errors->any())
-        <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ $errors->first() }}</div>
+        <div class="rounded-lg border border-red-500/30 bg-red-50 px-4 py-3 text-sm text-red-700">{{ $errors->first() }}</div>
     @endif
 
-    <div class="rounded-lg bg-white p-4 shadow-sm">
+    <div class="surface-1 p-4">
         <form method="GET" action="{{ route('admin.access.edit', $role) }}" class="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div class="flex-1">
                 <label for="search" class="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">Search pages</label>
-                <input id="search" name="search" value="{{ $search }}" placeholder="Page name or path" class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <input id="search" name="search" value="{{ $search }}" placeholder="Page name or path" class="w-full rounded-md border-white/10 text-sm shadow-sm input-crystal">
             </div>
             <div class="flex gap-2">
                 <button type="submit" class="rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800">Filter</button>
-                <a href="{{ route('admin.access.edit', $role) }}" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Clear</a>
+                <a href="{{ route('admin.access.edit', $role) }}" class="rounded-md border border-white/10 px-4 py-2 text-sm font-semibold text-gray-300 hover:bg-white/5">Clear</a>
             </div>
         </form>
     </div>
 
     @if ($role->isAdministrator())
-        <div class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+        <div class="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-sm text-blue-800">
             Administrator is a reserved role and always has access to every registered page.
         </div>
     @endif
 
-    <div class="rounded-lg bg-white p-6 shadow-sm">
+    <div class="surface-1 p-6">
         <form method="POST" action="{{ route('admin.access.update', $role) }}" class="space-y-6">
             @csrf
             @method('PUT')
@@ -114,7 +114,7 @@
                             @if ($allChecked)
                                 <span class="rounded-full bg-green-100 border border-green-300 px-3 py-1 text-xs font-semibold text-green-800">All granted</span>
                             @elseif ($noneChecked)
-                                <span class="rounded-full bg-red-100 border border-red-300 px-3 py-1 text-xs font-semibold text-red-700">None</span>
+                                <span class="rounded-full bg-red-100 border border-red-500/30 px-3 py-1 text-xs font-semibold text-red-700">None</span>
                             @else
                                 <span class="rounded-full bg-amber-100 border border-amber-300 px-3 py-1 text-xs font-semibold text-amber-700">{{ $checkedCount }}/{{ $totalCount }}</span>
                             @endif
@@ -125,7 +125,7 @@
                     </div>
 
                     {{-- Pages within section --}}
-                    <div x-show="open" x-transition x-ref="pages_{{ Str::slug($section, '_') }}" class="bg-white px-4 py-3" style="border-top: 2px solid {{ $s['border'] }};">
+                    <div x-show="open" x-transition x-ref="pages_{{ Str::slug($section, '_') }}" class="surface-0 px-4 py-3" style="border-top: 2px solid {{ $s['border'] }};">
                         <div class="grid gap-2 md:grid-cols-2">
                             @foreach ($sectionPages as $page)
                                 @php
@@ -143,10 +143,10 @@
                                         value="{{ $page->id }}"
                                         @checked($isChecked)
                                         @disabled($role->isAdministrator())
-                                        class="mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                                        class="mt-0.5 rounded border-white/10 text-cyan-400 focus:ring-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"
                                     >
                                     <span class="min-w-0">
-                                        <span class="block text-sm font-medium text-gray-900 truncate" title="{{ $page->page_name }}">{{ $page->page_name }}</span>
+                                        <span class="block text-sm font-medium text-white truncate" title="{{ $page->page_name }}">{{ $page->page_name }}</span>
                                         <span class="block text-xs font-mono truncate" title="{{ $page->page_path }}"
                                               style="color: {{ $isChecked ? $s['color'] : '#9ca3af' }};">{{ $relativePath }}</span>
                                     </span>
@@ -156,13 +156,13 @@
                     </div>
                 </div>
             @empty
-                <div class="rounded-lg border border-dashed border-gray-300 px-4 py-10 text-center text-sm text-gray-500">No pages matched the current filter.</div>
+                <div class="rounded-lg border border-dashed border-white/10 px-4 py-10 text-center text-sm text-gray-500">No pages matched the current filter.</div>
             @endforelse
 
             <div class="flex justify-end gap-3 pt-2">
-                <a href="{{ route('admin.roles.index') }}" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Back</a>
+                <a href="{{ route('admin.roles.index') }}" class="rounded-md border border-white/10 px-4 py-2 text-sm font-semibold text-gray-300 hover:bg-white/5">Back</a>
                 @unless ($role->isAdministrator())
-                    <button type="submit" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">Save access</button>
+                    <button type="submit" class="btn-crystal px-4 py-2 text-sm font-semibold">Save access</button>
                 @endunless
             </div>
         </form>

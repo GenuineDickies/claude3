@@ -7,6 +7,7 @@ use App\Models\TechnicianProfile;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 
 class TechnicianProfileController extends Controller
 {
@@ -41,6 +42,8 @@ class TechnicianProfileController extends Controller
     {
         abort_unless(Setting::getValue('compliance_tracking_enabled'), 404);
 
+        $isSelfService = (int) $request->user()?->id === (int) $user->id;
+
         $validated = $request->validate([
             'drivers_license_number'  => ['nullable', 'string', 'max:50'],
             'drivers_license_expiry'  => ['nullable', 'date'],
@@ -52,6 +55,19 @@ class TechnicianProfileController extends Controller
             'drug_screen_status'      => ['nullable', 'string', 'in:clear,pending,failed'],
             'emergency_contact_name'  => ['nullable', 'string', 'max:100'],
             'emergency_contact_phone' => ['nullable', 'string', 'max:20'],
+            'user_phone'              => [
+                'nullable',
+                'string',
+                'max:20',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    $normalized = User::normalizePhone(is_string($value) ? $value : null);
+
+                    if ($normalized !== null && strlen($normalized) < 10) {
+                        $fail('The mobile phone must contain at least 10 digits.');
+                    }
+                },
+            ],
+            'grant_sms_consent'       => ['nullable', 'boolean'],
             'vehicle_year'            => ['nullable', 'string', 'max:4'],
             'vehicle_make'            => ['nullable', 'string', 'max:50'],
             'vehicle_model'           => ['nullable', 'string', 'max:50'],
@@ -62,6 +78,24 @@ class TechnicianProfileController extends Controller
             'certifications.*.expiry_date' => ['nullable', 'date'],
         ]);
 
+        if ($isSelfService && array_key_exists('user_phone', $validated)) {
+            $user->forceFill([
+                'phone' => $validated['user_phone'],
+            ])->save();
+        }
+
+        if ($request->boolean('grant_sms_consent') && ! $isSelfService) {
+            return back()->withErrors([
+                'grant_sms_consent' => 'Technicians must grant their own SMS consent while signed in to their own account.',
+            ])->withInput();
+        }
+
+        if ($request->boolean('grant_sms_consent') && ! filled($user->phone)) {
+            return back()->withErrors([
+                'user_phone' => 'Add your mobile phone number before granting SMS consent.',
+            ])->withInput();
+        }
+
         // Filter out empty certification rows
         if (isset($validated['certifications'])) {
             $validated['certifications'] = array_values(
@@ -69,10 +103,19 @@ class TechnicianProfileController extends Controller
             );
         }
 
-        $user->technicianProfile()->updateOrCreate(
+        $profile = $user->technicianProfile()->updateOrCreate(
             ['user_id' => $user->id],
-            $validated,
+            Arr::except($validated, ['user_phone', 'grant_sms_consent']),
         );
+
+        if ($isSelfService && $request->boolean('grant_sms_consent') && ! $profile->hasSmsConsent()) {
+            $profile->grantSmsConsent([
+                'source' => 'technician_profile_self_service',
+                'recorded_by_user_id' => $request->user()->id,
+                'ip' => $request->ip(),
+                'user_agent' => (string) $request->userAgent(),
+            ]);
+        }
 
         return redirect()
             ->route('technician-profiles.show', $user)

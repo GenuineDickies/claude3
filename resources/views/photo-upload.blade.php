@@ -9,8 +9,8 @@
         html, body { width: 100%; height: 100%; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #fff;
-            color: #1a202c;
+            background: #0a0e17;
+            color: #e5e7eb;
             min-height: 100vh;
             min-height: 100dvh;
             display: flex;
@@ -18,7 +18,7 @@
             overflow-x: hidden;
         }
         .card {
-            background: #fff;
+            background: #0a0e17;
             width: 100%;
             flex: 1 0 auto;
             display: flex;
@@ -49,7 +49,7 @@
         p { color: #4a5568; font-size: 1.05rem; line-height: 1.6; margin-bottom: 1.5rem; }
         .btn {
             display: inline-block;
-            background: #2563eb;
+            background: #06b6d4;
             color: #fff;
             border: none;
             border-radius: 0.75rem;
@@ -61,7 +61,7 @@
             max-width: 400px;
             transition: background 0.2s;
         }
-        .btn:hover { background: #1d4ed8; }
+        .btn:hover { background: #0891b2; }
         .btn:disabled { background: #94a3b8; cursor: not-allowed; }
         .spinner {
             display: none;
@@ -105,7 +105,7 @@
             border: 3px dashed #cbd5e1;
             border-radius: 1rem;
             padding: 2rem 1rem;
-            background: #f8fafc;
+            background: #0a0e17;
             transition: border-color 0.2s, background 0.2s;
             cursor: pointer;
         }
@@ -146,7 +146,7 @@
         .btn-change {
             display: inline-block;
             background: #e2e8f0;
-            color: #1a202c;
+            color: #e5e7eb;
             border: none;
             border-radius: 0.75rem;
             padding: 0.7rem 1.5rem;
@@ -158,7 +158,7 @@
         .btn-change:hover { background: #cbd5e1; }
         .btn-upload {
             display: none;
-            background: #16a34a;
+            background: #06b6d4;
             color: #fff;
             border: none;
             border-radius: 0.75rem;

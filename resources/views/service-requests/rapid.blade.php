@@ -6,23 +6,23 @@
     {{-- Header --}}
     <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-3">
-            <h1 class="text-2xl font-bold text-gray-900">Rapid Dispatch</h1>
+            <h1 class="text-2xl font-bold text-white">Rapid Dispatch</h1>
             <span class="bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-0.5 rounded">Quick Mode</span>
         </div>
         <a href="{{ route('service-requests.create') }}"
-           class="text-sm text-gray-500 hover:text-gray-700 underline">Full Form &rarr;</a>
+           class="text-sm text-gray-500 hover:text-gray-300 underline">Full Form &rarr;</a>
     </div>
 
     {{-- Shorthand Input --}}
-    <div class="bg-white rounded-lg shadow-sm p-5 mb-4">
-        <label for="shorthand" class="block text-sm font-medium text-gray-700 mb-1">Quick Service Lookup</label>
+    <div class="surface-1 p-5 mb-4">
+        <label for="shorthand" class="block text-sm font-medium text-gray-300 mb-1">Quick Service Lookup</label>
         <div class="relative">
             <input type="text"
                    id="shorthand"
                    x-model="shorthand"
                    @input.debounce.300ms="parseShorthand()"
                    placeholder="Type: jump start, flat tire, lockout, tow, fuel, winch…"
-                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-3 border pr-10"
+                   class="block w-full rounded-md border-white/10 shadow-sm input-crystal text-sm p-3 border pr-10"
                    autocomplete="off">
             <div class="absolute inset-y-0 right-0 flex items-center pr-3">
                 <template x-if="shorthandLoading">
@@ -33,7 +33,7 @@
                 </template>
             </div>
         </div>
-        <p x-show="shorthandMatched" x-cloak class="mt-1 text-sm text-green-600">
+        <p x-show="shorthandMatched" x-cloak class="mt-1 text-sm text-green-400">
             Matched: <strong x-text="matchedName"></strong> — $<span x-text="matchedPrice"></span>
         </p>
         <p x-show="shorthand.length > 2 && !shorthandLoading && !shorthandMatched" x-cloak class="mt-1 text-sm text-gray-400">
@@ -43,7 +43,7 @@
 
     {{-- Form --}}
     <form action="{{ route('rapid-dispatch.store') }}" method="POST" @submit="submitting = true"
-          class="bg-white rounded-lg shadow-sm divide-y divide-gray-100">
+          class="surface-1 divide-y divide-gray-100">
         @csrf
 
         @if ($errors->any())
@@ -60,7 +60,7 @@
         <div class="p-5 space-y-3">
             <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Customer</h3>
             <div>
-                <label for="phone" class="block text-sm font-medium text-gray-700">Phone <span class="text-red-500">*</span></label>
+                <label for="phone" class="block text-sm font-medium text-gray-300">Phone <span class="text-red-500">*</span></label>
                 <input type="tel"
                        name="phone"
                        id="phone"
@@ -69,26 +69,26 @@
                        required
                        value="{{ old('phone') }}"
                        placeholder="(555) 123-4567"
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2 border">
+                       class="mt-1 block w-full rounded-md border-white/10 shadow-sm input-crystal text-sm p-2 border">
             </div>
 
-            <div x-show="customerFound" x-cloak class="flex items-center gap-2 text-sm text-green-700 bg-green-50 p-2 rounded">
+            <div x-show="customerFound" x-cloak class="flex items-center gap-2 text-sm text-green-700 bg-green-500/10 p-2 rounded">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0"/></svg>
                 Existing customer: <strong x-text="firstName + ' ' + lastName"></strong>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label for="first_name" class="block text-sm font-medium text-gray-700">First Name <span class="text-red-500">*</span></label>
+                    <label for="first_name" class="block text-sm font-medium text-gray-300">First Name <span class="text-red-500">*</span></label>
                     <input type="text" name="first_name" id="first_name" x-model="firstName" required
                            value="{{ old('first_name') }}"
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2 border">
+                           class="mt-1 block w-full rounded-md border-white/10 shadow-sm input-crystal text-sm p-2 border">
                 </div>
                 <div>
-                    <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name <span class="text-red-500">*</span></label>
+                    <label for="last_name" class="block text-sm font-medium text-gray-300">Last Name <span class="text-red-500">*</span></label>
                     <input type="text" name="last_name" id="last_name" x-model="lastName" required
                            value="{{ old('last_name') }}"
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2 border">
+                           class="mt-1 block w-full rounded-md border-white/10 shadow-sm input-crystal text-sm p-2 border">
                 </div>
             </div>
         </div>
@@ -98,12 +98,12 @@
             <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Service</h3>
 
             <div>
-                <label for="catalog_item_id" class="block text-sm font-medium text-gray-700">Service <span class="text-red-500">*</span></label>
+                <label for="catalog_item_id" class="block text-sm font-medium text-gray-300">Service <span class="text-red-500">*</span></label>
                 <select name="catalog_item_id" id="catalog_item_id"
                         x-model="catalogItemId"
                         @change="updatePrice()"
                         required
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2 border">
+                        class="mt-1 block w-full rounded-md border-white/10 shadow-sm input-crystal text-sm p-2 border">
                     <option value="">— Select —</option>
                     @foreach ($serviceCategories as $cat)
                         <optgroup label="{{ $cat->name }}">
@@ -120,13 +120,13 @@
             </div>
 
             <div>
-                <label for="quoted_price" class="block text-sm font-medium text-gray-700">Quoted Price <span class="text-red-500">*</span></label>
+                <label for="quoted_price" class="block text-sm font-medium text-gray-300">Quoted Price <span class="text-red-500">*</span></label>
                 <div class="relative mt-1">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 text-sm">$</span>
                     <input type="number" step="0.01" min="0" name="quoted_price" id="quoted_price"
                            x-model="quotedPrice" required
                            value="{{ old('quoted_price') }}"
-                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2 pl-7 border">
+                           class="block w-full rounded-md border-white/10 shadow-sm input-crystal text-sm p-2 pl-7 border">
                 </div>
             </div>
         </div>
@@ -135,31 +135,31 @@
         <div class="p-5 space-y-3">
             <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Details</h3>
             <div>
-                <label for="location" class="block text-sm font-medium text-gray-700">Location</label>
+                <label for="location" class="block text-sm font-medium text-gray-300">Location</label>
                 <input type="text" name="location" id="location"
                        value="{{ old('location') }}"
                        placeholder="Address or cross-streets"
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2 border">
+                       class="mt-1 block w-full rounded-md border-white/10 shadow-sm input-crystal text-sm p-2 border">
             </div>
             <div>
-                <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
+                <label for="notes" class="block text-sm font-medium text-gray-300">Notes</label>
                 <textarea name="notes" id="notes" rows="2"
                           placeholder="Vehicle info, special instructions…"
-                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2 border">{{ old('notes') }}</textarea>
+                          class="mt-1 block w-full rounded-md border-white/10 shadow-sm input-crystal text-sm p-2 border">{{ old('notes') }}</textarea>
             </div>
         </div>
 
         {{-- Actions --}}
         <div class="p-5 flex items-center justify-between">
-            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+            <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
                 <input type="checkbox" name="send_location_request" value="1" checked
-                       class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                       class="rounded border-white/10 text-cyan-400 shadow-sm focus:ring-cyan-500">
                 Send location request SMS
             </label>
 
             <button type="submit"
                     :disabled="submitting"
-                    class="inline-flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                    class="inline-flex items-center px-5 py-2.5 btn-crystal text-sm disabled:opacity-50 transition-colors">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/>
                 </svg>

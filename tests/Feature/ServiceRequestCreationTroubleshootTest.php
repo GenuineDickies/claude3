@@ -329,16 +329,6 @@ final class ServiceRequestCreationTroubleshootTest extends TestCase
     {
         Log::info('TEST: Location request without opt-in');
         
-        // Create opt-in template
-        MessageTemplate::create([
-            'name' => 'Welcome Message',
-            'slug' => 'welcome-message',
-            'category' => 'opt-in',
-            'body' => 'Welcome! Reply START to opt in.',
-            'is_active' => true,
-            'sort_order' => 1,
-        ]);
-
         $response = $this->actingAs($this->user)
             ->post('/service-requests', $this->validPayload([
                 'send_location_request' => true,
@@ -346,7 +336,7 @@ final class ServiceRequestCreationTroubleshootTest extends TestCase
             ]));
 
         $response->assertStatus(302);
-        $response->assertSessionHas('warning');
+        $response->assertSessionHas('warning', 'Customer has not opted in to SMS. Record verbal consent before sending location or status text messages.');
         $response->assertSessionHas('success');
     }
 

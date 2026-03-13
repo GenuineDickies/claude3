@@ -92,6 +92,8 @@ class TechnicianComplianceTest extends TestCase
                 'drug_screen_status' => 'clear',
                 'emergency_contact_name' => 'Jane Doe',
                 'emergency_contact_phone' => '5551234567',
+                'user_phone' => '(555) 765-4321',
+                'grant_sms_consent' => '1',
                 'vehicle_year' => '2024',
                 'vehicle_make' => 'Ford',
                 'vehicle_model' => 'F-150',
@@ -106,6 +108,11 @@ class TechnicianComplianceTest extends TestCase
             'insurance_policy_number' => 'INS-999',
             'vehicle_make' => 'Ford',
         ]);
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'phone' => '5557654321',
+        ]);
+        $this->assertNotNull($user->fresh()->technicianProfile?->sms_consent_at);
     }
 
     public function test_update_modifies_existing_profile(): void
@@ -147,11 +154,13 @@ class TechnicianComplianceTest extends TestCase
     {
         $this->enableCompliance();
         $user = $this->authenticatedUser();
+        $user->update(['phone' => '5552223333']);
         TechnicianProfile::create([
             'user_id' => $user->id,
             'drivers_license_number' => 'DL99999',
             'drivers_license_expiry' => '2027-12-31',
             'background_check_status' => 'clear',
+            'sms_consent_at' => now(),
         ]);
 
         $response = $this->actingAs($user)
@@ -160,6 +169,25 @@ class TechnicianComplianceTest extends TestCase
         $response->assertOk();
         $response->assertSeeText('DL99999');
         $response->assertSeeText('Clear');
+        $response->assertSeeText('5552223333');
+        $response->assertSeeText('Granted on');
+    }
+
+    public function test_user_cannot_grant_sms_consent_for_another_technician(): void
+    {
+        $this->enableCompliance();
+        $admin = $this->authenticatedUser();
+        $technician = User::factory()->create();
+
+        $response = $this->actingAs($admin)
+            ->put(route('technician-profiles.update', $technician), [
+                'user_phone' => '(555) 999-1212',
+                'grant_sms_consent' => '1',
+            ]);
+
+        $response->assertSessionHasErrors('grant_sms_consent');
+        $this->assertNull($technician->fresh()->phone);
+        $this->assertNull($technician->fresh()->technicianProfile?->sms_consent_at);
     }
 
     public function test_update_saves_certifications(): void

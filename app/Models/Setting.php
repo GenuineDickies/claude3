@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @property int $id
@@ -64,6 +65,12 @@ class Setting extends Model
                         'help'      => 'Short description shown on the dashboard and public pages (e.g. "24/7 Roadside Service").',
                         'encrypted' => false,
                         'placeholder' => 'Dispatch management',
+                    ],
+                    'company_logo' => [
+                        'label'     => 'Company Logo',
+                        'help'      => 'Brand logo shown in the application chrome and on the customer-facing location page. Upload a PNG, JPG, or WEBP with a transparent background when possible.',
+                        'encrypted' => false,
+                        'type'      => 'image',
                     ],
                     'company_phone' => [
                         'label'     => 'Company Phone',
@@ -247,6 +254,46 @@ class Setting extends Model
     public static function clearCache(): void
     {
         Cache::forget(static::CACHE_KEY);
+    }
+
+    /**
+     * Resolve the public URL for the configured company logo.
+     */
+    public static function companyLogoUrl(): ?string
+    {
+        $value = static::getValue('company_logo');
+
+        if (is_string($value) && $value !== '') {
+            if (filter_var($value, FILTER_VALIDATE_URL)) {
+                return $value;
+            }
+
+            if (str_starts_with($value, '/')) {
+                return $value;
+            }
+
+            return route('branding.logo');
+        }
+
+        $legacyLogo = public_path('images/company-logo.jpg');
+
+        return is_file($legacyLogo) ? asset('images/company-logo.jpg') : null;
+    }
+
+    /**
+     * Delete a stored logo file if it belongs to the local disk.
+     */
+    public static function deleteStoredLogo(?string $value): void
+    {
+        if (! is_string($value) || $value === '') {
+            return;
+        }
+
+        if (filter_var($value, FILTER_VALIDATE_URL) || str_starts_with($value, '/')) {
+            return;
+        }
+
+        Storage::disk('local')->delete($value);
     }
 
     /**

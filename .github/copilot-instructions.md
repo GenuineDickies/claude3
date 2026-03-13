@@ -29,6 +29,23 @@ Stack: **Laravel (PHP) + MySQL**. Deploy target: **Shared hosting (cPanel/FTP)**
   - Include a quick “how to verify it worked” step.
   - Never assume the user already did a manual step; ask or clearly state what’s needed.
 
+## Workflow Context Gate
+- For workflow-sensitive changes, do not infer the correct implementation from generic product patterns alone. First identify:
+  - actor: who is taking the action
+  - channel: where the interaction is happening
+  - stage: when in the workflow it occurs
+  - permission owner: who is allowed to grant or record the decision
+- Treat the active interaction channel as a primary design constraint. Example: if the customer is on a phone call with staff during intake, customer consent should be designed around verbal consent recorded by staff, not a website or SMS self-service flow.
+- Apply this gate whenever a task affects consent, compliance, notifications, approvals, onboarding, intake, payments, or any workflow where the person granting permission may differ from the person operating the software.
+- If the task would change who grants consent, where consent is granted, or the sequence of consent versus messaging, stop and restate the workflow before implementing.
+- When the user marks a workflow/compliance rule as critical, interpret it as a hard constraint and prefer the strictest compliant reading unless the user explicitly relaxes it.
+
+## Current Consent Rules
+- Customer SMS consent is verbal only when the customer is interacting with staff by phone during intake; staff records that consent in the application.
+- Do not create customer self-consent website or SMS flows for the phone-intake workflow unless the user explicitly changes that rule.
+- Technician SMS consent is self-service only and must be granted by the technician while signed in to their own account.
+- Reuse existing phone data where possible; internal duplication can be acceptable, but asking the same person for the same information twice is a workflow bug unless there is a clear reason.
+
 ## Secrets & sensitive data
 - Never commit secrets. Use env vars; document names only in `.env.example`. Ensure `.env` is gitignored.
 - Don’t log secrets/PII. Assume PDFs and messages contain PII.

@@ -4,20 +4,20 @@
 <div class="max-w-3xl mx-auto space-y-6">
 
     {{-- Breadcrumb --}}
-    <a href="{{ route('service-requests.show', $serviceRequest) }}" class="inline-flex items-center text-sm text-gray-500 hover:text-blue-600">
+    <a href="{{ route('service-requests.show', $serviceRequest) }}" class="inline-flex items-center text-sm text-gray-500 hover:text-cyan-400">
         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
         Ticket #{{ $serviceRequest->id }}
     </a>
 
     {{-- Header --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="surface-1 p-6">
         <div class="flex justify-between items-start">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">Receipt {{ $receipt->receipt_number }}</h1>
+                <h1 class="text-2xl font-bold text-white">Receipt {{ $receipt->receipt_number }}</h1>
                 <p class="text-sm text-gray-500 mt-1">Issued {{ $receipt->created_at->format('M j, Y g:i A') }}</p>
             </div>
             <a href="{{ route('receipts.pdf', [$serviceRequest, $receipt]) }}"
-               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-md hover:bg-blue-700 transition">
+               class="inline-flex items-center px-4 py-2 btn-crystal text-sm font-semibold rounded-md  transition">
                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 Download PDF
             </a>
@@ -25,18 +25,18 @@
     </div>
 
     {{-- Company info --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="surface-1 p-6">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-                <h2 class="text-lg font-semibold text-gray-700 mb-2">{{ $receipt->company_snapshot['name'] ?? '' }}</h2>
+                <h2 class="text-lg font-semibold text-gray-300 mb-2">{{ $receipt->company_snapshot['name'] ?? '' }}</h2>
                 @if ($receipt->company_snapshot['address'] ?? '')
-                    <p class="text-sm text-gray-600 whitespace-pre-line">{{ $receipt->company_snapshot['address'] }}</p>
+                    <p class="text-sm text-gray-400 whitespace-pre-line">{{ $receipt->company_snapshot['address'] }}</p>
                 @endif
                 @if ($receipt->company_snapshot['phone'] ?? '')
-                    <p class="text-sm text-gray-600">{{ $receipt->company_snapshot['phone'] }}</p>
+                    <p class="text-sm text-gray-400">{{ $receipt->company_snapshot['phone'] }}</p>
                 @endif
                 @if ($receipt->company_snapshot['email'] ?? '')
-                    <p class="text-sm text-gray-600">{{ $receipt->company_snapshot['email'] }}</p>
+                    <p class="text-sm text-gray-400">{{ $receipt->company_snapshot['email'] }}</p>
                 @endif
             </div>
             <div class="text-sm space-y-1">
@@ -58,10 +58,10 @@
     </div>
 
     {{-- Line Items --}}
-    <div class="bg-white rounded-lg shadow-sm p-6">
-        <h2 class="text-lg font-semibold text-gray-700 mb-3">Items</h2>
+    <div class="surface-1 p-6">
+        <h2 class="text-lg font-semibold text-gray-300 mb-3">Items</h2>
         <div class="overflow-x-auto">
-            <table class="min-w-full text-sm">
+            <table class="table-crystal min-w-full text-sm">
                 <thead>
                     <tr class="border-b text-left text-gray-500">
                         <th class="pb-2 pr-4">Item</th>
@@ -74,11 +74,11 @@
                 </thead>
                 <tbody>
                     @foreach ($receipt->line_items as $item)
-                    <tr class="border-b border-gray-100">
+                    <tr class="border-b border-white/10">
                         <td class="py-2 pr-4 font-medium">{{ $item['name'] }}</td>
-                        <td class="py-2 pr-4 text-gray-600">{{ $item['description'] ?? '' }}</td>
+                        <td class="py-2 pr-4 text-gray-400">{{ $item['description'] ?? '' }}</td>
                         <td class="py-2 pr-4 text-right">{{ $item['quantity'] }}</td>
-                        <td class="py-2 pr-4 text-gray-600">{{ $item['unit'] ?? '' }}</td>
+                        <td class="py-2 pr-4 text-gray-400">{{ $item['unit'] ?? '' }}</td>
                         <td class="py-2 pr-4 text-right">${{ number_format($item['unit_price'], 2) }}</td>
                         <td class="py-2 text-right font-medium">${{ number_format($item['quantity'] * $item['unit_price'], 2) }}</td>
                     </tr>
@@ -89,12 +89,12 @@
 
         <div class="mt-4 border-t pt-4 space-y-1 max-w-xs ml-auto text-sm">
             <div class="flex justify-between">
-                <span class="text-gray-600">Subtotal</span>
+                <span class="text-gray-400">Subtotal</span>
                 <span class="font-medium">${{ number_format($receipt->subtotal, 2) }}</span>
             </div>
             @if ($receipt->tax_rate > 0)
             <div class="flex justify-between">
-                <span class="text-gray-600">Tax ({{ $receipt->tax_rate + 0 }}%)</span>
+                <span class="text-gray-400">Tax ({{ $receipt->tax_rate + 0 }}%)</span>
                 <span class="font-medium">${{ number_format($receipt->tax_amount, 2) }}</span>
             </div>
             @endif
@@ -107,8 +107,8 @@
 
     {{-- Payment --}}
     @if ($receipt->payment_method)
-    <div class="bg-white rounded-lg shadow-sm p-6">
-        <h2 class="text-lg font-semibold text-gray-700 mb-3">Payment</h2>
+    <div class="surface-1 p-6">
+        <h2 class="text-lg font-semibold text-gray-300 mb-3">Payment</h2>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
             <div>
                 <span class="block text-gray-500">Method</span>
@@ -132,15 +132,15 @@
 
     {{-- Notes --}}
     @if ($receipt->notes)
-    <div class="bg-white rounded-lg shadow-sm p-6">
-        <h2 class="text-lg font-semibold text-gray-700 mb-2">Notes</h2>
-        <p class="text-sm text-gray-600 whitespace-pre-line">{{ $receipt->notes }}</p>
+    <div class="surface-1 p-6">
+        <h2 class="text-lg font-semibold text-gray-300 mb-2">Notes</h2>
+        <p class="text-sm text-gray-400 whitespace-pre-line">{{ $receipt->notes }}</p>
     </div>
     @endif
 
     {{-- Back --}}
     <div class="flex gap-3">
-        <a href="{{ route('service-requests.show', $serviceRequest) }}" class="text-sm text-gray-500 hover:text-blue-600 underline">&larr; Back to Ticket</a>
+        <a href="{{ route('service-requests.show', $serviceRequest) }}" class="text-sm text-gray-500 hover:text-cyan-400 underline">&larr; Back to Ticket</a>
     </div>
 </div>
 @endsection

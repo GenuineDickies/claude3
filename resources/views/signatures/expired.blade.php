@@ -6,10 +6,10 @@
     <title>Link Expired</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f3f4f6; color: #374151; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-        .card { background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,.1); max-width: 400px; width: 100%; padding: 2rem; text-align: center; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0e17; color: #e5e7eb; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+        .card { background: rgba(26, 32, 53, 0.95); border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,.4); border: 1px solid rgba(255,255,255,0.08); max-width: 400px; width: 100%; padding: 2rem; text-align: center; }
         h1 { font-size: 1.25rem; font-weight: 700; margin-bottom: .5rem; }
-        p { font-size: .875rem; color: #6b7280; }
+        p { font-size: .875rem; color: #9ca3af; }
     </style>
 </head>
 <body>
