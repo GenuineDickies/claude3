@@ -102,7 +102,17 @@
         {{-- ── Main content ────────────────────────────────── --}}
         <main class="lg:pl-64">
             <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                @yield('content')
+                @isset($header)
+                    <div class="mb-6">
+                        {{ $header }}
+                    </div>
+                @endisset
+
+                @if (isset($slot) && trim((string) $slot) !== '')
+                    {{ $slot }}
+                @else
+                    @yield('content')
+                @endif
             </div>
         </main>
     </div>
