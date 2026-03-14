@@ -79,6 +79,7 @@ class UserController extends Controller
             'name' => $validated['name'],
             'username' => $validated['username'],
             'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
             'password' => Hash::make($validated['password']),
             'status' => $validated['status'],
         ]);
@@ -133,6 +134,7 @@ class UserController extends Controller
             'name' => $validated['name'],
             'username' => $validated['username'],
             'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
             'status' => $nextStatus,
         ];
 

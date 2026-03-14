@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\RequiredIf;
 
 class ProfileUpdateRequest extends FormRequest
 {
@@ -15,6 +16,8 @@ class ProfileUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+        $user = $this->user();
+
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => [
@@ -26,6 +29,7 @@ class ProfileUpdateRequest extends FormRequest
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
             'phone' => [
+                new RequiredIf($user !== null && $user->requiresMobilePhone()),
                 'nullable',
                 'string',
                 'max:20',
@@ -36,6 +40,11 @@ class ProfileUpdateRequest extends FormRequest
                         $fail('The mobile phone must contain at least 10 digits.');
                     }
                 },
+            ],
+            'grant_sms_consent' => [
+                new RequiredIf($user !== null && $user->requiresSmsConsent() && ! $user->hasSmsConsent()),
+                'nullable',
+                'accepted',
             ],
         ];
     }

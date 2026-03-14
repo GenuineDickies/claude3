@@ -38,7 +38,7 @@ Route anchors:
 
 1. Open `Administration -> Users`.
 2. Choose `Create user`.
-3. Enter name, username, email, password, confirmation, and status.
+3. Enter name, username, email, password, confirmation, mobile phone if needed, and status.
 4. Assign one or more roles.
 5. Save the user.
 
@@ -46,12 +46,14 @@ Behavior verified in code:
 
 - Passwords are hashed before storage.
 - Roles are synced immediately on create.
+- If the selected roles require a mobile phone and the user is being activated, the mobile phone is required before save succeeds.
+- If the selected roles require SMS consent, administrators can record the phone number but the user must later grant their own SMS consent from their signed-in account.
 - Creation is audit-logged as `user_created`.
 
 ### Edit a user
 
 1. Open the user edit screen.
-2. Update identity, status, and assigned roles.
+2. Update identity, status, mobile phone, and assigned roles.
 3. Leave the password blank to keep the existing password.
 4. Save changes.
 
@@ -59,6 +61,8 @@ Safety rules:
 
 - The last active administrator cannot lose the `Administrator` role.
 - The last active administrator cannot be disabled.
+- If you change a user into an active role that requires a mobile phone, the mobile phone must be added before the update succeeds.
+- SMS consent is not proxy-recorded by administrators for roles that require self-service consent.
 - Changes are audit-logged as `user_updated`.
 
 ### Disable or re-enable a user
@@ -85,14 +89,22 @@ Route anchors:
 1. Open `Administration -> Roles`.
 2. Select `New Role`.
 3. Enter `role_name` and optional description.
+4. Set `Require mobile phone` if users with this role must have a mobile number before the role can be active.
+5. Set `Require SMS consent` if users with this role must record their own SMS consent from Profile.
 4. Save.
 
 ### Edit a role
 
 1. Open the roles index.
 2. Choose `Edit` for the role.
-3. Update the name or description.
+3. Update the name, description, and requirement flags.
 4. Save.
+
+Current built-in operational usage:
+
+- `Administrator` should require both mobile phone and SMS consent.
+- `Technician` should require both mobile phone and SMS consent.
+- Future roles can opt in or out of these requirements independently.
 
 ### Delete a role
 
@@ -211,12 +223,14 @@ Technician workflow:
 
 1. Assign the Technician role from `Administration -> Users`.
 2. Have the technician sign in and open their own profile or technician compliance screen.
-3. The technician enters their mobile number once if needed.
-4. The technician grants SMS consent for dispatch/location texts on their own account.
+3. If the role requires it, add the technician's mobile phone number before activating the account.
+4. Have the technician sign in to their own account.
+5. The technician grants SMS consent for dispatch/location texts from Profile or the technician compliance screen.
 
 Important behavior:
 
 - Administrators can create the technician profile by role assignment, but they do not grant SMS consent on another person's behalf.
+- Role-level requirements are configured from `Administration -> Roles` and enforced in both admin user management and self-service profile flows.
 - The assigned technician must have both a mobile phone number and technician-recorded SMS consent before dispatch location texts can be sent.
 - STOP and HELP keyword handling remains active for compliance on inbound SMS.
 

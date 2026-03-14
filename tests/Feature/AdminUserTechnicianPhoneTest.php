@@ -19,7 +19,7 @@ final class AdminUserTechnicianPhoneTest extends TestCase
         app(PageRegistryService::class)->sync();
     }
 
-    public function test_admin_update_creates_technician_profile_without_collecting_phone(): void
+    public function test_admin_cannot_activate_technician_role_without_mobile_phone(): void
     {
         $admin = User::factory()->create();
         $technician = User::factory()->create();
@@ -27,6 +27,8 @@ final class AdminUserTechnicianPhoneTest extends TestCase
             'role_name' => 'Technician',
         ], [
             'description' => 'Field service technician',
+            'requires_mobile_phone' => true,
+            'requires_sms_consent' => true,
         ]);
 
         $response = $this->actingAs($admin)
@@ -36,7 +38,34 @@ final class AdminUserTechnicianPhoneTest extends TestCase
                 'email' => $technician->email,
                 'status' => 'active',
                 'role_ids' => [$technicianRole->id],
-                'technician_sms_phone' => '+1 (555) 444-1212',
+            ]);
+
+        $response->assertSessionHasErrors('phone');
+
+        $this->assertNull($technician->fresh()->phone);
+    }
+
+    public function test_admin_can_store_mobile_phone_when_activating_technician_role(): void
+    {
+        $admin = User::factory()->create();
+        $technician = User::factory()->create();
+        $technicianRole = Role::query()->updateOrCreate([
+            'role_name' => 'Technician',
+        ], [
+            'role_name' => 'Technician',
+            'description' => 'Field service technician',
+            'requires_mobile_phone' => true,
+            'requires_sms_consent' => true,
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->put(route('admin.users.update', $technician), [
+                'name' => $technician->name,
+                'username' => $technician->username,
+                'email' => $technician->email,
+                'phone' => '+1 (555) 444-1212',
+                'status' => 'active',
+                'role_ids' => [$technicianRole->id],
             ]);
 
         $response->assertSessionHas('success');
@@ -44,7 +73,6 @@ final class AdminUserTechnicianPhoneTest extends TestCase
         $this->assertDatabaseHas('technician_profiles', [
             'user_id' => $technician->id,
         ]);
-        $this->assertNull($technician->fresh()->phone);
-        $this->assertNull($technician->fresh()->technicianProfile?->sms_phone);
+        $this->assertSame('5554441212', $technician->fresh()->phone);
     }
 }

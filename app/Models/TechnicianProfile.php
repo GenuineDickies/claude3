@@ -129,7 +129,11 @@ class TechnicianProfile extends Model
 
     public function hasSmsConsent(): bool
     {
-        return $this->sms_consent_at !== null;
+        if ($this->relationLoaded('user')) {
+            return ($this->user?->hasSmsConsent() ?? false) || $this->sms_consent_at !== null;
+        }
+
+        return ($this->user()->first()?->hasSmsConsent() ?? false) || $this->sms_consent_at !== null;
     }
 
     public function grantSmsConsent(array $meta = []): void
@@ -138,6 +142,14 @@ class TechnicianProfile extends Model
             'sms_consent_at' => now(),
             'sms_consent_meta' => $meta,
         ]);
+
+        if ($this->relationLoaded('user')) {
+            $this->user?->grantSmsConsent($meta);
+
+            return;
+        }
+
+        $this->user()->first()?->grantSmsConsent($meta);
     }
 
     // ── Compliance helpers ──────────────────────────────

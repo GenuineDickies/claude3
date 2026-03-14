@@ -108,7 +108,7 @@ class TechnicianProfileController extends Controller
             Arr::except($validated, ['user_phone', 'grant_sms_consent']),
         );
 
-        if ($isSelfService && $request->boolean('grant_sms_consent') && ! $profile->hasSmsConsent()) {
+        if ($isSelfService && $request->boolean('grant_sms_consent') && ! $user->hasSmsConsent()) {
             $profile->grantSmsConsent([
                 'source' => 'technician_profile_self_service',
                 'recorded_by_user_id' => $request->user()->id,

@@ -8,6 +8,14 @@ use Illuminate\Validation\Rule;
 
 class UpdateRoleRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'requires_mobile_phone' => $this->boolean('requires_mobile_phone'),
+            'requires_sms_consent' => $this->boolean('requires_sms_consent'),
+        ]);
+    }
+
     public function authorize(): bool
     {
         return $this->user() !== null;
@@ -21,6 +29,8 @@ class UpdateRoleRequest extends FormRequest
         return [
             'role_name' => ['required', 'string', 'max:255', Rule::unique('roles', 'role_name')->ignore($role)],
             'description' => ['nullable', 'string', 'max:1000'],
+            'requires_mobile_phone' => ['required', 'boolean'],
+            'requires_sms_consent' => ['required', 'boolean'],
         ];
     }
 }

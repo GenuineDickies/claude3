@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Jobs\ImportDocumentTransactionsJob;
 use App\Jobs\ProcessDocumentIntelligenceJob;
 use App\Models\Customer;
 use App\Models\Document;
@@ -9,6 +10,7 @@ use App\Models\Warranty;
 use App\Models\ServiceRequest;
 use App\Services\DocumentIntelligenceInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -211,6 +213,7 @@ class ProcessDocumentIntelligenceJobTest extends TestCase
 
     public function test_job_processes_spreadsheet_documents(): void
     {
+        Queue::fake();
         Storage::fake('local');
         Storage::disk('local')->put('documents/test/file.xlsx', 'fake-xlsx');
 
@@ -236,6 +239,9 @@ class ProcessDocumentIntelligenceJobTest extends TestCase
         $document->refresh();
         $this->assertEquals('completed', $document->ai_status);
         $this->assertEquals('An expense spreadsheet.', $document->ai_summary);
+        Queue::assertPushed(ImportDocumentTransactionsJob::class, function (ImportDocumentTransactionsJob $job) use ($document): bool {
+            return $job->document->is($document) && $job->spreadsheetText !== '';
+        });
     }
 
     public function test_failed_method_records_error(): void

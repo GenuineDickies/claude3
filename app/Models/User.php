@@ -15,6 +15,8 @@ use Illuminate\Notifications\Notifiable;
  * @property string $name
  * @property string $email
  * @property string|null $phone
+ * @property \Illuminate\Support\Carbon|null $sms_consent_at
+ * @property array<array-key, mixed>|null $sms_consent_meta
  * @property \Illuminate\Support\Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $remember_token
@@ -75,6 +77,8 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'sms_consent_at' => 'datetime',
+            'sms_consent_meta' => 'array',
             'password' => 'hashed',
         ];
     }
@@ -121,5 +125,39 @@ class User extends Authenticatable
     public function isAdministrator(): bool
     {
         return $this->roles->contains(fn (Role $role): bool => $role->isAdministrator());
+    }
+
+    public function requiresMobilePhone(): bool
+    {
+        return $this->roles->contains(fn (Role $role): bool => $role->requiresMobilePhone());
+    }
+
+    public function requiresSmsConsent(): bool
+    {
+        return $this->roles->contains(fn (Role $role): bool => $role->requiresSmsConsent());
+    }
+
+    public function hasSmsConsent(): bool
+    {
+        if (array_key_exists('sms_consent_at', $this->attributes)) {
+            return $this->attributes['sms_consent_at'] !== null;
+        }
+
+        if (! $this->exists) {
+            return false;
+        }
+
+        return static::query()
+            ->whereKey($this->getKey())
+            ->whereNotNull('sms_consent_at')
+            ->exists();
+    }
+
+    public function grantSmsConsent(array $meta = []): void
+    {
+        $this->forceFill([
+            'sms_consent_at' => now(),
+            'sms_consent_meta' => $meta,
+        ])->save();
     }
 }

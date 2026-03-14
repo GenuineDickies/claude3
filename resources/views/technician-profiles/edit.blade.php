@@ -145,15 +145,18 @@
                            class="w-full rounded-md border-white/10 shadow-xs text-sm input-crystal">
                 </div>
                 <div>
-                    <label for="user_phone" class="block text-sm font-medium text-gray-300 mb-1">Mobile Phone</label>
+                    <label for="user_phone" class="block text-sm font-medium text-gray-300 mb-1">{{ $user->requiresMobilePhone() ? 'Mobile Phone *' : 'Mobile Phone' }}</label>
                     <input type="text" name="user_phone" id="user_phone"
                            value="{{ old('user_phone', $user->phone) }}"
                            class="w-full rounded-md border-white/10 shadow-xs text-sm input-crystal"
                            placeholder="5551234567"
+                           @required($user->requiresMobilePhone() && auth()->id() === $user->id)
                            @disabled(auth()->id() !== $user->id)>
                     <p class="mt-1 text-xs text-gray-500">
                         @if (auth()->id() === $user->id)
-                            This number is reused for technician dispatch SMS so you only have to enter it once.
+                            @if ($user->requiresMobilePhone())
+                                Required for your current role.
+                            @endif
                         @else
                             Only the technician can add or change their own mobile number and SMS consent.
                         @endif
@@ -174,7 +177,7 @@
                                 @if ($profile->hasSmsConsent())
                                     Consent already recorded {{ $profile->sms_consent_at?->format('M j, Y g:i A') }}.
                                 @elseif (auth()->id() === $user->id)
-                                    By checking this box, you authorize dispatch and service-location texts to your mobile number. Reply STOP to opt out and HELP for help.
+                                    By checking this box, you authorize SMS messages required for your role. Reply STOP to opt out and HELP for help.
                                 @else
                                     Consent must be granted by the technician while signed in to their own account.
                                 @endif

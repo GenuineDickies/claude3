@@ -40,6 +40,7 @@
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Role</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Users</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Requirements</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Pages</th>
                         <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Actions</th>
                     </tr>
@@ -52,6 +53,20 @@
                                 <div class="text-sm text-gray-500">{{ $role->description ?: 'No description provided.' }}</div>
                             </td>
                             <td class="px-4 py-4 text-sm text-gray-400">{{ $role->users_count }}</td>
+                            <td class="px-4 py-4 text-sm text-gray-400">
+                                @if (! $role->requiresMobilePhone() && ! $role->requiresSmsConsent())
+                                    None
+                                @else
+                                    <div class="flex flex-wrap gap-2">
+                                        @if ($role->requiresMobilePhone())
+                                            <span class="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-1 text-xs text-cyan-300">Mobile phone</span>
+                                        @endif
+                                        @if ($role->requiresSmsConsent())
+                                            <span class="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-xs text-emerald-300">SMS consent</span>
+                                        @endif
+                                    </div>
+                                @endif
+                            </td>
                             <td class="px-4 py-4 text-sm text-gray-400">{{ $role->isAdministrator() ? 'All pages' : $role->pages_count }}</td>
                             <td class="px-4 py-4">
                                 <div class="flex justify-end gap-2">
@@ -79,6 +94,20 @@
                                                 <label class="mb-1 block text-sm font-medium text-gray-300">Description</label>
                                                 <textarea name="description" rows="3" class="w-full rounded-md border-white/10 text-sm shadow-sm input-crystal">{{ $role->description }}</textarea>
                                             </div>
+                                            <label class="flex items-start gap-3 rounded-lg border border-white/10 p-3">
+                                                <input type="checkbox" name="requires_mobile_phone" value="1" class="mt-1 rounded border-white/10 text-cyan-400 focus:ring-cyan-500" @checked($role->requiresMobilePhone())>
+                                                <span>
+                                                    <span class="block text-sm font-medium text-white">Require mobile phone</span>
+                                                    <span class="block text-xs text-gray-500">Users with this role must have a mobile phone before the role can be active.</span>
+                                                </span>
+                                            </label>
+                                            <label class="flex items-start gap-3 rounded-lg border border-white/10 p-3">
+                                                <input type="checkbox" name="requires_sms_consent" value="1" class="mt-1 rounded border-white/10 text-cyan-400 focus:ring-cyan-500" @checked($role->requiresSmsConsent())>
+                                                <span>
+                                                    <span class="block text-sm font-medium text-white">Require SMS consent</span>
+                                                    <span class="block text-xs text-gray-500">Users with this role must record their own SMS consent from their Profile page.</span>
+                                                </span>
+                                            </label>
                                             <div class="flex justify-end gap-3">
                                                 <button type="button" @click="$dispatch('close-modal', 'edit-role-{{ $role->id }}')" class="rounded-md border border-white/10 px-4 py-2 text-sm font-semibold text-gray-300 hover:bg-white/5">Cancel</button>
                                                 <button type="submit" class="btn-crystal px-4 py-2 text-sm font-semibold">Save</button>
@@ -115,6 +144,20 @@
                     <label class="mb-1 block text-sm font-medium text-gray-300">Description</label>
                     <textarea name="description" rows="3" class="w-full rounded-md border-white/10 text-sm shadow-sm input-crystal">{{ old('description') }}</textarea>
                 </div>
+                <label class="flex items-start gap-3 rounded-lg border border-white/10 p-3">
+                    <input type="checkbox" name="requires_mobile_phone" value="1" class="mt-1 rounded border-white/10 text-cyan-400 focus:ring-cyan-500" @checked(old('requires_mobile_phone'))>
+                    <span>
+                        <span class="block text-sm font-medium text-white">Require mobile phone</span>
+                        <span class="block text-xs text-gray-500">Users with this role must have a mobile phone before the role can be active.</span>
+                    </span>
+                </label>
+                <label class="flex items-start gap-3 rounded-lg border border-white/10 p-3">
+                    <input type="checkbox" name="requires_sms_consent" value="1" class="mt-1 rounded border-white/10 text-cyan-400 focus:ring-cyan-500" @checked(old('requires_sms_consent'))>
+                    <span>
+                        <span class="block text-sm font-medium text-white">Require SMS consent</span>
+                        <span class="block text-xs text-gray-500">Users with this role must record their own SMS consent from their Profile page.</span>
+                    </span>
+                </label>
                 <div class="flex justify-end gap-3">
                     <button type="button" @click="$dispatch('close-modal', 'create-role')" class="rounded-md border border-white/10 px-4 py-2 text-sm font-semibold text-gray-300 hover:bg-white/5">Cancel</button>
                     <button type="submit" class="btn-crystal px-4 py-2 text-sm font-semibold">Create</button>

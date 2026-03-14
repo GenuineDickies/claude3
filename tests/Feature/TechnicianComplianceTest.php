@@ -2,9 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Models\Page;
+use App\Models\Role;
 use App\Models\Setting;
 use App\Models\TechnicianProfile;
 use App\Models\User;
+use App\Services\Access\PageRegistryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -12,9 +15,40 @@ class TechnicianComplianceTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        app(PageRegistryService::class)->sync();
+    }
+
     private function authenticatedUser(): User
     {
         return User::factory()->create();
+    }
+
+    private function technicianRole(): Role
+    {
+        $role = Role::query()->updateOrCreate([
+            'role_name' => 'Technician',
+        ], [
+            'description' => 'Field service technician',
+            'requires_mobile_phone' => true,
+            'requires_sms_consent' => true,
+        ]);
+
+        $pageIds = Page::query()
+            ->whereIn('page_path', [
+                '/technician-profiles',
+                '/technician-profiles/{user}',
+                '/technician-profiles/{user}/edit',
+            ])
+            ->pluck('id')
+            ->all();
+
+        $role->pages()->sync($pageIds);
+
+        return $role;
     }
 
     private function enableCompliance(): void
@@ -81,6 +115,7 @@ class TechnicianComplianceTest extends TestCase
     {
         $this->enableCompliance();
         $user = $this->authenticatedUser();
+        $user->roles()->sync([$this->technicianRole()->id]);
 
         $response = $this->actingAs($user)
             ->put(route('technician-profiles.update', $user), [
@@ -112,6 +147,7 @@ class TechnicianComplianceTest extends TestCase
             'id' => $user->id,
             'phone' => '5557654321',
         ]);
+        $this->assertNotNull($user->fresh()->sms_consent_at);
         $this->assertNotNull($user->fresh()->technicianProfile?->sms_consent_at);
     }
 
@@ -178,6 +214,7 @@ class TechnicianComplianceTest extends TestCase
         $this->enableCompliance();
         $admin = $this->authenticatedUser();
         $technician = User::factory()->create();
+        $technician->roles()->sync([$this->technicianRole()->id]);
 
         $response = $this->actingAs($admin)
             ->put(route('technician-profiles.update', $technician), [

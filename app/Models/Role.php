@@ -13,7 +13,17 @@ class Role extends Model
     protected $fillable = [
         'role_name',
         'description',
+        'requires_mobile_phone',
+        'requires_sms_consent',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'requires_mobile_phone' => 'boolean',
+            'requires_sms_consent' => 'boolean',
+        ];
+    }
 
     public function users(): BelongsToMany
     {
@@ -33,5 +43,15 @@ class Role extends Model
     public function isTechnician(): bool
     {
         return strcasecmp($this->role_name, 'Technician') === 0;
+    }
+
+    public function requiresMobilePhone(): bool
+    {
+        return (bool) $this->requires_mobile_phone;
+    }
+
+    public function requiresSmsConsent(): bool
+    {
+        return (bool) $this->requires_sms_consent;
     }
 }

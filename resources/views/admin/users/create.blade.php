@@ -8,7 +8,23 @@
     </div>
 
     <div class="surface-1 p-6">
-        <form method="POST" action="{{ route('admin.users.store') }}" class="space-y-6">
+        @php
+            $roleRequirements = $roles->mapWithKeys(fn ($role) => [
+                (string) $role->id => [
+                    'phone' => $role->requiresMobilePhone(),
+                    'smsConsent' => $role->requiresSmsConsent(),
+                ],
+            ]);
+        @endphp
+
+        <form method="POST" action="{{ route('admin.users.store') }}" class="space-y-6"
+              x-data='{
+                  selectedRoleIds: @json(array_map("strval", old("role_ids", []))),
+                  status: @js(old("status", "active")),
+                  requirements: @json($roleRequirements),
+                  requiresMobilePhone() { return this.selectedRoleIds.some((id) => this.requirements[id] && this.requirements[id].phone); },
+                  requiresSmsConsent() { return this.selectedRoleIds.some((id) => this.requirements[id] && this.requirements[id].smsConsent); }
+              }'>
             @csrf
             <div class="grid gap-6 md:grid-cols-2">
                 <div>
@@ -28,11 +44,21 @@
                 </div>
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-300" for="status">Status</label>
-                    <select id="status" name="status" class="select-crystal w-full rounded-md border-white/10 text-sm shadow-sm input-crystal">
+                    <select id="status" name="status" x-model="status" class="select-crystal w-full rounded-md border-white/10 text-sm shadow-sm input-crystal">
                         <option value="active" @selected(old('status', 'active') === 'active')>Active</option>
                         <option value="disabled" @selected(old('status') === 'disabled')>Disabled</option>
                     </select>
                     @error('status')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-300" for="phone">
+                        Mobile Phone
+                        <span x-show="requiresMobilePhone() && status === 'active'" class="text-red-400">*</span>
+                    </label>
+                    <input id="phone" name="phone" type="tel" value="{{ old('phone') }}" x-bind:required="requiresMobilePhone() && status === 'active'" class="w-full rounded-md border-white/10 text-sm shadow-sm input-crystal" placeholder="5551234567">
+                    <p class="mt-1 text-xs text-gray-500" x-show="requiresMobilePhone() && status === 'active'">Required when the selected active role requires a mobile phone.</p>
+                    <p class="mt-1 text-xs text-gray-500" x-show="requiresSmsConsent()">Users with these roles must record their own SMS consent from their Profile page.</p>
+                    @error('phone')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
                 </div>
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-300" for="password">Password</label>
@@ -50,10 +76,18 @@
                 <div class="mt-3 grid gap-3 md:grid-cols-2">
                     @foreach ($roles as $role)
                         <label class="flex items-start gap-3 rounded-lg border border-white/10 p-3 hover:border-blue-300 hover:bg-cyan-500/10/40">
-                            <input type="checkbox" name="role_ids[]" value="{{ $role->id }}" @checked(in_array($role->id, old('role_ids', []), true)) class="mt-1 rounded border-white/10 text-cyan-400 focus:ring-cyan-500">
+                            <input type="checkbox" name="role_ids[]" value="{{ $role->id }}" x-model="selectedRoleIds" @checked(in_array($role->id, old('role_ids', []), true)) class="mt-1 rounded border-white/10 text-cyan-400 focus:ring-cyan-500">
                             <span>
                                 <span class="block text-sm font-medium text-white">{{ $role->role_name }}</span>
                                 <span class="block text-xs text-gray-500">{{ $role->description ?: 'No description provided.' }}</span>
+                                @if ($role->requiresMobilePhone() || $role->requiresSmsConsent())
+                                    <span class="mt-1 block text-xs text-cyan-300">
+                                        {{ collect([
+                                            $role->requiresMobilePhone() ? 'mobile phone required' : null,
+                                            $role->requiresSmsConsent() ? 'SMS consent required' : null,
+                                        ])->filter()->implode(' • ') }}
+                                    </span>
+                                @endif
                             </span>
                         </label>
                     @endforeach
