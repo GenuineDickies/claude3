@@ -60,6 +60,53 @@
             </div>
         </div>
 
+        <div class="surface-1 p-6">
+            <h2 class="text-lg font-semibold text-gray-300 mb-4">Persistent Vehicle Record</h2>
+            <p class="mb-4 text-sm text-gray-400">Invoice-stage vehicle records require a license plate or VIN. Use this form to attach a record now or update the one already linked.</p>
+
+            @if ($invoice->vehicle)
+                <div class="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+                    Linked vehicle record: {{ $invoice->vehicle->displayName() }}
+                    @if ($invoice->vehicle->license_plate)
+                        | Plate {{ $invoice->vehicle->license_plate }}
+                    @endif
+                    @if ($invoice->vehicle->vin)
+                        | VIN {{ $invoice->vehicle->vin }}
+                    @endif
+                </div>
+            @endif
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="vehicle_year" class="block text-sm font-medium text-gray-300 mb-1">Vehicle Year</label>
+                    <input type="text" name="vehicle_year" id="vehicle_year" value="{{ old('vehicle_year', $invoice->vehicle?->year ?? $serviceRequest->vehicle?->year ?? $serviceRequest->vehicle_year) }}" class="w-full rounded-md border-white/10 shadow-xs text-sm input-crystal">
+                    @error('vehicle_year') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label for="vehicle_color" class="block text-sm font-medium text-gray-300 mb-1">Vehicle Color</label>
+                    <input type="text" name="vehicle_color" id="vehicle_color" value="{{ old('vehicle_color', $invoice->vehicle?->color ?? $serviceRequest->vehicle?->color ?? $serviceRequest->vehicle_color) }}" class="w-full rounded-md border-white/10 shadow-xs text-sm input-crystal">
+                </div>
+                <div>
+                    <label for="vehicle_make" class="block text-sm font-medium text-gray-300 mb-1">Vehicle Make</label>
+                    <input type="text" name="vehicle_make" id="vehicle_make" value="{{ old('vehicle_make', $invoice->vehicle?->make ?? $serviceRequest->vehicle?->make ?? $serviceRequest->vehicle_make) }}" class="w-full rounded-md border-white/10 shadow-xs text-sm input-crystal">
+                </div>
+                <div>
+                    <label for="vehicle_model" class="block text-sm font-medium text-gray-300 mb-1">Vehicle Model</label>
+                    <input type="text" name="vehicle_model" id="vehicle_model" value="{{ old('vehicle_model', $invoice->vehicle?->model ?? $serviceRequest->vehicle?->model ?? $serviceRequest->vehicle_model) }}" class="w-full rounded-md border-white/10 shadow-xs text-sm input-crystal">
+                </div>
+                <div>
+                    <label for="vehicle_license_plate" class="block text-sm font-medium text-gray-300 mb-1">License Plate</label>
+                    <input type="text" name="vehicle_license_plate" id="vehicle_license_plate" value="{{ old('vehicle_license_plate', $invoice->vehicle?->license_plate ?? $serviceRequest->vehicle?->license_plate) }}" class="w-full rounded-md border-white/10 shadow-xs text-sm input-crystal">
+                    @error('vehicle_license_plate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label for="vehicle_vin" class="block text-sm font-medium text-gray-300 mb-1">VIN</label>
+                    <input type="text" name="vehicle_vin" id="vehicle_vin" value="{{ old('vehicle_vin', $invoice->vehicle?->vin ?? $serviceRequest->vehicle?->vin) }}" class="w-full rounded-md border-white/10 shadow-xs text-sm input-crystal">
+                    @error('vehicle_vin') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+            </div>
+        </div>
+
         {{-- Line Items --}}
         <div class="surface-1 p-6">
             <h2 class="text-lg font-semibold text-gray-300 mb-4">Line Items</h2>

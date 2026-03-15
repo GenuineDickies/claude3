@@ -55,6 +55,7 @@ class AppServiceProvider extends ServiceProvider
                 $accessControl->canAccessPage($user, '/admin/users')
                 || $accessControl->canAccessPage($user, '/admin/roles')
                 || $accessControl->canAccessPage($user, '/admin/pages')
+                || $accessControl->canAccessPage($user, '/admin/audit-logs')
             );
         });
     }

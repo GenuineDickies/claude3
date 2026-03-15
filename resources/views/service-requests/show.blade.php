@@ -245,6 +245,9 @@
                 @endif
             </div>
         </div>
+        <div class="mt-4">
+            <a href="{{ route('customers.show', $serviceRequest->customer) }}" class="text-sm text-cyan-400 hover:text-cyan-300 underline">Open customer details</a>
+        </div>
     </div>
     @endif
 
@@ -283,6 +286,62 @@
             <p class="mt-1">{{ $serviceRequest->notes }}</p>
         </div>
         @endif
+
+        <div class="mt-6 border-t border-white/10 pt-4">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-500">Persistent Vehicle Record</h3>
+                    <p class="mt-1 text-sm text-gray-400">Attach the permanent vehicle record once a plate or VIN is available. This is optional before invoice stage but required by invoice stage.</p>
+                </div>
+            </div>
+
+            @if ($serviceRequest->vehicle)
+                <div class="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+                    Attached vehicle: {{ $serviceRequest->vehicle->displayName() }}
+                    @if ($serviceRequest->vehicle->license_plate)
+                        | Plate {{ $serviceRequest->vehicle->license_plate }}
+                    @endif
+                    @if ($serviceRequest->vehicle->vin)
+                        | VIN {{ $serviceRequest->vehicle->vin }}
+                    @endif
+                </div>
+            @endif
+
+            <form method="POST" action="{{ route('service-requests.sync-vehicle', $serviceRequest) }}" class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                @csrf
+                @method('PATCH')
+                <div>
+                    <label for="vehicle_year" class="block text-sm font-medium text-gray-300 mb-1">Vehicle Year</label>
+                    <input id="vehicle_year" name="vehicle_year" type="text" value="{{ old('vehicle_year', $serviceRequest->vehicle?->year ?? $serviceRequest->vehicle_year) }}" class="w-full rounded-md border-white/10 shadow-xs text-sm input-crystal">
+                    @error('vehicle_year') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label for="vehicle_color" class="block text-sm font-medium text-gray-300 mb-1">Vehicle Color</label>
+                    <input id="vehicle_color" name="vehicle_color" type="text" value="{{ old('vehicle_color', $serviceRequest->vehicle?->color ?? $serviceRequest->vehicle_color) }}" class="w-full rounded-md border-white/10 shadow-xs text-sm input-crystal">
+                </div>
+                <div>
+                    <label for="vehicle_make" class="block text-sm font-medium text-gray-300 mb-1">Vehicle Make</label>
+                    <input id="vehicle_make" name="vehicle_make" type="text" value="{{ old('vehicle_make', $serviceRequest->vehicle?->make ?? $serviceRequest->vehicle_make) }}" class="w-full rounded-md border-white/10 shadow-xs text-sm input-crystal">
+                </div>
+                <div>
+                    <label for="vehicle_model" class="block text-sm font-medium text-gray-300 mb-1">Vehicle Model</label>
+                    <input id="vehicle_model" name="vehicle_model" type="text" value="{{ old('vehicle_model', $serviceRequest->vehicle?->model ?? $serviceRequest->vehicle_model) }}" class="w-full rounded-md border-white/10 shadow-xs text-sm input-crystal">
+                </div>
+                <div>
+                    <label for="license_plate" class="block text-sm font-medium text-gray-300 mb-1">License Plate</label>
+                    <input id="license_plate" name="license_plate" type="text" value="{{ old('license_plate', $serviceRequest->vehicle?->license_plate) }}" class="w-full rounded-md border-white/10 shadow-xs text-sm input-crystal">
+                    @error('license_plate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label for="vin" class="block text-sm font-medium text-gray-300 mb-1">VIN</label>
+                    <input id="vin" name="vin" type="text" value="{{ old('vin', $serviceRequest->vehicle?->vin) }}" class="w-full rounded-md border-white/10 shadow-xs text-sm input-crystal">
+                    @error('vin') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div class="sm:col-span-2">
+                    <button type="submit" class="inline-flex items-center px-4 py-2 btn-crystal text-sm font-semibold rounded-md">{{ $serviceRequest->vehicle ? 'Update Vehicle Record' : 'Attach Vehicle Record' }}</button>
+                </div>
+            </form>
+        </div>
     </div>
     @endif
 

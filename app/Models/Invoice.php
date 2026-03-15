@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 /**
  * @property int $id
  * @property int $service_request_id
+ * @property int|null $vehicle_id
  * @property int|null $work_order_id
  * @property string $invoice_number
  * @property string $status
@@ -43,6 +44,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * @property-read Collection<int, \App\Models\Receipt> $receipts
  * @property-read int|null $receipts_count
  * @property-read \App\Models\ServiceRequest $serviceRequest
+ * @property-read \App\Models\Vehicle|null $vehicle
  * @property-read \App\Models\WorkOrder|null $workOrder
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Invoice newQuery()
@@ -110,6 +112,7 @@ class Invoice extends Model
 
     protected $fillable = [
         'service_request_id',
+        'vehicle_id',
         'work_order_id',
         'invoice_number',
         'status',
@@ -171,6 +174,11 @@ class Invoice extends Model
     public function serviceRequest(): BelongsTo
     {
         return $this->belongsTo(ServiceRequest::class);
+    }
+
+    public function vehicle(): BelongsTo
+    {
+        return $this->belongsTo(Vehicle::class);
     }
 
     public function workOrder(): BelongsTo

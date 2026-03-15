@@ -123,6 +123,14 @@
                 @if ($invoice->vehicle_description)
                     <p><span class="text-gray-500">Vehicle:</span> <span class="font-medium">{{ $invoice->vehicle_description }}</span></p>
                 @endif
+                @if ($invoice->vehicle)
+                    @if ($invoice->vehicle->license_plate)
+                        <p><span class="text-gray-500">Plate:</span> <span class="font-medium font-mono">{{ $invoice->vehicle->license_plate }}</span></p>
+                    @endif
+                    @if ($invoice->vehicle->vin)
+                        <p><span class="text-gray-500">VIN:</span> <span class="font-medium font-mono">{{ $invoice->vehicle->vin }}</span></p>
+                    @endif
+                @endif
                 @if ($invoice->service_description)
                     <p><span class="text-gray-500">Service:</span> <span class="font-medium">{{ $invoice->service_description }}</span></p>
                 @endif

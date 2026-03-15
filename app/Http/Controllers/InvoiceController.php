@@ -6,11 +6,13 @@ use App\Models\Invoice;
 use App\Models\ServiceLog;
 use App\Models\ServiceRequest;
 use App\Models\Setting;
+use App\Models\Vehicle;
 use App\Models\WorkOrder;
 use App\Services\ChangeOrderAuthorizationService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class InvoiceController extends Controller
 {
@@ -32,6 +34,7 @@ class InvoiceController extends Controller
         }
 
         $serviceRequest->load(['customer', 'catalogItem']);
+        $serviceRequest->load('vehicle');
         $workOrder->load('items');
 
         $workOrderItems = $workOrder->items->map(fn ($i) => [
@@ -73,6 +76,12 @@ class InvoiceController extends Controller
             'customer_name'      => 'required|string|max:200',
             'customer_phone'     => 'nullable|string|max:20',
             'vehicle_description' => 'nullable|string|max:200',
+            'vehicle_year'       => 'nullable|string|max:4',
+            'vehicle_make'       => 'nullable|string|max:100',
+            'vehicle_model'      => 'nullable|string|max:100',
+            'vehicle_color'      => 'nullable|string|max:50',
+            'vehicle_license_plate' => 'nullable|string|max:20',
+            'vehicle_vin'        => 'nullable|string|max:32',
             'service_description' => 'nullable|string|max:200',
             'service_location'   => 'nullable|string|max:500',
             'line_items'         => 'required|array|min:1',
@@ -90,14 +99,17 @@ class InvoiceController extends Controller
             'notes'              => 'nullable|string|max:2000',
         ]);
 
+        $vehicle = $this->syncVehicleRecord($serviceRequest, $validated, null);
+
         $invoice = Invoice::create([
             'service_request_id'  => $serviceRequest->id,
+            'vehicle_id'          => $vehicle?->id,
             'work_order_id'       => $workOrder->id,
             'invoice_number'      => Invoice::generateInvoiceNumber(),
             'status'              => Invoice::STATUS_DRAFT,
             'customer_name'       => $validated['customer_name'],
             'customer_phone'      => $validated['customer_phone'] ?? null,
-            'vehicle_description' => $validated['vehicle_description'] ?? null,
+            'vehicle_description' => $this->buildVehicleDescription($validated, $vehicle, $serviceRequest),
             'service_description' => $validated['service_description'] ?? null,
             'service_location'    => $validated['service_location'] ?? null,
             'line_items'          => $validated['line_items'],
@@ -129,7 +141,7 @@ class InvoiceController extends Controller
 
         return view('invoices.show', [
             'serviceRequest' => $serviceRequest,
-            'invoice'        => $invoice->load('documents.uploader'),
+            'invoice'        => $invoice->load(['documents.uploader', 'vehicle']),
             'versions'       => $versions,
         ]);
     }
@@ -166,9 +178,11 @@ class InvoiceController extends Controller
         abort_if($invoice->service_request_id !== $serviceRequest->id, 404);
         abort_if($invoice->is_locked, 403, 'This invoice version is locked.');
 
+        $serviceRequest->load('vehicle');
+
         return view('invoices.edit', [
             'serviceRequest' => $serviceRequest,
-            'invoice'        => $invoice,
+            'invoice'        => $invoice->load('vehicle'),
         ]);
     }
 
@@ -184,6 +198,12 @@ class InvoiceController extends Controller
             'customer_name'       => 'required|string|max:200',
             'customer_phone'      => 'nullable|string|max:20',
             'vehicle_description' => 'nullable|string|max:200',
+            'vehicle_year'       => 'nullable|string|max:4',
+            'vehicle_make'       => 'nullable|string|max:100',
+            'vehicle_model'      => 'nullable|string|max:100',
+            'vehicle_color'      => 'nullable|string|max:50',
+            'vehicle_license_plate' => 'nullable|string|max:20',
+            'vehicle_vin'        => 'nullable|string|max:32',
             'service_description' => 'nullable|string|max:200',
             'service_location'    => 'nullable|string|max:500',
             'line_items'          => 'required|array|min:1',
@@ -201,10 +221,13 @@ class InvoiceController extends Controller
             'notes'               => 'nullable|string|max:2000',
         ]);
 
+        $vehicle = $this->syncVehicleRecord($serviceRequest, $validated, $invoice);
+
         $invoice->update([
+            'vehicle_id'           => $vehicle?->id,
             'customer_name'       => $validated['customer_name'],
             'customer_phone'      => $validated['customer_phone'] ?? null,
-            'vehicle_description' => $validated['vehicle_description'] ?? null,
+            'vehicle_description' => $this->buildVehicleDescription($validated, $vehicle, $serviceRequest),
             'service_description' => $validated['service_description'] ?? null,
             'service_location'    => $validated['service_location'] ?? null,
             'line_items'          => $validated['line_items'],
@@ -250,5 +273,95 @@ class InvoiceController extends Controller
         $filename = $invoice->invoice_number . '.pdf';
 
         return $pdf->download($filename);
+    }
+
+    private function syncVehicleRecord(ServiceRequest $serviceRequest, array $validated, ?Invoice $invoice): ?Vehicle
+    {
+        $existingVehicle = $invoice?->vehicle ?? $serviceRequest->vehicle;
+
+        $licensePlate = Vehicle::normalizeLicensePlate($validated['vehicle_license_plate'] ?? $existingVehicle?->license_plate);
+        $vin = Vehicle::normalizeVin($validated['vehicle_vin'] ?? $existingVehicle?->vin);
+
+        if ($existingVehicle === null && $licensePlate === null && $vin === null) {
+            throw ValidationException::withMessages([
+                'vehicle_license_plate' => 'Add a license plate or VIN before creating the invoice vehicle record.',
+                'vehicle_vin' => 'Add a license plate or VIN before creating the invoice vehicle record.',
+            ]);
+        }
+
+        if ($existingVehicle === null && $licensePlate === null && $vin === null) {
+            return null;
+        }
+
+        $year = trim((string) ($validated['vehicle_year'] ?? $existingVehicle?->year ?? $serviceRequest->vehicle_year ?? ''));
+        $make = trim((string) ($validated['vehicle_make'] ?? $existingVehicle?->make ?? $serviceRequest->vehicle_make ?? ''));
+        $model = trim((string) ($validated['vehicle_model'] ?? $existingVehicle?->model ?? $serviceRequest->vehicle_model ?? ''));
+        $color = trim((string) ($validated['vehicle_color'] ?? $existingVehicle?->color ?? $serviceRequest->vehicle_color ?? ''));
+
+        if ($year === '' || $make === '' || $model === '') {
+            throw ValidationException::withMessages([
+                'vehicle_year' => 'Vehicle year, make, and model are required when attaching a persistent vehicle record.',
+            ]);
+        }
+
+        $vehicle = $existingVehicle;
+
+        if ($vehicle === null) {
+            $vehicle = Vehicle::query()
+                ->where('customer_id', $serviceRequest->customer_id)
+                ->when($licensePlate !== null || $vin !== null, function ($query) use ($licensePlate, $vin) {
+                    $query->where(function ($innerQuery) use ($licensePlate, $vin) {
+                        if ($licensePlate !== null) {
+                            $innerQuery->orWhere('license_plate', $licensePlate);
+                        }
+
+                        if ($vin !== null) {
+                            $innerQuery->orWhere('vin', $vin);
+                        }
+                    });
+                })
+                ->first();
+        }
+
+        $vehicle ??= new Vehicle(['customer_id' => $serviceRequest->customer_id]);
+
+        $vehicle->fill([
+            'customer_id' => $serviceRequest->customer_id,
+            'year' => $year,
+            'make' => $make,
+            'model' => $model,
+            'color' => $color !== '' ? $color : null,
+            'license_plate' => $licensePlate,
+            'vin' => $vin,
+        ]);
+        $vehicle->save();
+
+        $serviceRequest->forceFill([
+            'vehicle_id' => $vehicle->id,
+            'vehicle_year' => $year,
+            'vehicle_make' => $make,
+            'vehicle_model' => $model,
+            'vehicle_color' => $color !== '' ? $color : null,
+        ])->save();
+
+        return $vehicle;
+    }
+
+    private function buildVehicleDescription(array $validated, ?Vehicle $vehicle, ServiceRequest $serviceRequest): ?string
+    {
+        if ($vehicle !== null) {
+            return $vehicle->displayName();
+        }
+
+        if (! empty($validated['vehicle_description'])) {
+            return $validated['vehicle_description'];
+        }
+
+        return trim(implode(' ', array_filter([
+            $validated['vehicle_color'] ?? $serviceRequest->vehicle_color,
+            $validated['vehicle_year'] ?? $serviceRequest->vehicle_year,
+            $validated['vehicle_make'] ?? $serviceRequest->vehicle_make,
+            $validated['vehicle_model'] ?? $serviceRequest->vehicle_model,
+        ]))) ?: null;
     }
 }

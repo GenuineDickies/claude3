@@ -12,6 +12,7 @@ use App\Models\ServiceRequestStatusLog;
 use App\Models\Setting;
 use App\Models\CatalogCategory;
 use App\Models\User;
+use App\Models\Vehicle;
 use App\Services\SmsServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -74,7 +75,7 @@ class ServiceRequestController extends Controller
             $this->syncLocationFromCapture($serviceRequest);
         }
 
-        $serviceRequest->load(['customer', 'catalogItem', 'messages', 'estimates.items', 'statusLogs.user', 'receipts', 'photos', 'signatures', 'paymentRecords', 'serviceLogs.user', 'workOrders.items', 'correspondences.logger', 'documents.uploader', 'assignedTechnician.technicianProfile', 'invoices']);
+        $serviceRequest->load(['customer', 'catalogItem', 'messages', 'estimates.items', 'statusLogs.user', 'receipts', 'photos', 'signatures', 'paymentRecords', 'serviceLogs.user', 'workOrders.items', 'correspondences.logger', 'documents.uploader', 'assignedTechnician.technicianProfile', 'invoices', 'vehicle']);
 
         $messageTemplates = MessageTemplate::active()
             ->whereNotIn('category', ['compliance'])
@@ -87,6 +88,80 @@ class ServiceRequestController extends Controller
             ->get(['id', 'name']);
 
         return view('service-requests.show', compact('serviceRequest', 'messageTemplates', 'technicians'));
+    }
+
+    public function syncVehicleRecord(Request $request, ServiceRequest $serviceRequest)
+    {
+        $validated = $request->validate([
+            'vehicle_year' => ['nullable', 'string', 'max:4'],
+            'vehicle_make' => ['nullable', 'string', 'max:100'],
+            'vehicle_model' => ['nullable', 'string', 'max:100'],
+            'vehicle_color' => ['nullable', 'string', 'max:50'],
+            'license_plate' => ['nullable', 'string', 'max:20'],
+            'vin' => ['nullable', 'string', 'max:32'],
+        ]);
+
+        $licensePlate = Vehicle::normalizeLicensePlate($validated['license_plate'] ?? $serviceRequest->vehicle?->license_plate);
+        $vin = Vehicle::normalizeVin($validated['vin'] ?? $serviceRequest->vehicle?->vin);
+
+        if ($licensePlate === null && $vin === null) {
+            return back()->withErrors([
+                'license_plate' => 'Add a license plate or VIN before attaching a persistent vehicle record.',
+                'vin' => 'Add a license plate or VIN before attaching a persistent vehicle record.',
+            ])->withInput();
+        }
+
+        $year = trim((string) ($validated['vehicle_year'] ?? $serviceRequest->vehicle?->year ?? $serviceRequest->vehicle_year ?? ''));
+        $make = trim((string) ($validated['vehicle_make'] ?? $serviceRequest->vehicle?->make ?? $serviceRequest->vehicle_make ?? ''));
+        $model = trim((string) ($validated['vehicle_model'] ?? $serviceRequest->vehicle?->model ?? $serviceRequest->vehicle_model ?? ''));
+
+        if ($year === '' || $make === '' || $model === '') {
+            return back()->withErrors([
+                'vehicle_year' => 'Vehicle year, make, and model are required when attaching a persistent vehicle record.',
+            ])->withInput();
+        }
+
+        $vehicle = $serviceRequest->vehicle;
+
+        if ($vehicle === null) {
+            $vehicle = Vehicle::query()
+                ->where('customer_id', $serviceRequest->customer_id)
+                ->where(function ($query) use ($licensePlate, $vin) {
+                    if ($licensePlate !== null) {
+                        $query->orWhere('license_plate', $licensePlate);
+                    }
+
+                    if ($vin !== null) {
+                        $query->orWhere('vin', $vin);
+                    }
+                })
+                ->first();
+        }
+
+        $vehicle ??= new Vehicle(['customer_id' => $serviceRequest->customer_id]);
+
+        $vehicle->fill([
+            'customer_id' => $serviceRequest->customer_id,
+            'year' => $year,
+            'make' => $make,
+            'model' => $model,
+            'color' => filled($validated['vehicle_color'] ?? $serviceRequest->vehicle_color) ? ($validated['vehicle_color'] ?? $serviceRequest->vehicle_color) : null,
+            'license_plate' => $licensePlate,
+            'vin' => $vin,
+        ]);
+        $vehicle->save();
+
+        $serviceRequest->forceFill([
+            'vehicle_id' => $vehicle->id,
+            'vehicle_year' => $vehicle->year,
+            'vehicle_make' => $vehicle->make,
+            'vehicle_model' => $vehicle->model,
+            'vehicle_color' => $vehicle->color,
+        ])->save();
+
+        return redirect()
+            ->route('service-requests.show', $serviceRequest)
+            ->with('success', 'Persistent vehicle record attached to the service request.');
     }
 
     public function store(StoreServiceRequestRequest $request)

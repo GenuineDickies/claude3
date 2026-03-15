@@ -4,7 +4,8 @@
         $canAccessAdminUsers = canAccessPage('/admin/users');
         $canAccessAdminRoles = canAccessPage('/admin/roles');
         $canAccessAdminPages = canAccessPage('/admin/pages');
-        $showAdministration = $canAccessAdminUsers || $canAccessAdminRoles || $canAccessAdminPages;
+        $canAccessAdminAuditLogs = canAccessPage('/admin/audit-logs');
+        $showAdministration = $canAccessAdminUsers || $canAccessAdminRoles || $canAccessAdminPages || $canAccessAdminAuditLogs;
         $brandInitials = collect(preg_split('/\s+/', trim($companyName)) ?: [])
             ->filter()
             ->take(2)
@@ -122,6 +123,14 @@
                    class="sidebar-nav-item {{request()->routeIs('admin.pages.*') ? 'sidebar-nav-item-active' : '' }}">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-8.625A2.625 2.625 0 0 0 16.875 3h-9.75A2.625 2.625 0 0 0 4.5 5.625v12.75A2.625 2.625 0 0 0 7.125 21h4.125m8.25-6.75h-6.75m0 0v6.75m0-6.75h6.75" /></svg>
                     Pages
+                </a>
+            @endif
+
+            @if ($canAccessAdminAuditLogs)
+                <a href="{{ route('admin.audit-logs.index') }}"
+                   class="sidebar-nav-item {{request()->routeIs('admin.audit-logs.*') ? 'sidebar-nav-item-active' : '' }}">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h12A2.25 2.25 0 0 0 20.25 14.25V3M3.75 3h16.5M3.75 3v18l3.75-2.25L12 21l4.5-2.25 3.75 2.25V3"/></svg>
+                    Audit Logs
                 </a>
             @endif
         @endif

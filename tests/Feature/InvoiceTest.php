@@ -9,6 +9,7 @@ use App\Models\Invoice;
 use App\Models\ServiceRequest;
 use App\Models\Setting;
 use App\Models\User;
+use App\Models\Vehicle;
 use App\Models\WorkOrder;
 use App\Models\WorkOrderItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -143,6 +144,7 @@ class InvoiceTest extends TestCase
         $response->assertSee('Jane Doe');
         $response->assertSee('5559876543');
         $response->assertSee('Blue 2020 Toyota Camry');
+        $response->assertSee('Persistent Vehicle Record');
     }
 
     public function test_create_page_loads_without_work_order_items(): void
@@ -180,6 +182,11 @@ class InvoiceTest extends TestCase
             'customer_name'       => 'Jane Doe',
             'customer_phone'      => '5559876543',
             'vehicle_description' => 'Blue 2020 Toyota Camry',
+            'vehicle_year'        => '2020',
+            'vehicle_make'        => 'Toyota',
+            'vehicle_model'       => 'Camry',
+            'vehicle_color'       => 'Blue',
+            'vehicle_license_plate' => 'abc 123',
             'service_description' => 'Tire Change',
             'service_location'    => '123 Main St',
             'line_items'          => [
@@ -206,6 +213,68 @@ class InvoiceTest extends TestCase
         $this->assertEquals('Test Company', $invoice->company_snapshot['name']);
         $this->assertEquals($user->id, $invoice->issued_by);
         $this->assertEquals('Net 30', $invoice->payment_terms);
+        $this->assertNotNull($invoice->vehicle_id);
+        $this->assertEquals('ABC123', $invoice->vehicle?->license_plate);
+        $this->assertEquals($invoice->vehicle_id, $sr->fresh()->vehicle_id);
+    }
+
+    public function test_store_requires_plate_or_vin_when_no_vehicle_record_exists(): void
+    {
+        $user = $this->createUser();
+        $sr = $this->createServiceRequest();
+        $wo = $this->createWorkOrder($sr);
+
+        $response = $this->actingAs($user)->from(route('invoices.create', [$sr, $wo]))->post(route('invoices.store', [$sr, $wo]), [
+            'customer_name' => 'Jane Doe',
+            'customer_phone' => '5559876543',
+            'vehicle_year' => '2020',
+            'vehicle_make' => 'Toyota',
+            'vehicle_model' => 'Camry',
+            'line_items' => [
+                ['name' => 'Tire Change', 'quantity' => 1, 'unit' => 'ea', 'unit_price' => 75],
+            ],
+            'subtotal' => 75,
+            'tax_amount' => 0,
+            'total' => 75,
+        ]);
+
+        $response->assertSessionHasErrors(['vehicle_license_plate', 'vehicle_vin']);
+        $this->assertDatabaseCount('invoices', 0);
+    }
+
+    public function test_store_reuses_existing_service_request_vehicle_record(): void
+    {
+        $user = $this->createUser();
+        $sr = $this->createServiceRequest();
+        $wo = $this->createWorkOrder($sr);
+
+        $vehicle = Vehicle::create([
+            'customer_id' => $sr->customer_id,
+            'year' => '2020',
+            'make' => 'Toyota',
+            'model' => 'Camry',
+            'color' => 'Blue',
+            'license_plate' => 'ZXQ998',
+        ]);
+
+        $sr->update(['vehicle_id' => $vehicle->id]);
+
+        $response = $this->actingAs($user)->post(route('invoices.store', [$sr, $wo]), [
+            'customer_name'       => 'Jane Doe',
+            'customer_phone'      => '5559876543',
+            'vehicle_description' => 'Blue 2020 Toyota Camry',
+            'service_description' => 'Tire Change',
+            'service_location'    => '123 Main St',
+            'line_items'          => [
+                ['name' => 'Tire Change', 'quantity' => 1, 'unit' => 'ea', 'unit_price' => 75],
+            ],
+            'subtotal' => 75,
+            'tax_amount' => 0,
+            'total' => 75,
+        ]);
+
+        $response->assertRedirect();
+        $this->assertEquals($vehicle->id, Invoice::first()?->vehicle_id);
     }
 
     public function test_store_validates_required_fields(): void

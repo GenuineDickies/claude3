@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\PageController as AdminPageController;
+use App\Http\Controllers\Admin\AuditLogController as AdminAuditLogController;
 use App\Http\Controllers\Admin\RoleAccessController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
@@ -132,6 +133,7 @@ Route::middleware(['auth', 'active-user', 'page-access'])->group(function () {
     Route::put('/admin/pages/{page}', [AdminPageController::class, 'update'])->name('admin.pages.update');
     Route::delete('/admin/pages/{page}', [AdminPageController::class, 'destroy'])->name('admin.pages.destroy');
     Route::post('/admin/pages/sync', [AdminPageController::class, 'sync'])->name('admin.pages.sync');
+    Route::get('/admin/audit-logs', [AdminAuditLogController::class, 'index'])->name('admin.audit-logs.index');
 
     Route::get('/admin/access/roles/{role}', [RoleAccessController::class, 'edit'])->name('admin.access.edit');
     Route::put('/admin/access/roles/{role}', [RoleAccessController::class, 'update'])->name('admin.access.update');
@@ -155,6 +157,8 @@ Route::middleware(['auth', 'active-user', 'page-access'])->group(function () {
 
     // Customers
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
+    Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
+    Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
 
     // Service Types (removed — consolidated into Service Catalog)
 
@@ -168,6 +172,7 @@ Route::middleware(['auth', 'active-user', 'page-access'])->group(function () {
     Route::get('/service-requests/{serviceRequest}', [ServiceRequestController::class, 'show'])->name('service-requests.show');
     Route::patch('/service-requests/{serviceRequest}', [ServiceRequestController::class, 'update'])->name('service-requests.update');
     Route::patch('/service-requests/{serviceRequest}/assign-technician', [ServiceRequestController::class, 'assignTechnician'])->name('service-requests.assign-technician');
+    Route::patch('/service-requests/{serviceRequest}/vehicle', [ServiceRequestController::class, 'syncVehicleRecord'])->name('service-requests.sync-vehicle');
     Route::post('/service-requests/{serviceRequest}/send-technician-location', [ServiceRequestController::class, 'sendLocationToTechnician'])->name('service-requests.send-technician-location');
     Route::post('/service-requests/{serviceRequest}/request-location', [LocationShareController::class, 'request'])->name('service-requests.request-location');
     Route::post('/service-requests/{serviceRequest}/messages', [MessageController::class, 'store'])->name('service-requests.messages.store');

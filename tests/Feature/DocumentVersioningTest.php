@@ -486,6 +486,10 @@ final class DocumentVersioningTest extends TestCase
         $response = $this->actingAs($this->user())
             ->put("/service-requests/{$sr->id}/invoices/{$inv->id}", [
                 'customer_name' => 'Updated Name',
+                'vehicle_year' => '2020',
+                'vehicle_make' => 'Toyota',
+                'vehicle_model' => 'Camry',
+                'vehicle_license_plate' => 'UPD123',
                 'line_items'    => [['name' => 'Updated Item', 'quantity' => 2, 'unit' => 'ea', 'unit_price' => 30]],
                 'subtotal'      => 60,
                 'tax_rate'      => 0,

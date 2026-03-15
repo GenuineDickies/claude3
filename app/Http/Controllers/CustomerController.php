@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class CustomerController extends Controller
 {
@@ -71,5 +74,64 @@ class CustomerController extends Controller
             'customer' => $customer,
             'vehicle' => $vehicle,
         ]);
+    }
+
+    public function show(Customer $customer): View
+    {
+        $customer->load([
+            'vehicles',
+            'serviceRequests' => fn ($query) => $query
+                ->with(['catalogItem', 'invoices'])
+                ->latest()
+                ->limit(10),
+            'messages' => fn ($query) => $query->latest()->limit(10),
+            'correspondences' => fn ($query) => $query->with('logger')->latest('logged_at')->limit(10),
+        ]);
+
+        return view('customers.show', [
+            'customer' => $customer,
+        ]);
+    }
+
+    public function update(Request $request, Customer $customer): RedirectResponse
+    {
+        $validated = $request->validate([
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
+            'phone' => ['required', 'string', 'max:20'],
+            'is_active' => ['nullable', 'boolean'],
+            'notification_preferences' => ['nullable', 'array'],
+            'notification_preferences.status_updates' => ['nullable', 'boolean'],
+            'notification_preferences.location_requests' => ['nullable', 'boolean'],
+            'notification_preferences.signature_requests' => ['nullable', 'boolean'],
+            'notification_preferences.marketing' => ['nullable', 'boolean'],
+        ]);
+
+        $isActive = $request->boolean('is_active');
+
+        if ($isActive) {
+            Customer::query()
+                ->whereKeyNot($customer->id)
+                ->wherePhoneMatches($validated['phone'])
+                ->where('is_active', true)
+                ->update(['is_active' => false]);
+        }
+
+        $customer->update([
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+            'phone' => $validated['phone'],
+            'is_active' => $isActive,
+            'notification_preferences' => [
+                'status_updates' => $request->boolean('notification_preferences.status_updates'),
+                'location_requests' => $request->boolean('notification_preferences.location_requests'),
+                'signature_requests' => $request->boolean('notification_preferences.signature_requests'),
+                'marketing' => $request->boolean('notification_preferences.marketing'),
+            ],
+        ]);
+
+        return redirect()
+            ->route('customers.show', $customer)
+            ->with('success', 'Customer details updated.');
     }
 }
