@@ -110,12 +110,12 @@
             }
         }
         .icon {
-            font-size: clamp(3.1rem, 7vw, 4.4rem);
+            font-size: clamp(4rem, 10vw, 5.5rem);
             margin: 0.4rem 0 0.75rem;
             filter: drop-shadow(0 12px 22px rgba(30, 214, 242, 0.12));
         }
         h1 {
-            font-size: clamp(2.15rem, 8vw, 3.2rem);
+            font-size: clamp(3rem, 11vw, 4.5rem);
             line-height: 1.04;
             letter-spacing: -0.04em;
             margin-bottom: 0.9rem;
@@ -124,8 +124,8 @@
         }
         p {
             color: var(--text-body);
-            font-size: 1.35rem;
-            line-height: 1.5;
+            font-size: 2.5rem;
+            line-height: 1.35;
             margin-bottom: 1.15rem;
         }
         .brand {
@@ -138,8 +138,8 @@
         }
         .brand-mark {
             position: relative;
-            width: 4.75rem;
-            height: 4rem;
+            width: 5.5rem;
+            height: 4.5rem;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -166,7 +166,7 @@
             width: 100%;
             height: 100%;
             color: #a5f3fc;
-            font-size: 1.15rem;
+            font-size: 1.6rem;
             font-weight: 800;
             letter-spacing: 0.06em;
         }
@@ -176,25 +176,25 @@
         .brand-name {
             display: block;
             color: var(--text-main);
-            font-size: 1.08rem;
+            font-size: 1.8rem;
             font-weight: 800;
             line-height: 1.2;
         }
         .brand-tagline {
             display: block;
             color: var(--text-muted);
-            font-size: 0.9rem;
+            font-size: 1.6rem;
             line-height: 1.35;
             margin-top: 0.2rem;
         }
         .eyebrow {
             display: inline-flex;
             align-self: center;
-            padding: 0.5rem 1rem;
+            padding: 0.6rem 1.2rem;
             border-radius: 9999px;
             background: rgba(232, 248, 255, 0.92);
             color: #24568e;
-            font-size: 0.95rem;
+            font-size: 1.6rem;
             font-weight: 700;
             letter-spacing: 0.08em;
             text-transform: uppercase;
@@ -211,22 +211,22 @@
             justify-content: center;
             gap: 0.55rem;
             margin: 0 auto 1.2rem;
-            padding: 0.75rem 1rem;
-            border-radius: 9999px;
+            padding: 0.85rem 1.2rem;
+            border-radius: 2rem;
             border: 1px solid rgba(255,255,255,0.1);
             background: rgba(255, 255, 255, 0.04);
             color: var(--text-muted);
-            font-size: 1.1rem;
-            line-height: 1.4;
+            font-size: 2rem;
+            line-height: 1.35;
         }
         .btn {
             display: inline-block;
             background: linear-gradient(180deg, #20d8f4, #14b8d8);
             color: #03131d;
             border: 1px solid rgba(255, 255, 255, 0.16);
-            border-radius: 1rem;
-            padding: 1.2rem 1.35rem;
-            font-size: 1.35rem;
+            border-radius: 1.2rem;
+            padding: 1.4rem 1.5rem;
+            font-size: 2.5rem;
             font-weight: 800;
             letter-spacing: 0.01em;
             cursor: pointer;
@@ -251,8 +251,8 @@
         .spinner {
             display: none;
             margin: 1rem auto;
-            width: 40px; height: 40px;
-            border: 4px solid rgba(255,255,255,0.18);
+            width: 60px; height: 60px;
+            border: 5px solid rgba(255,255,255,0.18);
             border-top-color: var(--accent);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
@@ -260,13 +260,13 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .status {
             margin-top: 1rem;
-            padding: 0.95rem 1rem;
-            border-radius: 1rem;
+            padding: 1.1rem 1.2rem;
+            border-radius: 1.2rem;
             border: 1px solid rgba(255,255,255,0.08);
             background: rgba(255,255,255,0.04);
             color: var(--text-body);
-            font-size: 1.25rem;
-            line-height: 1.55;
+            font-size: 2.5rem;
+            line-height: 1.35;
         }
         .status.success {
             color: #d8ffe5;
@@ -305,7 +305,7 @@
             border: 0;
         }
         .map-label {
-            font-size: 1.15rem;
+            font-size: 2rem;
             color: var(--text-muted);
             margin-top: 0.75rem;
         }
@@ -320,9 +320,9 @@
             background: linear-gradient(180deg, #33d17a, #16a34a);
             color: #fff;
             border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 1rem;
-            padding: 1.1rem 1.5rem;
-            font-size: 1.3rem;
+            border-radius: 1.2rem;
+            padding: 1.3rem 1.5rem;
+            font-size: 2.5rem;
             font-weight: 700;
             cursor: pointer;
             width: 100%;
@@ -333,9 +333,9 @@
             background: rgba(255,255,255,0.06);
             color: var(--text-main);
             border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 1rem;
-            padding: 0.95rem 1.5rem;
-            font-size: 1.2rem;
+            border-radius: 1.2rem;
+            padding: 1.1rem 1.5rem;
+            font-size: 2.2rem;
             font-weight: 600;
             cursor: pointer;
             width: 100%;
@@ -368,30 +368,30 @@
             }
 
             .brand-mark {
-                width: 4.1rem;
-                height: 3.5rem;
+                width: 5rem;
+                height: 4.2rem;
             }
 
             .brand-name {
-                font-size: 1rem;
+                font-size: 1.6rem;
             }
 
             .brand-tagline {
-                font-size: 0.84rem;
+                font-size: 1.4rem;
             }
 
             .icon {
-                font-size: 3.4rem;
+                font-size: 4.5rem;
                 margin-bottom: 0.25rem;
             }
 
             p {
-                font-size: 1.3rem;
+                font-size: 2.2rem;
                 margin-bottom: 0.9rem;
             }
 
             h1 {
-                font-size: clamp(2.2rem, 9vw, 2.8rem);
+                font-size: clamp(3rem, 11vw, 3.8rem);
             }
 
             #map-container {
