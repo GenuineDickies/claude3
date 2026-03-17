@@ -345,6 +345,7 @@ Route::middleware(['auth', 'active-user', 'page-access'])->group(function () {
     Route::get('/vendor-documents/{vendorDocument}/attachments/{attachment}/download', [VendorDocumentController::class, 'downloadAttachment'])->name('vendor-documents.download-attachment');
 
     // AJAX endpoints (same-origin, session-auth)
+    Route::get('/api/service-requests/{serviceRequest}/location-status', [ServiceRequestController::class, 'locationStatus'])->name('api.service-requests.location-status');
     Route::get('/api/customers/search', [CustomerController::class, 'search'])->name('api.customers.search');
     Route::get('/api/service-types', function () {
         return \App\Models\CatalogItem::whereHas('category', fn ($q) => $q->where('is_active', true))

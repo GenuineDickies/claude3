@@ -465,7 +465,7 @@
 
         @elseif ($serviceRequest->location_token && $serviceRequest->isLocationTokenValid())
             {{-- Token sent, waiting for response --}}
-            <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+            <div id="location-pending" class="bg-yellow-50 border border-yellow-200 rounded-md p-4">
                 <div class="flex items-center text-yellow-700">
                     <svg class="w-5 h-5 mr-2 animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -477,7 +477,32 @@
                     <a href="{{ $serviceRequest->locationShareUrl() }}" target="_blank" class="underline font-mono">{{ $serviceRequest->locationShareUrl() }}</a>
                 </p>
             </div>
-            <meta http-equiv="refresh" content="10">
+            <script>
+            (function() {
+                const pollUrl = @json(route('api.service-requests.location-status', $serviceRequest));
+                const interval = 10000; // 10 seconds
+                let timer;
+
+                function poll() {
+                    fetch(pollUrl, { credentials: 'same-origin' })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.status === 'received') {
+                                // Location received — reload to show the map
+                                window.location.reload();
+                            } else if (data.status === 'expired') {
+                                // Token expired — stop polling, reload to show expired state
+                                clearInterval(timer);
+                                window.location.reload();
+                            }
+                            // 'pending' — keep polling
+                        })
+                        .catch(() => { /* network error — next tick will retry */ });
+                }
+
+                timer = setInterval(poll, interval);
+            })();
+            </script>
 
         @elseif ($serviceRequest->location)
             {{-- Manual location only --}}

@@ -474,6 +474,42 @@ class ServiceRequestController extends Controller
     }
 
     /**
+     * Lightweight JSON endpoint for AJAX location polling.
+     *
+     * Returns the current location status without a full page render,
+     * and triggers a remote capture sync when appropriate.
+     */
+    public function locationStatus(ServiceRequest $serviceRequest)
+    {
+        // Attempt sync if still waiting
+        if (
+            $serviceRequest->location_token
+            && is_null($serviceRequest->latitude)
+            && is_null($serviceRequest->location_shared_at)
+        ) {
+            $this->syncLocationFromCapture($serviceRequest);
+            $serviceRequest->refresh();
+        }
+
+        // Location has been received
+        if ($serviceRequest->latitude && $serviceRequest->location_shared_at) {
+            return response()->json([
+                'status'   => 'received',
+                'latitude' => $serviceRequest->latitude,
+                'longitude' => $serviceRequest->longitude,
+            ]);
+        }
+
+        // Token expired — stop polling
+        if (! $serviceRequest->isLocationTokenValid()) {
+            return response()->json(['status' => 'expired']);
+        }
+
+        // Still waiting
+        return response()->json(['status' => 'pending']);
+    }
+
+    /**
      * Pull GPS data from the remote capture JSON and update the local DB.
      *
      * During local dev the standalone locate.php writes to the hosting DB
@@ -507,8 +543,8 @@ class ServiceRequestController extends Controller
             $response = Http::connectTimeout(2)->timeout(3)->get($captureUrl);
 
             if ($response->failed()) {
-                // Back off for 30 seconds before retrying
-                Cache::put($cacheKey, true, 30);
+                // Back off for 60 seconds before retrying
+                Cache::put($cacheKey, true, 60);
 
                 return; // File doesn't exist yet — customer hasn't shared location
             }
