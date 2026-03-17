@@ -124,8 +124,8 @@
         }
         p {
             color: var(--text-body);
-            font-size: 1.02rem;
-            line-height: 1.7;
+            font-size: 1.35rem;
+            line-height: 1.5;
             margin-bottom: 1.15rem;
         }
         .brand {
@@ -190,11 +190,11 @@
         .eyebrow {
             display: inline-flex;
             align-self: center;
-            padding: 0.4rem 0.85rem;
+            padding: 0.5rem 1rem;
             border-radius: 9999px;
             background: rgba(232, 248, 255, 0.92);
             color: #24568e;
-            font-size: 0.74rem;
+            font-size: 0.95rem;
             font-weight: 700;
             letter-spacing: 0.08em;
             text-transform: uppercase;
@@ -211,12 +211,12 @@
             justify-content: center;
             gap: 0.55rem;
             margin: 0 auto 1.2rem;
-            padding: 0.65rem 0.9rem;
+            padding: 0.75rem 1rem;
             border-radius: 9999px;
             border: 1px solid rgba(255,255,255,0.1);
             background: rgba(255, 255, 255, 0.04);
             color: var(--text-muted);
-            font-size: 0.84rem;
+            font-size: 1.1rem;
             line-height: 1.4;
         }
         .btn {
@@ -225,8 +225,8 @@
             color: #03131d;
             border: 1px solid rgba(255, 255, 255, 0.16);
             border-radius: 1rem;
-            padding: 1.1rem 1.35rem;
-            font-size: 1.08rem;
+            padding: 1.2rem 1.35rem;
+            font-size: 1.35rem;
             font-weight: 800;
             letter-spacing: 0.01em;
             cursor: pointer;
@@ -265,7 +265,7 @@
             border: 1px solid rgba(255,255,255,0.08);
             background: rgba(255,255,255,0.04);
             color: var(--text-body);
-            font-size: 0.96rem;
+            font-size: 1.25rem;
             line-height: 1.55;
         }
         .status.success {
@@ -305,7 +305,7 @@
             border: 0;
         }
         .map-label {
-            font-size: 0.9rem;
+            font-size: 1.15rem;
             color: var(--text-muted);
             margin-top: 0.75rem;
         }
@@ -321,8 +321,8 @@
             color: #fff;
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 1rem;
-            padding: 1rem 1.5rem;
-            font-size: 1.05rem;
+            padding: 1.1rem 1.5rem;
+            font-size: 1.3rem;
             font-weight: 700;
             cursor: pointer;
             width: 100%;
@@ -334,8 +334,8 @@
             color: var(--text-main);
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: 1rem;
-            padding: 0.85rem 1.5rem;
-            font-size: 1rem;
+            padding: 0.95rem 1.5rem;
+            font-size: 1.2rem;
             font-weight: 600;
             cursor: pointer;
             width: 100%;
@@ -386,12 +386,12 @@
             }
 
             p {
-                font-size: 1rem;
+                font-size: 1.3rem;
                 margin-bottom: 0.9rem;
             }
 
             h1 {
-                font-size: clamp(2rem, 9vw, 2.6rem);
+                font-size: clamp(2.2rem, 9vw, 2.8rem);
             }
 
             #map-container {
@@ -453,16 +453,15 @@
         @if ($expired)
             <div class="icon">⏰</div>
             <h1>Link Expired</h1>
-            <p>This location-sharing link has expired or has already been used. Please contact us if you still need assistance.</p>
+            <p>This link has expired or was already used. Contact us if you need help.</p>
         @else
             <div class="eyebrow">Secure Location Check-In</div>
             <div class="icon">📍</div>
             <h1>Share Your Location</h1>
             <p class="hero-copy">
-                Your {{ $companyName }} team needs your location to reach you.
-                Tap the button below to share your current GPS position.
+                Tap below so your {{ $companyName }} team can find you.
             </p>
-            <div class="helper-note">Only your current location is shared for this request.</div>
+            <div class="helper-note">Your location is only shared once for this request.</div>
 
             <input type="hidden" id="maps-api-key" value="{{ $mapsApiKey ?? '' }}">
             <button id="shareBtn" class="btn" onclick="getLocation()">Share My Location</button>
@@ -472,7 +471,7 @@
             <div id="map-container">
                 <iframe id="map-frame" src="" allowfullscreen loading="lazy"></iframe>
             </div>
-            <p id="map-label" class="map-label" style="display:none;">Does this look right? If not, try again from a different spot.</p>
+            <p id="map-label" class="map-label" style="display:none;">Not right? Tap "Try again" below.</p>
 
             <div id="confirm-row" class="confirm-row">
                 <button class="btn-confirm" onclick="confirmDone()">Yes, that&rsquo;s correct!</button>
@@ -517,11 +516,11 @@
 
                             var msg = 'Unable to get your location.';
                             if (err.code === 1) {
-                                msg = 'Location permission denied. Please allow location access in your browser settings and try again.';
+                                msg = 'Permission denied. Allow location access in your browser settings, then try again.';
                             } else if (err.code === 2) {
-                                msg = 'Location unavailable. Please make sure GPS is enabled.';
+                                msg = 'Location unavailable. Make sure GPS is on.';
                             } else if (err.code === 3) {
-                                msg = 'Location request timed out. Please try again.';
+                                msg = 'Timed out. Please try again.';
                             }
 
                             status.textContent = msg;
@@ -543,7 +542,7 @@
                     var mapLabel = document.getElementById('map-label');
                     var confirmRow = document.getElementById('confirm-row');
 
-                    status.textContent = 'Is this pin on your location? Please confirm before we send it.';
+                    status.textContent = 'Is this pin correct?';
                     status.className = 'status';
                     btn.style.display = 'none';
 
@@ -570,7 +569,7 @@
                     confirmBtn.disabled = true;
                     confirmBtn.textContent = 'Sending…';
                     retryBtn.style.display = 'none';
-                    status.textContent = 'Sending your confirmed location…';
+                    status.textContent = 'Sending…';
                     status.className = 'status';
 
                     fetch(@json(route('locate.store', ['token' => $token])), {
@@ -584,7 +583,7 @@
                     .then(function (res) { return res.json(); })
                     .then(function (data) {
                         if (data.ok) {
-                            status.textContent = '✅ Location confirmed and sent! Help is on the way.';
+                            status.textContent = '✅ Location sent! Help is on the way.';
                             status.className = 'status success';
                             confirmRow.style.display = 'none';
                             mapLabel.style.display = 'none';
