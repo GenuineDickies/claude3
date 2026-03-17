@@ -455,28 +455,31 @@
             <h1>Link Expired</h1>
             <p>This link has expired or was already used. Contact us if you need help.</p>
         @else
-            <div class="eyebrow">Secure Location Check-In</div>
-            <div class="icon">📍</div>
-            <h1>Share Your Location</h1>
-            <p class="hero-copy">
-                Tap below so your {{ $companyName }} team can find you.
-            </p>
-            <div class="helper-note">Your location is only shared once for this request.</div>
+            <div id="intro-content">
+                <div class="eyebrow">Secure Location Check-In</div>
+                <div class="icon">📍</div>
+                <h1>Share Your Location</h1>
+                <p class="hero-copy">
+                    Tap below so your {{ $companyName }} team can find you.
+                </p>
+                <div class="helper-note">Your location is only shared once for this request.</div>
+            </div>
 
             <input type="hidden" id="maps-api-key" value="{{ $mapsApiKey ?? '' }}">
             <button id="shareBtn" class="btn" onclick="getLocation()">Share My Location</button>
             <div id="spinner" class="spinner"></div>
-            <div id="status" class="status"></div>
 
             <div id="map-container">
                 <iframe id="map-frame" src="" allowfullscreen loading="lazy"></iframe>
             </div>
-            <p id="map-label" class="map-label" style="display:none;">Not right? Tap "Try again" below.</p>
 
             <div id="confirm-row" class="confirm-row">
                 <button class="btn-confirm" onclick="confirmDone()">Yes, that&rsquo;s correct!</button>
                 <button class="btn-retry" onclick="retryLocation()">No, try again</button>
             </div>
+
+            <div id="status" class="status"></div>
+            <p id="map-label" class="map-label" style="display:none;">Not right? Tap "Try again" below.</p>
 
             <script>
                 var pendingLocation = null;
@@ -537,14 +540,17 @@
                 function showMap(lat, lng) {
                     var btn = document.getElementById('shareBtn');
                     var status = document.getElementById('status');
+                    var introContent = document.getElementById('intro-content');
                     var mapContainer = document.getElementById('map-container');
                     var mapFrame = document.getElementById('map-frame');
                     var mapLabel = document.getElementById('map-label');
                     var confirmRow = document.getElementById('confirm-row');
 
+                    // Hide intro content so map + buttons are near the top
+                    introContent.style.display = 'none';
+                    btn.style.display = 'none';
                     status.textContent = 'Is this pin correct?';
                     status.className = 'status';
-                    btn.style.display = 'none';
 
                     var mapsApiKey = document.getElementById('maps-api-key').value;
                     if (mapsApiKey) {
@@ -555,6 +561,7 @@
                     mapContainer.style.display = 'block';
                     mapLabel.style.display = 'block';
                     confirmRow.style.display = 'flex';
+                    window.scrollTo(0, 0);
                 }
 
                 function confirmDone() {
@@ -608,11 +615,13 @@
                 function retryLocation() {
                     var btn = document.getElementById('shareBtn');
                     var status = document.getElementById('status');
+                    var introContent = document.getElementById('intro-content');
                     var mapContainer = document.getElementById('map-container');
                     var mapLabel = document.getElementById('map-label');
                     var confirmRow = document.getElementById('confirm-row');
 
                     pendingLocation = null;
+                    introContent.style.display = '';
                     mapContainer.style.display = 'none';
                     mapLabel.style.display = 'none';
                     confirmRow.style.display = 'none';
