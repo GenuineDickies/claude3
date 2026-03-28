@@ -9,24 +9,37 @@ return new class extends Migration
     public function up(): void
     {
         // 1. Add parent_account_id to accounts for hierarchy
-        Schema::table('accounts', function (Blueprint $table) {
-            $table->foreignId('parent_account_id')->nullable()->after('scope')
-                  ->constrained('accounts')->nullOnDelete();
-        });
+        if (! Schema::hasColumn('accounts', 'parent_account_id')) {
+            Schema::table('accounts', function (Blueprint $table) {
+                $table->foreignId('parent_account_id')->nullable()->after('scope')
+                    ->constrained('accounts')->nullOnDelete();
+            });
+        }
 
         // 2. Add accounting metadata to catalog_items
         Schema::table('catalog_items', function (Blueprint $table) {
-            $table->foreignId('revenue_account_id')->nullable()->after('is_active')
-                  ->constrained('accounts')->nullOnDelete();
-            $table->foreignId('cogs_account_id')->nullable()->after('revenue_account_id')
-                  ->constrained('accounts')->nullOnDelete();
-            $table->boolean('core_required')->default(false)->after('cogs_account_id');
-            $table->decimal('core_amount', 10, 2)->default(0)->after('core_required');
-            $table->boolean('taxable')->default(true)->after('core_amount');
+            if (! Schema::hasColumn('catalog_items', 'revenue_account_id')) {
+                $table->foreignId('revenue_account_id')->nullable()->after('is_active')
+                    ->constrained('accounts')->nullOnDelete();
+            }
+            if (! Schema::hasColumn('catalog_items', 'cogs_account_id')) {
+                $table->foreignId('cogs_account_id')->nullable()->after('revenue_account_id')
+                    ->constrained('accounts')->nullOnDelete();
+            }
+            if (! Schema::hasColumn('catalog_items', 'core_required')) {
+                $table->boolean('core_required')->default(false)->after('cogs_account_id');
+            }
+            if (! Schema::hasColumn('catalog_items', 'core_amount')) {
+                $table->decimal('core_amount', 10, 2)->default(0)->after('core_required');
+            }
+            if (! Schema::hasColumn('catalog_items', 'taxable')) {
+                $table->boolean('taxable')->default(true)->after('core_amount');
+            }
         });
 
         // 3. Vendors
-        Schema::create('vendors', function (Blueprint $table) {
+        if (! Schema::hasTable('vendors')) {
+            Schema::create('vendors', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('contact_name')->nullable();
@@ -45,10 +58,12 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('name');
-        });
+            });
+        }
 
         // 4. Vendor Documents (receipts/invoices from suppliers)
-        Schema::create('vendor_documents', function (Blueprint $table) {
+        if (! Schema::hasTable('vendor_documents')) {
+            Schema::create('vendor_documents', function (Blueprint $table) {
             $table->id();
             $table->foreignId('vendor_id')->constrained()->restrictOnDelete();
             $table->date('document_date');
@@ -76,10 +91,12 @@ return new class extends Migration
             $table->index(['vendor_id', 'status']);
             $table->index(['job_link_type', 'job_link_id']);
             $table->index('document_date');
-        });
+            });
+        }
 
         // 5. Vendor Document Lines
-        Schema::create('vendor_document_lines', function (Blueprint $table) {
+        if (! Schema::hasTable('vendor_document_lines')) {
+            Schema::create('vendor_document_lines', function (Blueprint $table) {
             $table->id();
             $table->foreignId('vendor_document_id')->constrained()->cascadeOnDelete();
             $table->string('line_type', 30)->default('expense'); // part, service, expense, core_charge, shipping, tax
@@ -98,10 +115,12 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('vendor_document_id');
-        });
+            });
+        }
 
         // 6. Vendor Document Attachments
-        Schema::create('vendor_document_attachments', function (Blueprint $table) {
+        if (! Schema::hasTable('vendor_document_attachments')) {
+            Schema::create('vendor_document_attachments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('vendor_document_id')->constrained()->cascadeOnDelete();
             $table->string('file_path');
@@ -110,10 +129,12 @@ return new class extends Migration
             $table->unsignedInteger('file_size')->nullable();
             $table->timestamp('uploaded_at')->useCurrent();
             $table->timestamps();
-        });
+            });
+        }
 
         // 7. Document Accounting Links (traceability)
-        Schema::create('document_accounting_links', function (Blueprint $table) {
+        if (! Schema::hasTable('document_accounting_links')) {
+            Schema::create('document_accounting_links', function (Blueprint $table) {
             $table->id();
             $table->string('document_type', 50);
             $table->unsignedBigInteger('document_id');
@@ -122,7 +143,8 @@ return new class extends Migration
 
             $table->index(['document_type', 'document_id']);
             $table->index('journal_entry_id');
-        });
+            });
+        }
     }
 
     public function down(): void

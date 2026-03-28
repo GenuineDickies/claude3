@@ -11,6 +11,7 @@ use App\Models\ServiceRequest;
 use App\Models\ServiceRequestStatusLog;
 use App\Models\Setting;
 use App\Models\CatalogCategory;
+use App\Models\Lead;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Services\SmsServiceInterface;
@@ -53,14 +54,21 @@ class ServiceRequestController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $serviceCategories = CatalogCategory::where('is_active', true)
             ->with(['items' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order')])
             ->orderBy('sort_order')
             ->get();
 
-        return view('service-requests.create', compact('serviceCategories'));
+        $lead = null;
+        $leadId = $request->integer('lead_id');
+
+        if ($leadId > 0) {
+            $lead = Lead::query()->find($leadId);
+        }
+
+        return view('service-requests.create', compact('serviceCategories', 'lead'));
     }
 
     public function show(ServiceRequest $serviceRequest)
@@ -170,7 +178,7 @@ class ServiceRequestController extends Controller
 
         $phone = Customer::normalizePhone($validated['phone']);
 
-        $serviceRequest = DB::transaction(function () use ($validated, $phone) {
+        $serviceRequest = DB::transaction(function () use ($validated, $phone, $request) {
             if ($validated['customer_action'] === 'use_existing') {
                 $customer = Customer::findActiveByPhone($phone);
 
@@ -203,7 +211,7 @@ class ServiceRequestController extends Controller
                 ]);
             }
 
-            return ServiceRequest::create([
+            $serviceRequest = ServiceRequest::create([
                 'customer_id' => $customer->id,
                 'vehicle_year' => $validated['vehicle_year'],
                 'vehicle_make' => $validated['vehicle_make'],
@@ -215,6 +223,21 @@ class ServiceRequestController extends Controller
                 'notes' => $validated['notes'] ?? null,
                 'status' => 'new',
             ]);
+
+            $leadId = $request->integer('lead_id');
+
+            if ($leadId > 0) {
+                Lead::query()
+                    ->whereKey($leadId)
+                    ->update([
+                        'stage' => Lead::STAGE_CONVERTED,
+                        'converted_at' => now(),
+                        'converted_customer_id' => $customer->id,
+                        'converted_service_request_id' => $serviceRequest->id,
+                    ]);
+            }
+
+            return $serviceRequest;
         });
 
         // ── Verbal opt-in: grant consent immediately ──────────────

@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('service_photos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('service_request_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('service_request_id');
             $table->string('file_path');
             $table->string('caption', 500)->nullable();
             $table->timestamp('taken_at')->nullable();
@@ -19,6 +19,13 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('service_request_id');
+
+            if (Schema::hasTable('service_requests')) {
+                $table->foreign('service_request_id')
+                    ->references('id')
+                    ->on('service_requests')
+                    ->cascadeOnDelete();
+            }
         });
     }
 

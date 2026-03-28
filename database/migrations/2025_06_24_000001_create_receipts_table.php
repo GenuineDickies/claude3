@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('receipts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('service_request_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('service_request_id');
             $table->string('receipt_number', 20)->unique();
 
             // Snapshot data at time of issue
@@ -37,6 +37,13 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('service_request_id');
+
+            if (Schema::hasTable('service_requests')) {
+                $table->foreign('service_request_id')
+                    ->references('id')
+                    ->on('service_requests')
+                    ->cascadeOnDelete();
+            }
         });
     }
 

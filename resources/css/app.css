@@ -757,8 +757,18 @@
   }
 
   .select-crystal option {
-    background-color: #131b2e;
-    color: var(--color-text-primary);
+    background-color: #ffffff;
+    color: #111827;
+  }
+
+  .select-crystal optgroup {
+    background-color: #ffffff;
+    color: #111827;
+    font-weight: 600;
+  }
+
+  .select-crystal option:disabled {
+    color: #6b7280;
   }
 
   .checkbox-crystal {

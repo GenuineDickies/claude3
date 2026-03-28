@@ -56,6 +56,9 @@
     <form action="{{ route('service-requests.store') }}" method="POST" id="service-request-form" class="space-y-6" data-customer-search-url="{{ \App\Support\RequestPath::prefixed(request(), '/api/customers/search') }}">
         @csrf
         <input type="hidden" name="customer_action" id="customer_action" value="create_new">
+        @if ($lead)
+            <input type="hidden" name="lead_id" value="{{ $lead->id }}">
+        @endif
 
         <!-- Step 1: Customer Information -->
         <div id="wizard-step-1" class="wizard-step">
@@ -64,15 +67,15 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label for="first_name" class="block text-sm font-medium text-gray-300">First Name <span class="text-red-500">*</span></label>
-                        <input type="text" name="first_name" id="first_name" required value="{{ old('first_name') }}" class="mt-1 block w-full rounded-md border-white/10 shadow-sm input-crystal sm:text-sm p-2 border" placeholder="John">
+                        <input type="text" name="first_name" id="first_name" required value="{{ old('first_name', request('first_name')) }}" class="mt-1 block w-full rounded-md border-white/10 shadow-sm input-crystal sm:text-sm p-2 border" placeholder="John">
                     </div>
                     <div>
                         <label for="last_name" class="block text-sm font-medium text-gray-300">Last Name <span class="text-red-500">*</span></label>
-                        <input type="text" name="last_name" id="last_name" required value="{{ old('last_name') }}" class="mt-1 block w-full rounded-md border-white/10 shadow-sm input-crystal sm:text-sm p-2 border" placeholder="Doe">
+                        <input type="text" name="last_name" id="last_name" required value="{{ old('last_name', request('last_name')) }}" class="mt-1 block w-full rounded-md border-white/10 shadow-sm input-crystal sm:text-sm p-2 border" placeholder="Doe">
                     </div>
                     <div>
                         <label for="phone" class="block text-sm font-medium text-gray-300">Phone Number <span class="text-red-500">*</span></label>
-                        <input type="tel" name="phone" id="phone" required maxlength="14" value="{{ old('phone') }}" class="mt-1 block w-full rounded-md border-white/10 shadow-sm input-crystal sm:text-sm p-2 border" placeholder="(555) 123-4567">
+                        <input type="tel" name="phone" id="phone" required maxlength="14" value="{{ old('phone', request('phone')) }}" class="mt-1 block w-full rounded-md border-white/10 shadow-sm input-crystal sm:text-sm p-2 border" placeholder="(555) 123-4567">
                         <div id="customer-status" class="mt-2 text-sm h-5"></div>
                     </div>
                 </div>
@@ -163,7 +166,7 @@
                 <div class="space-y-4">
                     <div>
                         <label for="street_address" class="block text-sm font-medium text-gray-300">Street</label>
-                        <input type="text" name="street_address" id="street_address" maxlength="255" value="{{ old('street_address') }}" class="mt-1 block w-full rounded-md border-white/10 shadow-sm input-crystal sm:text-sm p-2 border" placeholder="e.g. 123 Main St">
+                        <input type="text" name="street_address" id="street_address" maxlength="255" value="{{ old('street_address', request('street_address')) }}" class="mt-1 block w-full rounded-md border-white/10 shadow-sm input-crystal sm:text-sm p-2 border" placeholder="e.g. 123 Main St">
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -180,7 +183,7 @@
                     </div>
                     <div>
                         <label for="notes" class="block text-sm font-medium text-gray-300">Notes</label>
-                        <input type="text" name="notes" id="notes" maxlength="1000" value="{{ old('notes') }}" class="mt-1 block w-full rounded-md border-white/10 shadow-sm input-crystal sm:text-sm p-2 border" placeholder="e.g. Flat tire, driver side rear">
+                        <input type="text" name="notes" id="notes" maxlength="1000" value="{{ old('notes', request('notes')) }}" class="mt-1 block w-full rounded-md border-white/10 shadow-sm input-crystal sm:text-sm p-2 border" placeholder="e.g. Flat tire, driver side rear">
                     </div>
                 </div>
             </div>
@@ -254,7 +257,7 @@
         <div class="relative inline-block align-bottom surface-2 rounded-lg text-left overflow-hidden transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
             <div class="surface-2 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div class="sm:flex sm:items-start">
-                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full border border-cyan-400/30 bg-cyan-500/10 sm:mx-0 sm:h-10 sm:w-10">
+                    <div class="mx-auto shrink-0 flex items-center justify-center h-12 w-12 rounded-full border border-cyan-400/30 bg-cyan-500/10 sm:mx-0 sm:h-10 sm:w-10">
                         <svg class="h-6 w-6 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>

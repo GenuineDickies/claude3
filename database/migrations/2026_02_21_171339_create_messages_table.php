@@ -17,7 +17,7 @@ return new class extends Migration
 
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('service_request_id')->nullable()->constrained()->nullOnDelete();
+            $table->unsignedBigInteger('service_request_id')->nullable();
             $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
             $table->enum('direction', ['inbound', 'outbound']);
             $table->text('body')->nullable();
@@ -26,6 +26,13 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('direction');
+
+            if (Schema::hasTable('service_requests')) {
+                $table->foreign('service_request_id')
+                    ->references('id')
+                    ->on('service_requests')
+                    ->nullOnDelete();
+            }
         });
     }
 

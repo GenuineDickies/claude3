@@ -1,0 +1,20 @@
+#!/bin/bash
+set -euo pipefail
+
+DB_NAME="claude3_local"
+DB_USER="claude3_app"
+DB_HOST="127.0.0.1"
+MYSQL_ADMIN_USER="${MYSQL_ADMIN_USER:-root}"
+MYSQL_ADMIN_PASSWORD="${MYSQL_ADMIN_PASSWORD:-}"
+
+MYSQL_CMD=(mysql -u "$MYSQL_ADMIN_USER")
+if [[ -n "$MYSQL_ADMIN_PASSWORD" ]]; then
+	MYSQL_CMD+=("-p$MYSQL_ADMIN_PASSWORD")
+fi
+
+"${MYSQL_CMD[@]}" -e "DROP DATABASE IF EXISTS \`${DB_NAME}\`;"
+"${MYSQL_CMD[@]}" -e "CREATE DATABASE \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+"${MYSQL_CMD[@]}" -e "GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_USER}'@'${DB_HOST}';"
+"${MYSQL_CMD[@]}" -e "FLUSH PRIVILEGES;"
+
+echo "RESET_DB_OK:${DB_NAME}"

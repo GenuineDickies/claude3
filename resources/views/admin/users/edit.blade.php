@@ -29,7 +29,7 @@
         <form method="POST" action="{{ route('admin.users.update', $managedUser) }}" class="space-y-6"
               x-data='{
                   selectedRoleIds: @json(array_map("strval", old("role_ids", $managedUser->roles->pluck("id")->map(fn ($id) => (string) $id)->all()))),
-                  status: @js(old("status", $managedUser->status)),
+                  status: @json(old("status", $managedUser->status)),
                   requirements: @json($roleRequirements),
                   requiresMobilePhone() { return this.selectedRoleIds.some((id) => this.requirements[id] && this.requirements[id].phone); },
                   requiresSmsConsent() { return this.selectedRoleIds.some((id) => this.requirements[id] && this.requirements[id].smsConsent); }

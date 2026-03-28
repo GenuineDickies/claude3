@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('warranties', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('service_request_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('service_request_id');
             $table->string('part_name');
             $table->string('part_number')->nullable();
             $table->string('vendor_name')->nullable();
@@ -24,6 +24,13 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('warranty_expires_at');
+
+            if (Schema::hasTable('service_requests')) {
+                $table->foreign('service_request_id')
+                    ->references('id')
+                    ->on('service_requests')
+                    ->cascadeOnDelete();
+            }
         });
     }
 

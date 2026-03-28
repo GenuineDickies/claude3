@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('service_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('service_request_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('service_request_id');
             $table->string('event', 50); // status_change, note, photo_uploaded, signature_captured, payment_collected, etc.
             $table->json('details')->nullable();
             $table->foreignId('logged_by')->nullable()->constrained('users')->nullOnDelete();
@@ -18,6 +18,13 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('service_request_id');
+
+            if (Schema::hasTable('service_requests')) {
+                $table->foreign('service_request_id')
+                    ->references('id')
+                    ->on('service_requests')
+                    ->cascadeOnDelete();
+            }
         });
     }
 

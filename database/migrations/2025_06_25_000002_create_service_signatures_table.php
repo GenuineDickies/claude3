@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('service_signatures', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('service_request_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('service_request_id');
             $table->longText('signature_data'); // base64 PNG
             $table->string('signer_name', 200);
             $table->string('ip_address', 45)->nullable();
@@ -21,6 +21,13 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('service_request_id');
+
+            if (Schema::hasTable('service_requests')) {
+                $table->foreign('service_request_id')
+                    ->references('id')
+                    ->on('service_requests')
+                    ->cascadeOnDelete();
+            }
         });
     }
 

@@ -51,6 +51,7 @@ class StoreServiceRequestRequest extends FormRequest
             'last_name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
             'customer_action' => 'required|in:use_existing,create_new',
+            'lead_id' => 'nullable|integer|exists:leads,id',
             'vehicle_year' => 'required|string|digits:4',
             'vehicle_make' => 'required|string|max:100',
             'vehicle_model' => 'required|string|max:100',

@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('payment_records', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('service_request_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('service_request_id');
             $table->string('method', 30); // cash, card, venmo, zelle, check, other
             $table->decimal('amount', 10, 2);
             $table->string('reference', 200)->nullable(); // transaction ID, check #, etc.
@@ -20,6 +20,13 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('service_request_id');
+
+            if (Schema::hasTable('service_requests')) {
+                $table->foreign('service_request_id')
+                    ->references('id')
+                    ->on('service_requests')
+                    ->cascadeOnDelete();
+            }
         });
     }
 

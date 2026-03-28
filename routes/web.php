@@ -20,6 +20,7 @@ use App\Http\Controllers\EstimateApprovalController;
 use App\Http\Controllers\EstimateController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LocationShareController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\MessageTemplateController;
@@ -156,6 +157,14 @@ Route::middleware(['auth', 'active-user', 'page-access'])->group(function () {
     Route::get('/service-requests', [ServiceRequestController::class, 'index'])->name('service-requests.index');
 
     // Customers
+    Route::get('/leads', [LeadController::class, 'index'])->name('leads.index');
+    Route::get('/leads/create', [LeadController::class, 'create'])->name('leads.create');
+    Route::post('/leads', [LeadController::class, 'store'])->name('leads.store');
+    Route::get('/leads/{lead}', [LeadController::class, 'show'])->name('leads.show');
+    Route::put('/leads/{lead}', [LeadController::class, 'update'])->name('leads.update');
+    Route::delete('/leads/{lead}', [LeadController::class, 'destroy'])->name('leads.destroy');
+    Route::post('/leads/{lead}/start-intake', [LeadController::class, 'startIntake'])->name('leads.start-intake');
+
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
     Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
     Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');

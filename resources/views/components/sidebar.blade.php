@@ -212,6 +212,13 @@
         {{-- CUSTOMERS --}}
         <p class="text-[11px] uppercase tracking-wider text-gray-500 font-semibold px-3 mb-1 mt-4">Customers</p>
 
+        <a href="{{ route('leads.index') }}"
+           class="sidebar-nav-item {{request()->routeIs('leads.*') ? 'sidebar-nav-item-active' : '' }}">
+            {{-- Heroicon: user-plus --}}
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5h3m0 0v3m0-3-3 3M15 18.75a6 6 0 1 0-12 0m12 0h6m-6 0a6 6 0 1 1 6 0M9 12a3.75 3.75 0 1 0 0-7.5A3.75 3.75 0 0 0 9 12Z"/></svg>
+            Inbound Queue
+        </a>
+
         @if (Route::has('customers.index'))
             <a href="{{ route('customers.index') }}"
                class="sidebar-nav-item {{request()->routeIs('customers.*') ? 'sidebar-nav-item-active' : '' }}">
