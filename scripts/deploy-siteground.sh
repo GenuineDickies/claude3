@@ -93,12 +93,17 @@ done
 echo
 
 if [[ -z "$DRY_RUN" ]]; then
-  read -r -p "Proceed with deploy? [y/N]: " confirm
-  if [[ "${confirm,,}" != "y" ]]; then
-    echo "Aborted."
-    exit 0
+  if [[ "${AUTO_YES:-}" == "1" ]]; then
+    echo "Proceed with deploy? [y/N]: y (AUTO_YES=1)"
+    echo
+  else
+    read -r -p "Proceed with deploy? [y/N]: " confirm
+    if [[ "${confirm,,}" != "y" ]]; then
+      echo "Aborted."
+      exit 0
+    fi
+    echo
   fi
-  echo
 fi
 
 # ---------------------------------------------------------------------------
