@@ -34,8 +34,6 @@ SYNC_DIRS=(
   bootstrap
   config
   database
-  public/build
-  public/images
   resources
   routes
 )
@@ -125,6 +123,11 @@ echo "Syncing build assets to root-level build/ (flat hosting layout) ..."
 rsync -az --delete $DRY_RUN \
   -e ssh \
   "$ROOT_DIR/public/build/" "$SSH_ALIAS:~/$REMOTE_APP/build/"
+
+echo "Syncing public images to root-level images/ (flat hosting layout) ..."
+rsync -az --delete $DRY_RUN \
+  -e ssh \
+  "$ROOT_DIR/public/images/" "$SSH_ALIAS:~/$REMOTE_APP/images/"
 
 # ---------------------------------------------------------------------------
 # Sync individual root files (no --delete, just overwrite)
