@@ -3,8 +3,8 @@ set -euo pipefail
 
 # Deploy the Laravel app to SiteGround shared hosting.
 #
-# The live app is at: ~/www/wkrllc.com/public_html/webhook-proxy/
-# URL: https://wkrllc.com/webhook-proxy/
+# The live app is at: ~/www/application.wkrllc.com/public_html/
+# URL: https://application.wkrllc.com/
 #
 # This script ONLY syncs application code directories into the deploy
 # target. It never touches .env, vendor/, storage/, or hosting paths
@@ -15,7 +15,7 @@ set -euo pipefail
 #   bash scripts/deploy-siteground.sh --dry-run  # preview only
 
 SSH_ALIAS="siteground"
-REMOTE_APP="www/wkrllc.com/public_html/webhook-proxy"
+REMOTE_APP="www/application.wkrllc.com/public_html"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 DRY_RUN=""
@@ -160,4 +160,4 @@ ssh "$SSH_ALIAS" "cd ~/$REMOTE_APP && php artisan config:cache && php artisan ro
 
 echo
 echo "=== Deploy complete ==="
-echo "Live at: https://wkrllc.com/webhook-proxy/"
+echo "Live at: https://application.wkrllc.com/"

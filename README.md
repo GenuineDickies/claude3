@@ -94,6 +94,15 @@ Or:
 composer test
 ```
 
+Coverage in WSL (minimum 85%):
+
+```bash
+bash scripts/setup_wsl_coverage.sh
+bash scripts/test_coverage_wsl.sh 85
+```
+
+CI enforces the same minimum coverage threshold using PCOV.
+
 Documentation-backed testing rules:
 
 - Feature tests must not depend on live third-party services.

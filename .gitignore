@@ -38,6 +38,11 @@ dev-debug.log
 # Dependency directories
 node_modules/
 # Environment variables
+.ssh/
+/C:*/
+/C*/
+/public/C:*/
+/public/C*/
 # Editor directories and files
 .idea
 .vscode
