@@ -269,6 +269,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         customerCheckResolved = true;
         updateNextButtonState();
+        showStep(2);
     });
 
     // "No, New Customer"
