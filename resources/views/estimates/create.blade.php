@@ -31,9 +31,9 @@
             <div class="rounded-[2rem] border border-white/20 bg-slate-950/95 shadow-2xl shadow-cyan-500/10 overflow-hidden">
                 <div class="grid gap-6 lg:grid-cols-[1.5fr_0.95fr] p-6 sm:p-8 border-b border-white/20 bg-slate-950/95">
                     <div class="space-y-5">
-                        <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-5">
-                            <div class="flex items-center gap-4">
-                                <div class="flex h-12 w-12 items-center justify-center rounded-3xl bg-cyan-500/10 text-cyan-300">
+<div class="rounded-3xl border border-cyan-500/20 bg-linear-to-br from-slate-900/95 via-slate-950/95 to-slate-900/95 p-5 shadow-2xl shadow-cyan-500/10">
+                    <div class="flex items-center gap-4">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-3xl bg-cyan-500/15 text-cyan-300 shadow-inner shadow-cyan-500/10">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
                                 </div>
                                 <div>
@@ -115,7 +115,7 @@
                 <div class="px-6 pb-8 pt-8 sm:px-8">
                     <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                         <div>
-                            <h2 class="text-lg font-semibold text-white">Line items</h2>
+                            <h2 class="text-xl font-bold text-white">Line items</h2>
                             <p class="mt-1 text-sm text-gray-300">Add products or services from your catalog or create a blank line item.</p>
                         </div>
                         <div class="flex flex-wrap gap-3">
@@ -123,9 +123,9 @@
                         </div>
                     </div>
 
-                    <div class="mt-6 overflow-hidden rounded-[1.75rem] border border-white/20 bg-slate-900/80">
+                    <div class="mt-6 overflow-hidden rounded-[1.75rem] border border-cyan-500/20 bg-slate-900/90 shadow-inner shadow-cyan-500/5">
                         <template x-if="items.length === 0">
-                            <div class="px-6 py-16 text-center text-gray-300">
+                            <div class="px-6 py-16 text-center text-gray-200">
                                 <svg class="mx-auto mb-4 h-10 w-10 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
                                 <p class="text-base font-medium text-white">No items yet</p>
                                 <p class="mt-1 text-sm">Select an item from the catalog or add a blank line item to begin.</p>
@@ -220,7 +220,7 @@
             <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <a href="{{ route('service-requests.show', $serviceRequest) }}" class="text-sm text-gray-300 hover:text-cyan-300 transition">&larr; Cancel</a>
                 <button type="submit" x-bind:disabled="items.length === 0"
-                        class="inline-flex items-center justify-center rounded-full border border-cyan-500/30 bg-linear-to-r from-cyan-500 to-blue-500 px-8 py-3 text-base font-bold text-white transition hover:from-cyan-400 hover:to-blue-400 disabled:cursor-not-allowed disabled:opacity-50 shadow-xl shadow-cyan-500/20">
+                        class="inline-flex items-center justify-center rounded-full border border-cyan-500/40 bg-linear-to-r from-cyan-500 to-blue-500 px-8 py-3 text-base font-bold text-white transition hover:from-cyan-400 hover:to-blue-400 disabled:cursor-not-allowed disabled:opacity-50 shadow-2xl shadow-cyan-500/30">
                     Create Estimate
                 </button>
             </div>

@@ -83,7 +83,7 @@
 
                 <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <button type="button" @click="addBlankItem()"
-                            class="inline-flex items-center justify-center rounded-full border border-cyan-500/30 bg-linear-to-r from-slate-900 to-cyan-500 px-4 py-2 text-sm font-bold text-white transition hover:from-cyan-400 hover:to-blue-400 shadow-md">
+                            class="inline-flex items-center justify-center rounded-full border border-cyan-500/40 bg-linear-to-r from-cyan-500 to-blue-500 px-4 py-2 text-sm font-bold text-white uppercase tracking-[0.08em] transition hover:from-cyan-400 hover:to-blue-400 shadow-lg shadow-cyan-500/20">
                         Add blank line item
                     </button>
                     <p class="text-xs text-gray-500">Selected item will be added to the estimate and the modal will close.</p>
