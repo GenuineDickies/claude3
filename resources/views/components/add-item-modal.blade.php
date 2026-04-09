@@ -61,7 +61,7 @@
                                     </div>
                                     <div class="mt-4 flex items-center justify-between gap-3">
                                         <button type="button" @click="select(item)"
-                                                class="inline-flex items-center justify-center rounded-full bg-linear-to-r from-cyan-500 to-blue-500 px-4 py-2 text-sm font-bold text-white transition hover:from-cyan-400 hover:to-blue-400 shadow-md">
+                                                class="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-100 shadow-lg shadow-cyan-500/20">
                                             Add item
                                         </button>
                                     </div>
