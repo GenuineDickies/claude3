@@ -5,11 +5,11 @@
     <div class="space-y-6">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div class="space-y-2">
-                <p class="text-sm text-gray-400">Service Request #{{ $serviceRequest->id }}</p>
+                <p class="text-sm text-gray-300">Service Request #{{ $serviceRequest->id }}</p>
                 <h1 class="text-3xl font-semibold text-white">Edit Estimate</h1>
-                <p class="max-w-2xl text-sm text-gray-400">Refine this estimate with updated items, tax settings, and notes before saving.</p>
+                <p class="max-w-2xl text-sm text-gray-300">Refine this estimate with updated items, tax settings, and notes before saving.</p>
             </div>
-            <a href="{{ route('service-requests.show', $serviceRequest) }}" class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-900/80 px-4 py-2 text-sm text-cyan-300 transition hover:border-cyan-500/40 hover:bg-slate-900">
+            <a href="{{ route('service-requests.show', $serviceRequest) }}" class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-slate-900/80 px-4 py-2 text-sm text-cyan-300 transition hover:border-cyan-500/40 hover:bg-slate-900">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                 Back to ticket
             </a>
@@ -219,9 +219,9 @@
             </div>
 
             <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <a href="{{ route('service-requests.show', $serviceRequest) }}" class="text-sm text-gray-400 hover:text-cyan-300">&larr; Cancel</a>
+                <a href="{{ route('service-requests.show', $serviceRequest) }}" class="text-sm text-gray-300 hover:text-cyan-300 transition">&larr; Cancel</a>
                 <button type="submit" x-bind:disabled="items.length === 0"
-                        class="inline-flex items-center justify-center rounded-full bg-cyan-500 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-50">
+                        class="inline-flex items-center justify-center rounded-full bg-linear-to-r from-cyan-500 to-blue-500 px-8 py-3 text-base font-bold text-white transition hover:from-cyan-400 hover:to-blue-400 disabled:cursor-not-allowed disabled:opacity-50 shadow-lg hover:shadow-cyan-500/50">
                     Save Changes
                 </button>
             </div>
