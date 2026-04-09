@@ -2,8 +2,7 @@
 
 <div x-data="addItemModal()" class="relative">
     <button type="button" @click="open()"
-            class="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-cyan-500 to-blue-500 px-4 py-2 text-sm font-bold text-white transition hover:from-cyan-400 hover:to-blue-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 shadow-md"
-
+            class="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-cyan-500 to-blue-500 px-5 py-3 text-sm font-bold text-white transition hover:from-cyan-400 hover:to-blue-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 shadow-lg">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
         Add item
     </button>
@@ -84,7 +83,7 @@
 
                 <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <button type="button" @click="addBlankItem()"
-                            class="inline-flex items-center justify-center rounded-full border border-white/10 bg-slate-900/80 px-4 py-2 text-sm font-semibold text-gray-200 transition hover:border-cyan-500/40 hover:bg-slate-900/95">
+                            class="inline-flex items-center justify-center rounded-full border border-cyan-500/30 bg-linear-to-r from-slate-900 to-cyan-500 px-4 py-2 text-sm font-bold text-white transition hover:from-cyan-400 hover:to-blue-400 shadow-md">
                         Add blank line item
                     </button>
                     <p class="text-xs text-gray-500">Selected item will be added to the estimate and the modal will close.</p>

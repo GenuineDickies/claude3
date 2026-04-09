@@ -5,11 +5,11 @@
     <div class="space-y-6">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div class="space-y-2">
-                <p class="text-sm text-gray-400">Service Request #{{ $serviceRequest->id }}</p>
+                <p class="text-sm text-gray-300">Service Request #{{ $serviceRequest->id }}</p>
                 <h1 class="text-3xl font-semibold text-white">Create Estimate</h1>
-                <p class="max-w-2xl text-sm text-gray-400">Build a polished estimate with a clean line items table, quick catalog selection, and responsive totals summary.</p>
+                <p class="max-w-2xl text-sm text-gray-300">Build a polished estimate with a clean line items table, quick catalog selection, and responsive totals summary.</p>
             </div>
-            <a href="{{ route('service-requests.show', $serviceRequest) }}" class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-900/80 px-4 py-2 text-sm text-cyan-300 transition hover:border-cyan-500/40 hover:bg-slate-900">
+            <a href="{{ route('service-requests.show', $serviceRequest) }}" class="inline-flex items-center gap-2 rounded-full border border-cyan-500/40 bg-slate-900/95 px-5 py-3 text-sm font-semibold text-cyan-100 transition hover:border-cyan-300 hover:bg-slate-900">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                 Back to ticket
             </a>
@@ -28,8 +28,8 @@
         <form action="{{ route('estimates.store', $serviceRequest) }}" method="POST" @submit="prepareSubmit" x-data="estimateForm()" @catalog-item-selected.window="addCatalogItem($event.detail)">
             @csrf
 
-            <div class="rounded-[2rem] border border-white/10 bg-slate-950/90 shadow-2xl overflow-hidden">
-                <div class="grid gap-6 lg:grid-cols-[1.5fr_0.95fr] p-6 sm:p-8 border-b border-white/10 bg-slate-950/90">
+            <div class="rounded-[2rem] border border-white/20 bg-slate-950/95 shadow-2xl shadow-cyan-500/10 overflow-hidden">
+                <div class="grid gap-6 lg:grid-cols-[1.5fr_0.95fr] p-6 sm:p-8 border-b border-white/20 bg-slate-950/95">
                     <div class="space-y-5">
                         <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-5">
                             <div class="flex items-center gap-4">
@@ -220,7 +220,7 @@
             <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <a href="{{ route('service-requests.show', $serviceRequest) }}" class="text-sm text-gray-300 hover:text-cyan-300 transition">&larr; Cancel</a>
                 <button type="submit" x-bind:disabled="items.length === 0"
-                        class="inline-flex items-center justify-center rounded-full bg-linear-to-r from-cyan-500 to-blue-500 px-8 py-3 text-base font-bold text-white transition hover:from-cyan-400 hover:to-blue-400 disabled:cursor-not-allowed disabled:opacity-50 shadow-lg hover:shadow-cyan-500/50">
+                        class="inline-flex items-center justify-center rounded-full border border-cyan-500/30 bg-linear-to-r from-cyan-500 to-blue-500 px-8 py-3 text-base font-bold text-white transition hover:from-cyan-400 hover:to-blue-400 disabled:cursor-not-allowed disabled:opacity-50 shadow-xl shadow-cyan-500/20">
                     Create Estimate
                 </button>
             </div>
