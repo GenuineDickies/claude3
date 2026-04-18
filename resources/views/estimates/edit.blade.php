@@ -9,7 +9,7 @@
                 <h1 class="text-3xl font-semibold text-white">Edit Estimate</h1>
                 <p class="max-w-2xl text-sm text-gray-300">Refine this estimate with updated items, tax settings, and notes before saving.</p>
             </div>
-            <a href="{{ route('service-requests.show', $serviceRequest) }}" class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-slate-900/80 px-4 py-2 text-sm text-cyan-300 transition hover:border-cyan-500/40 hover:bg-slate-900">
+            <a href="{{ route('service-requests.show', $serviceRequest) }}" class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-slate-800/80 px-4 py-2 text-sm text-cyan-300 transition hover:border-cyan-500/40 hover:bg-slate-800">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                 Back to ticket
             </a>
@@ -29,10 +29,10 @@
             @csrf
             @method('PUT')
 
-            <div class="rounded-[2rem] border border-white/10 bg-slate-950/90 shadow-2xl overflow-hidden">
-                <div class="grid gap-6 lg:grid-cols-[1.5fr_0.95fr] p-6 sm:p-8 border-b border-white/10 bg-slate-950/90">
+            <div class="rounded-[2rem] border border-white/10 bg-slate-800/90 shadow-2xl shadow-cyan-500/20 overflow-hidden">
+                <div class="grid gap-6 lg:grid-cols-[1.5fr_0.95fr] p-6 sm:p-8 border-b border-white/10 bg-slate-800/90">
                     <div class="space-y-5">
-                        <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-5">
+                        <div class="rounded-3xl border border-white/10 bg-slate-800/90 p-5 shadow-xl shadow-cyan-500/10">
                             <div class="flex items-center gap-4">
                                 <div class="flex h-12 w-12 items-center justify-center rounded-3xl bg-cyan-500/10 text-cyan-300">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -45,7 +45,7 @@
                         </div>
 
                         <div class="grid gap-4 sm:grid-cols-2">
-                            <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-5">
+                            <div class="rounded-3xl border border-white/10 bg-slate-800/80 p-5">
                                 <p class="text-xs uppercase tracking-[0.24em] text-gray-500">Client</p>
                                 <p class="mt-3 text-sm text-gray-300 font-medium">
                                     @if($serviceRequest->customer)
@@ -61,7 +61,7 @@
                                     <p class="mt-3 text-sm text-gray-400">{{ $serviceRequest->location }}</p>
                                 @endif
                             </div>
-                            <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-5">
+                            <div class="rounded-3xl border border-white/10 bg-slate-800/80 p-5">
                                 <p class="text-xs uppercase tracking-[0.24em] text-gray-500">Estimate details</p>
                                 <div class="mt-3 space-y-3 text-sm text-gray-300">
                                     <div class="flex items-center justify-between gap-4">
@@ -81,7 +81,7 @@
                         </div>
                     </div>
 
-                    <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-5">
+                    <div class="rounded-3xl border border-white/10 bg-slate-800/80 p-5">
                         <div class="flex items-start justify-between gap-4">
                             <div>
                                 <p class="text-xs uppercase tracking-[0.24em] text-gray-500">Tax</p>
@@ -92,19 +92,30 @@
                         <div class="mt-5 grid gap-4">
                             <div>
                                 <label for="state_code" class="block text-sm font-medium text-gray-300 mb-1">State</label>
-                                <select id="state_code" name="state_code" x-model="stateCode" @change="fetchTaxRate"
-                                        class="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30">
-                                    <option value="">— Select State —</option>
-                                    @foreach(\App\Models\StateTaxRate::stateList() as $code => $name)
-                                        <option value="{{ $code }}" @selected(old('state_code', $estimate->state_code) === $code)>{{ $name }} ({{ $code }})</option>
-                                    @endforeach
-                                </select>
+                                <div x-data="{ open: false, options: @js(\App\Models\StateTaxRate::stateList()) }" class="relative">
+                                    <input type="hidden" name="state_code" :value="stateCode" />
+                                    <button type="button" @click="open = !open" @keydown.escape="open = false"
+                                            class="w-full rounded-2xl border border-slate-600/60 bg-slate-950/60 px-4 py-3 text-sm text-white text-left flex items-center justify-between focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30">
+                                        <span x-text="stateCode ? options[stateCode] + ' (' + stateCode + ')' : '— Select State —'" :class="stateCode ? 'text-white' : 'text-gray-400'"></span>
+                                        <svg class="w-4 h-4 text-gray-400 ml-2 shrink-0 transition-transform" :class="open && 'rotate-180'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                    </button>
+                                    <div x-show="open" x-cloak @click.outside="open = false"
+                                         class="absolute z-50 mt-2 w-full max-h-64 overflow-y-auto rounded-2xl border border-slate-600/60 bg-slate-950 shadow-xl shadow-black/60 py-1">
+                                        <button type="button" @click="stateCode = ''; fetchTaxRate(); open = false"
+                                                class="w-full px-4 py-2 text-sm text-left text-gray-400 hover:bg-slate-800 hover:text-white transition">— Select State —</button>
+                                        @foreach(\App\Models\StateTaxRate::stateList() as $code => $name)
+                                            <button type="button" @click="stateCode = '{{ $code }}'; fetchTaxRate(); open = false"
+                                                    class="w-full px-4 py-2 text-sm text-left text-white hover:bg-slate-800 hover:text-cyan-300 transition"
+                                                    :class="stateCode === '{{ $code }}' && 'bg-slate-800 text-cyan-300'">{{ $name }} ({{ $code }})</button>
+                                        @endforeach
+                                    </div>
+                                </div>
                             </div>
                             <div>
                                 <label for="tax_rate" class="block text-sm font-medium text-gray-300 mb-1">Tax rate (%)</label>
                                 <input type="number" id="tax_rate" name="tax_rate" x-model.number="taxRate" step="0.0001" min="0" max="100"
                                        @input="recalculate"
-                                       class="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30" />
+                                       class="w-full rounded-2xl border border-slate-600/60 bg-slate-950/60 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30" />
                             </div>
                             <p class="text-xs text-green-400" x-show="taxRateFromDb" x-cloak>
                                 Rate loaded from saved state tax rates.
@@ -124,7 +135,7 @@
                         </div>
                     </div>
 
-                    <div class="mt-6 overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-900/80">
+<div class="mt-6 overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-800/90 shadow-inner shadow-white/5">
                         <template x-if="items.length === 0">
                             <div class="px-6 py-16 text-center text-gray-400">
                                 <svg class="mx-auto mb-4 h-10 w-10 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
@@ -135,7 +146,7 @@
 
                         <div x-show="items.length > 0" class="overflow-x-auto">
                             <table class="w-full border-separate border-spacing-0 text-sm">
-                                <thead class="bg-slate-950/90 text-left text-xs uppercase tracking-[0.24em] text-gray-400">
+                                <thead class="bg-slate-800/90 text-left text-xs uppercase tracking-[0.24em] text-gray-400 border-b border-white/10">
                                     <tr>
                                         <th class="px-5 py-4">Item</th>
                                         <th class="px-5 py-4 text-right">Unit price</th>
@@ -147,31 +158,40 @@
                                 </thead>
                                 <tbody>
                                     <template x-for="(item, index) in items" :key="index">
-                                        <tr class="border-t border-white/10 even:bg-slate-950/80">
+                                        <tr class="border-t border-white/10 even:bg-slate-800/80 hover:bg-slate-800/70 transition">
                                             <td class="px-5 py-4 align-top">
                                                 <div class="space-y-2">
                                                     <input type="text" x-model="item.name" required placeholder="Item name"
-                                                           class="w-full rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-sm text-white focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20" />
+                                                           class="w-full rounded-2xl border border-slate-600/60 bg-slate-950/60 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20" />
                                                     <input type="text" x-model="item.description" placeholder="Description (optional)"
-                                                           class="w-full rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-xs text-gray-400 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20" />
+                                                           class="w-full rounded-2xl border border-slate-600/60 bg-slate-950/60 px-3 py-2 text-xs text-gray-400 placeholder:text-slate-600 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20" />
                                                 </div>
                                             </td>
                                             <td class="px-5 py-4 align-top">
                                                 <input type="number" x-model.number="item.unit_price" step="0.01" min="0" required @input="recalculate"
-                                                       class="w-full rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-sm text-right text-white focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20" />
+                                                       class="w-full rounded-2xl border border-slate-600/60 bg-slate-950/60 px-3 py-2 text-sm text-right text-white focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20" />
                                             </td>
                                             <td class="px-5 py-4 align-top">
                                                 <input type="number" x-model.number="item.quantity" step="0.01" min="0.01" required @input="recalculate"
-                                                       class="w-full rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-sm text-center text-white focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20" />
+                                                       class="w-full rounded-2xl border border-slate-600/60 bg-slate-950/60 px-3 py-2 text-sm text-center text-white focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20" />
                                             </td>
                                             <td class="px-5 py-4 align-top">
-                                                <select x-model="item.unit"
-                                                        class="w-full rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-sm text-white focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20">
-                                                    <option value="each">Each</option>
-                                                    <option value="mile">Mile</option>
-                                                    <option value="hour">Hour</option>
-                                                    <option value="gallon">Gallon</option>
-                                                </select>
+                                                <div x-data="{ open: false }" class="relative">
+                                                    <button type="button" @click="open = !open" @keydown.escape="open = false"
+                                                            class="w-full rounded-2xl border border-slate-600/60 bg-slate-950/60 px-3 py-2 text-sm text-white text-left flex items-center justify-between focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20">
+                                                        <span x-text="item.unit ? item.unit.charAt(0).toUpperCase() + item.unit.slice(1) : 'Each'"></span>
+                                                        <svg class="w-3 h-3 text-gray-400 ml-1 shrink-0 transition-transform" :class="open && 'rotate-180'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                                    </button>
+                                                    <div x-show="open" x-cloak @click.outside="open = false"
+                                                         class="absolute z-50 mt-1 w-full rounded-2xl border border-slate-600/60 bg-slate-950 shadow-xl shadow-black/60 py-1">
+                                                        <template x-for="opt in ['each','mile','hour','gallon']" :key="opt">
+                                                            <button type="button" @click="item.unit = opt; open = false"
+                                                                    class="w-full px-3 py-2 text-sm text-left text-white hover:bg-slate-800 hover:text-cyan-300 transition capitalize"
+                                                                    :class="item.unit === opt && 'bg-slate-800 text-cyan-300'"
+                                                                    x-text="opt.charAt(0).toUpperCase() + opt.slice(1)"></button>
+                                                        </template>
+                                                    </div>
+                                                </div>
                                             </td>
                                             <td class="px-5 py-4 text-right align-top">
                                                 <span class="text-sm font-semibold text-white" x-text="formatCurrency(item.unit_price * item.quantity)"></span>
@@ -191,13 +211,13 @@
 
                     <div class="mt-6 grid gap-6 lg:grid-cols-[1fr_0.95fr]">
                         <div>
-                            <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-5">
+                            <div class="rounded-3xl border border-white/10 bg-slate-800/80 p-5">
                                 <label for="notes" class="block text-sm font-medium text-gray-300 mb-2">Notes</label>
                                 <textarea id="notes" name="notes" rows="4" placeholder="Optional notes for this estimate..."
-                                          class="w-full resize-none rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-3 text-sm text-white focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20">{{ old('notes', $estimate->notes) }}</textarea>
+                                          class="w-full resize-none rounded-2xl border border-slate-600/60 bg-slate-950/60 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20">{{ old('notes', $estimate->notes) }}</textarea>
                             </div>
                         </div>
-                        <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-5">
+                        <div class="rounded-3xl border border-white/10 bg-slate-800/95 p-6 shadow-inner shadow-white/5">
                             <p class="text-sm uppercase tracking-[0.24em] text-gray-500">Totals</p>
                             <div class="mt-4 space-y-3 text-sm text-gray-300">
                                 <div class="flex items-center justify-between">
