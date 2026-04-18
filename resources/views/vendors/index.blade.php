@@ -1,7 +1,18 @@
+{{--
+  Vendors — vendors.index
+  Controller vars: $vendors (paginator), $currentSearch, $currentActive
+  Features preserved:
+    - Add Vendor button
+    - Filters: search (name/contact/email), Status (active/inactive)
+    - Clear filters link (conditional)
+    - Table cols: Name (link), Contact, Phone, Status badge, View action
+    - Empty state
+    - Pagination
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Header --}}
     <div class="flex items-center justify-between">

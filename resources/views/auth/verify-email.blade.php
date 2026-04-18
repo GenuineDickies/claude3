@@ -1,3 +1,12 @@
+{{--
+    PUBLIC-FACING VERIFY EMAIL PAGE
+    Preserved features:
+      - Layout: <x-guest-layout> (narrow centered card; do NOT widen)
+      - Intro copy prompting email verification
+      - Conditional success banner when session('status') == 'verification-link-sent'
+      - Resend form: POST to route('verification.send') with @csrf + <x-primary-button>
+      - Logout form: POST to route('logout') with @csrf + submit button
+--}}
 <x-guest-layout>
     <div class="mb-4 text-sm text-gray-400">
         {{ __('Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn\'t receive the email, we will gladly send you another.') }}

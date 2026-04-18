@@ -1,12 +1,37 @@
+{{--
+  Invoice Show Page — invoices.show
+  Feature preservation notes:
+    - Breadcrumb back link to service request
+    - Header card with invoice display number, version badge, locked badge, status badge
+    - Created and due_date subtitle
+    - Edit link (draft only, not locked)
+    - Revise form (sent only, not locked)
+    - Status update form (Mark Sent / Mark Paid) via PATCH update-status
+    - Download PDF link
+    - Issue Receipt link (when paid)
+    - Company info card (snapshot name/address/phone/email)
+    - Bill To panel (customer_name, customer_phone, vehicle_description, plate, VIN, service_description, service_location)
+    - Line Items table (name/description/qty/unit/unit_price/amount)
+    - Totals block (subtotal, tax conditional, total due)
+    - Payment Terms section (conditional)
+    - Notes section (conditional)
+    - Version History list (conditional, with status badge and view links)
+    - Documents partial
+    - Back link
+  Layout changes only:
+    - Outer container widened from max-w-3xl to max-w-7xl
+    - Vertical spacing tightened from space-y-6 to space-y-4
+    - All Alpine state, forms, routes, and PHP logic kept intact
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-3xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Breadcrumb --}}
     <a href="{{ route('service-requests.show', $serviceRequest) }}" class="inline-flex items-center text-sm text-gray-500 hover:text-cyan-400">
         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-        Ticket #{{ $serviceRequest->id }}
+        Service Request #{{ $serviceRequest->id }}
     </a>
 
     {{-- Header --}}
@@ -244,7 +269,7 @@
 
     {{-- Back --}}
     <div class="flex gap-3">
-        <a href="{{ route('service-requests.show', $serviceRequest) }}" class="text-sm text-gray-500 hover:text-cyan-400 underline">&larr; Back to Ticket</a>
+        <a href="{{ route('service-requests.show', $serviceRequest) }}" class="text-sm text-gray-500 hover:text-cyan-400 underline">&larr; Back to Service Request</a>
     </div>
 </div>
 @endsection

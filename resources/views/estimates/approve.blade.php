@@ -1,3 +1,15 @@
+{{--
+    PUBLIC-FACING ESTIMATE APPROVAL PAGE
+    Preserved features:
+      - Layout: @extends('layouts.app') with @section('content')
+      - Wrapper: max-w-2xl centered card (intentionally narrow; do NOT widen)
+      - Displays: estimate displayNumber, customer name, line items table, subtotal/tax/total, optional notes
+      - Form POST to route('estimate-approval.store', $estimate->approval_token) with @csrf
+      - Inputs: signer_name (required), hidden signature_data populated from <canvas id="signature-pad">
+      - Error summary via $errors->all()
+      - Dual submit buttons: decision=accepted (Approve) and decision=declined (Decline)
+      - Inline signature-pad JS (mouse + touch events) and clearSignature()
+--}}
 @extends('layouts.app')
 
 @section('content')

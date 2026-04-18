@@ -1,7 +1,22 @@
+{{--
+  Vendor Show Page — vendors.show
+  Feature preservation notes:
+    - Breadcrumb back link to vendors index
+    - Header card with vendor name, contact_name, active/inactive badge
+    - Edit vendor link
+    - New Document link (vendor-documents.create with vendor_id query)
+    - Details dl (phone, email, full address, account_number, payment_terms, default expense account) all conditional
+    - Notes section (conditional)
+    - Recent Documents card with View all link and table (date, type badge, total, status via partial, view link)
+  Layout changes only:
+    - Outer container widened from max-w-3xl to max-w-7xl
+    - Vertical spacing tightened from space-y-6 to space-y-4
+    - All Alpine state, forms, routes, and PHP logic kept intact
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-3xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Breadcrumb --}}
     <a href="{{ route('vendors.index') }}" class="inline-flex items-center text-sm text-gray-500 hover:text-cyan-400">

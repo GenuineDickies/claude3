@@ -43,16 +43,50 @@ class CatalogItem extends Model
         'core_required',
         'core_amount',
         'taxable',
+        'type',
+        'track_inventory',
+        'qty_on_hand',
+        'qty_reserved',
     ];
+
+    public const TYPE_PRODUCT = 'product';
+    public const TYPE_SERVICE = 'service';
 
     protected function casts(): array
     {
         return [
-            'base_cost'     => 'decimal:2',
-            'core_amount'   => 'decimal:2',
-            'is_active'     => 'boolean',
-            'core_required' => 'boolean',
-            'taxable'       => 'boolean',
+            'base_cost'       => 'decimal:2',
+            'core_amount'     => 'decimal:2',
+            'qty_on_hand'     => 'decimal:2',
+            'qty_reserved'    => 'decimal:2',
+            'is_active'       => 'boolean',
+            'core_required'   => 'boolean',
+            'taxable'         => 'boolean',
+            'track_inventory' => 'boolean',
+        ];
+    }
+
+    /** Available stock = on-hand minus what's currently reserved on open work orders. */
+    public function getQtyAvailableAttribute(): float
+    {
+        return (float) $this->qty_on_hand - (float) $this->qty_reserved;
+    }
+
+    public function isProduct(): bool
+    {
+        return $this->type === self::TYPE_PRODUCT;
+    }
+
+    public function isService(): bool
+    {
+        return $this->type === self::TYPE_SERVICE;
+    }
+
+    public static function types(): array
+    {
+        return [
+            self::TYPE_SERVICE => 'Service',
+            self::TYPE_PRODUCT => 'Product',
         ];
     }
 
@@ -97,9 +131,9 @@ class CatalogItem extends Model
     public static function units(): array
     {
         return [
-            'each' => 'Each',
-            'mile' => 'Mile',
-            'hour' => 'Hour',
+            'each'   => 'Each',
+            'mile'   => 'Mile',
+            'hour'   => 'Hour',
             'gallon' => 'Gallon',
         ];
     }

@@ -1,7 +1,8 @@
+{{-- Transaction Imports Show: preserves sub-nav with breadcrumb, bulk accept/reject forms, flash messages, stats+progress bar, collapsible accounting summary, desktop table + mobile cards, per-row accept/reject/edit forms, edit modal with category/account selects, AI summary --}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto space-y-5">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Sub-navigation with breadcrumb --}}
     @include('documents._sub-nav', ['breadcrumb' => Str::limit($document->original_filename, 40)])

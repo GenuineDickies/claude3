@@ -1,3 +1,10 @@
+{{--
+    PUBLIC-FACING CHANGE ORDER EXPIRED PAGE
+    Preserved features:
+      - Layout: @extends('layouts.app') with @section('content')
+      - Wrapper: max-w-xl centered card (intentionally narrow; do NOT widen)
+      - Static "link expired" message directing user to contact dispatch
+--}}
 @extends('layouts.app')
 
 @section('content')

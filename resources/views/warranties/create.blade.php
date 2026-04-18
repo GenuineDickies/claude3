@@ -1,12 +1,17 @@
+{{--
+  Add Warranty — warranties.create
+  Preserved features: CSRF, breadcrumb to service request, part info (name/number),
+  vendor info, warranty period (install_date + months), notes, save + cancel.
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-3xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Breadcrumb --}}
     <a href="{{ route('service-requests.show', $serviceRequest) }}" class="inline-flex items-center text-sm text-gray-500 hover:text-cyan-400">
         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-        Ticket #{{ $serviceRequest->id }}
+        Service Request #{{ $serviceRequest->id }}
     </a>
 
     <h1 class="text-2xl font-bold text-white">Add Warranty</h1>

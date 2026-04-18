@@ -1,7 +1,8 @@
+{{-- Document Detail: preserves back link, header with download/delete forms, AI analysis status (pending/processing/completed/failed), category suggestion, summary, tags, extracted data table, re-analyze form, line items section with bulk-accept/reject forms and per-item category/account selects --}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-3xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Back link --}}
     <a href="{{ url()->previous() }}" class="inline-flex items-center text-sm text-gray-500 hover:text-cyan-400">

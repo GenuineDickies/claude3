@@ -1,7 +1,8 @@
+{{-- Journal Entries: preserves filter form (status/from/to/search), entry cards with status badges, void reasons, line item tables (debit/credit), pagination --}}
 @extends('layouts.app')
 
 @section('content')
-<div class="space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Header --}}
     <div class="flex items-center justify-between flex-wrap gap-4">

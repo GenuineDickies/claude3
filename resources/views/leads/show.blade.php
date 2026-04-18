@@ -1,7 +1,8 @@
+{{-- Lead Show Page — leads.show | Feature preservation notes: Back link to leads.index (Inbound Queue); Header with lead first_name/last_name and Convert to Intake Service Request form (POST leads.start-intake); Session success flash; Two-column update form (PUT to leads.update) with @csrf and @method('PUT'); Inputs: first_name, last_name, phone, email, stage select (stageOptions), source, service_needed, location, estimated_value, assigned_user_id select (users), notes textarea; Errors block listing all $errors; Save Request submit + Open Intake Form link (service-requests.create with lead query params); Sidebar Conversion Status (converted_at, converted_customer_id, converted service request link); Sidebar Delete Request form (DELETE leads.destroy with confirm). Layout: widened to max-w-7xl + space-y-4 for consistent internal-tool layout; All Alpine state, forms, routes, and PHP logic kept intact. --}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-6xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
     <a href="{{ route('leads.index') }}" class="inline-flex items-center text-sm text-gray-500 hover:text-cyan-400">
         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
         Inbound Queue
@@ -14,7 +15,7 @@
         </div>
         <form method="POST" action="{{ route('leads.start-intake', $lead) }}">
             @csrf
-                <button type="submit" class="btn-crystal px-4 py-2 text-sm font-semibold">Convert to Intake Ticket</button>
+                <button type="submit" class="btn-crystal px-4 py-2 text-sm font-semibold">Convert to Intake Service Request</button>
         </form>
     </div>
 
@@ -115,13 +116,13 @@
                         <p class="text-gray-300">Converted {{ $lead->converted_at->diffForHumans() }}.</p>
                         <p class="text-gray-500">Customer ID: {{ $lead->converted_customer_id ?? 'N/A' }}</p>
                         @if ($lead->convertedServiceRequest)
-                            <a href="{{ route('service-requests.show', $lead->convertedServiceRequest) }}" class="text-cyan-400 hover:text-cyan-300">Open Ticket #{{ $lead->converted_service_request_id }}</a>
+                            <a href="{{ route('service-requests.show', $lead->convertedServiceRequest) }}" class="text-cyan-400 hover:text-cyan-300">Open Service Request #{{ $lead->converted_service_request_id }}</a>
                         @else
-                            <p class="text-gray-500">Ticket ID: {{ $lead->converted_service_request_id ?? 'N/A' }}</p>
+                            <p class="text-gray-500">Service Request ID: {{ $lead->converted_service_request_id ?? 'N/A' }}</p>
                         @endif
                     </div>
                 @else
-                    <p class="text-sm text-gray-500">Not converted yet. Use intake action to create the ticket.</p>
+                    <p class="text-sm text-gray-500">Not converted yet. Use intake action to create the service request.</p>
                 @endif
             </div>
 

@@ -1,7 +1,13 @@
+{{--
+  Edit Technician Compliance — technician-profiles.edit
+  Preserved features: CSRF, @method('PUT'), back link, validation errors,
+  License & Insurance section, and all downstream compliance form
+  sections + actions — unchanged.
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-3xl mx-auto">
+<div class="max-w-7xl mx-auto">
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-white">{{ $user->name }} — Edit Compliance</h1>
         <a href="{{ route('technician-profiles.index') }}"

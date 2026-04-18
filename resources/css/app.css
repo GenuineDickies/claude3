@@ -1141,3 +1141,513 @@
     -webkit-backdrop-filter: blur(8px) saturate(130%);
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   Internal-Use Redesign Utilities
+   Added 2026-04-17. Utility-first internal-tool patterns that reuse all
+   existing tokens (accent/violet/warm, surface-1/2/3, text-primary/secondary).
+   Nothing above this block was removed — only additions.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Counter strip (compact dashboard KPI row) ──────────────────────────── */
+.counter-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+.counter-cell {
+  position: relative;
+  padding: 0.75rem 1rem;
+  border-radius: 0.6rem;
+  background: linear-gradient(180deg, rgba(20,27,45,0.7), rgba(12,17,31,0.6));
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: var(--shadow-elevated);
+}
+.counter-cell__label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-subtle);
+  margin-bottom: 0.25rem;
+}
+.counter-cell__value {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.counter-cell__delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+}
+.counter-cell__delta--up    { color: var(--color-success); }
+.counter-cell__delta--down  { color: var(--color-danger); }
+.counter-cell__delta--warn  { color: var(--color-accent-warm); }
+.counter-cell--alert {
+  border-color: rgba(245,158,11,0.35);
+  background: linear-gradient(180deg, rgba(40,28,10,0.7), rgba(20,14,6,0.6));
+  box-shadow: var(--shadow-glow-amber), var(--shadow-elevated);
+}
+
+/* ── Filter chip row ────────────────────────────────────────────────────── */
+.filter-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  text-decoration: none;
+}
+.filter-chip:hover {
+  background: rgba(255,255,255,0.07);
+  color: var(--color-text-primary);
+}
+.filter-chip--active {
+  background: rgba(0,229,255,0.12);
+  border-color: rgba(0,229,255,0.35);
+  color: var(--color-accent-bright);
+}
+.filter-chip__count {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.68rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+}
+
+/* ── 12-column field grid for forms ─────────────────────────────────────── */
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 0.85rem 0.9rem;
+}
+.f-3  { grid-column: span 3; }
+.f-4  { grid-column: span 4; }
+.f-5  { grid-column: span 5; }
+.f-6  { grid-column: span 6; }
+.f-7  { grid-column: span 7; }
+.f-8  { grid-column: span 8; }
+.f-9  { grid-column: span 9; }
+.f-12 { grid-column: span 12; }
+.f-2  { grid-column: span 2; }
+@media (max-width: 900px) {
+  .f-3, .f-4, .f-5, .f-6, .f-7, .f-8, .f-9 { grid-column: span 12; }
+}
+
+/* ── Form section card ──────────────────────────────────────────────────── */
+.form-section {
+  padding: 1.1rem 1.25rem 1.25rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(180deg, rgba(20,27,45,0.55), rgba(12,17,31,0.45));
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: var(--shadow-elevated);
+}
+.form-section + .form-section { margin-top: 0.9rem; }
+.form-section__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.85rem;
+  gap: 1rem;
+}
+.form-section__title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  letter-spacing: 0.01em;
+}
+.form-section__hint {
+  font-size: 0.72rem;
+  color: var(--color-text-subtle);
+}
+
+/* ── Sticky action bar ──────────────────────────────────────────────────── */
+.sticky-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  margin-top: 1rem;
+  padding: 0.7rem 1rem;
+  border-radius: 0.65rem;
+  background: linear-gradient(180deg, rgba(20,27,45,0.9), rgba(8,12,22,0.95));
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 -6px 24px rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.sticky-actions__meta {
+  font-size: 0.72rem;
+  color: var(--color-text-subtle);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.sticky-actions__meta-dot {
+  width: 6px; height: 6px; border-radius: 999px;
+  background: var(--color-success);
+  box-shadow: 0 0 8px rgba(16,185,129,0.7);
+}
+
+/* ── Detail header (for show pages with workflow) ──────────────────────── */
+.detail-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  padding: 1rem 1.2rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(180deg, rgba(20,27,45,0.6), rgba(12,17,31,0.5));
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: var(--shadow-elevated);
+  align-items: center;
+}
+.detail-header__eyebrow {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-subtle);
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+.detail-header__title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-top: 0.15rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.detail-header__sub {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+}
+.detail-header__actions {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* ── Workflow tracker (horizontal stepper for ticket show) ─────────────── */
+.workflow-track {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0.6rem 0.4rem;
+  overflow-x: auto;
+}
+.workflow-step {
+  position: relative;
+  flex: 1;
+  min-width: 110px;
+  padding: 0.4rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  color: var(--color-text-subtle);
+  font-size: 0.72rem;
+}
+.workflow-step__dot {
+  width: 22px; height: 22px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.05);
+  border: 1.5px solid rgba(255,255,255,0.12);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; font-weight: 600; color: var(--color-text-muted);
+  margin-bottom: 0.3rem;
+}
+.workflow-step__label {
+  font-weight: 500;
+}
+.workflow-step::after {
+  content: '';
+  position: absolute;
+  top: 11px;
+  right: -50%;
+  left: 50%;
+  height: 1.5px;
+  background: rgba(255,255,255,0.08);
+  z-index: -1;
+}
+.workflow-step:last-child::after { display: none; }
+.workflow-step--done .workflow-step__dot {
+  background: var(--color-success);
+  border-color: var(--color-success);
+  color: #012013;
+}
+.workflow-step--done { color: var(--color-text-secondary); }
+.workflow-step--done::after { background: var(--color-success); }
+.workflow-step--current .workflow-step__dot {
+  background: rgba(0,229,255,0.15);
+  border-color: var(--color-accent);
+  color: var(--color-accent-bright);
+  box-shadow: 0 0 0 3px rgba(0,229,255,0.1);
+}
+.workflow-step--current { color: var(--color-text-primary); }
+.workflow-step--blocked .workflow-step__dot {
+  background: rgba(244,63,94,0.15);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+/* ── Dashboard counter bar: tighten the old hero when we want to keep it ─ */
+.dashboard-hero--compact {
+  padding: 0.9rem 1.2rem !important;
+}
+.dashboard-hero--compact .dashboard-title { font-size: 1.1rem; }
+.dashboard-hero--compact .dashboard-tagline { font-size: 0.82rem; margin-bottom: 0; }
+
+/* ── Right rail ─────────────────────────────────────────────────────────── */
+.right-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.right-rail-card {
+  padding: 0.85rem 1rem;
+  border-radius: 0.65rem;
+  background: rgba(20,27,45,0.55);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: var(--shadow-elevated);
+}
+.right-rail-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.5rem;
+}
+.right-rail-card__title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.right-rail-card__link {
+  font-size: 0.7rem;
+  color: var(--color-accent);
+  text-decoration: none;
+}
+.right-rail-card__link:hover { color: var(--color-accent-bright); }
+
+/* ── Dense ledger/accounting table ──────────────────────────────────────── */
+.ledger-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+.ledger-table thead th {
+  position: sticky; top: 0;
+  background: rgba(8,12,22,0.95);
+  backdrop-filter: blur(12px);
+  padding: 0.55rem 0.75rem;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-text-subtle);
+  text-align: left;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  white-space: nowrap;
+}
+.ledger-table tbody td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  color: var(--color-text-secondary);
+}
+.ledger-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+.ledger-table__num { text-align: right; }
+.ledger-table__group {
+  background: rgba(255,255,255,0.02);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.68rem;
+}
+.ledger-table__total td {
+  border-top: 1px solid rgba(255,255,255,0.12);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  background: rgba(0,229,255,0.04);
+}
+
+/* ── Settings sub-nav (left rail inside settings page) ─────────────────── */
+.settings-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+@media (max-width: 900px) {
+  .settings-layout { grid-template-columns: 1fr; }
+}
+.settings-subnav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  position: sticky;
+  top: 1rem;
+}
+.settings-subnav__link {
+  padding: 0.45rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  border-radius: 0.4rem;
+  border-left: 2px solid transparent;
+}
+.settings-subnav__link:hover {
+  color: var(--color-text-primary);
+  background: rgba(255,255,255,0.03);
+}
+.settings-subnav__link--active {
+  color: var(--color-accent-bright);
+  background: rgba(0,229,255,0.06);
+  border-left-color: var(--color-accent);
+}
+
+/* ── Page toolbar (reusable header bar for index pages) ────────────────── */
+.page-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.9rem;
+  flex-wrap: wrap;
+}
+.page-toolbar__title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  display: flex; align-items: center; gap: 0.6rem;
+}
+.page-toolbar__meta {
+  font-size: 0.72rem;
+  color: var(--color-text-subtle);
+}
+.page-toolbar__actions {
+  display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;
+}
+
+/* ── Dense table variant (tighter rows) ────────────────────────────────── */
+.table-crystal--dense tbody td { padding: 0.45rem 0.6rem; font-size: 0.8rem; }
+.table-crystal--dense thead th  { padding: 0.45rem 0.6rem; font-size: 0.68rem; }
+
+/* ── Two-column show layout (main + rail) ──────────────────────────────── */
+.show-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 1rem;
+  align-items: start;
+}
+@media (max-width: 1100px) {
+  .show-layout { grid-template-columns: 1fr; }
+}
+
+/* ── Inline match hint (e.g. phone → existing customer) ────────────────── */
+.match-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.3);
+  color: #6ee7b7;
+  font-size: 0.7rem;
+}
+
+/* ── Consent callout (verbal SMS / GPS request) ────────────────────────── */
+.consent-callout {
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.6rem;
+  background: rgba(245,158,11,0.08);
+  border: 1px solid rgba(245,158,11,0.3);
+  font-size: 0.78rem;
+  color: #fcd34d;
+}
+.consent-callout--info {
+  background: rgba(0,229,255,0.06);
+  border-color: rgba(0,229,255,0.3);
+  color: var(--color-accent-bright);
+}
+.consent-callout__title {
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+  color: var(--color-text-primary);
+}
+
+/* ── KPI/report tile (for reports page) ────────────────────────────────── */
+.kpi-tile {
+  padding: 0.85rem 1.05rem;
+  border-radius: 0.65rem;
+  background: linear-gradient(180deg, rgba(20,27,45,0.55), rgba(12,17,31,0.45));
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: var(--shadow-elevated);
+}
+.kpi-tile__label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-subtle); }
+.kpi-tile__value { font-size: 1.5rem; font-weight: 600; color: var(--color-text-primary); line-height: 1.1; margin-top: 0.2rem; font-variant-numeric: tabular-nums; }
+.kpi-tile__meta { font-size: 0.7rem; color: var(--color-text-muted); margin-top: 0.25rem; }
+
+/* ── Guest-layout auth card (login/register/reset) ─────────────────────── */
+.auth-card {
+  max-width: 420px;
+  margin: 2.5rem auto;
+  padding: 2rem 2.25rem;
+  border-radius: 0.85rem;
+  background: linear-gradient(180deg, rgba(20,27,45,0.8), rgba(12,17,31,0.65));
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: var(--shadow-floating);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+}
+.auth-card__brand {
+  display: flex; align-items: center; gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.auth-card__brand-mark {
+  width: 44px; height: 44px;
+  border-radius: 0.5rem;
+  background: rgba(255,255,255,0.04);
+  padding: 0.35rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.auth-card__brand-mark img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.auth-card__brand-name {
+  font-size: 1.05rem; font-weight: 600; color: var(--color-text-primary);
+}
+.auth-card__brand-sub {
+  font-size: 0.75rem; color: var(--color-text-subtle);
+}
+

@@ -1,7 +1,13 @@
+{{--
+  Edit Invoice — invoices.edit
+  Preserved features: CSRF, @method('PUT'), Alpine invoiceEditForm,
+  breadcrumb, customer info prefilled from $invoice, and all downstream
+  invoice form sections (line items, totals, notes, actions) — unchanged.
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-3xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Breadcrumb --}}
     <a href="{{ route('invoices.show', [$serviceRequest, $invoice]) }}" class="inline-flex items-center text-sm text-gray-500 hover:text-cyan-400">

@@ -14,13 +14,13 @@ class CatalogController extends Controller
 {
     public function index(): View
     {
-        $services = CatalogItem::query()
-            ->with('category')
+        $categories = CatalogCategory::query()
+            ->with(['items' => fn ($q) => $q->orderBy('sort_order')->orderBy('name')])
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
 
-        return view('catalog.index', compact('services'));
+        return view('catalog.index', compact('categories'));
     }
 
     // ── Categories ──────────────────────────────────────
@@ -84,17 +84,21 @@ class CatalogController extends Controller
 
     public function createItem(): View
     {
-        $pricingTypes = CatalogItem::pricingTypes();
-        $units = CatalogItem::units();
+        $pricingTypes    = CatalogItem::pricingTypes();
+        $units           = CatalogItem::units();
+        $types           = CatalogItem::types();
+        $categories      = CatalogCategory::active()->orderBy('sort_order')->orderBy('name')->get();
         $revenueAccounts = Account::general()->where('type', 'revenue')->where('is_active', true)->orderBy('code')->get();
-        $cogsAccounts = Account::general()->whereIn('type', ['cogs', 'expense'])->where('is_active', true)->orderBy('code')->get();
+        $cogsAccounts    = Account::general()->whereIn('type', ['cogs', 'expense'])->where('is_active', true)->orderBy('code')->get();
 
-        return view('catalog.items.create', compact('pricingTypes', 'units', 'revenueAccounts', 'cogsAccounts'));
+        return view('catalog.items.create', compact('pricingTypes', 'units', 'types', 'categories', 'revenueAccounts', 'cogsAccounts'));
     }
 
     public function storeItem(Request $request): RedirectResponse
     {
         $validated = $request->validate([
+            'catalog_category_id' => 'required|exists:catalog_categories,id',
+            'type'               => ['required', 'string', Rule::in(array_keys(CatalogItem::types()))],
             'name'               => 'required|string|max:255',
             'description'        => 'nullable|string|max:1000',
             'base_cost'          => 'required|numeric|min:0|max:99999999.99',
@@ -107,13 +111,23 @@ class CatalogController extends Controller
             'core_required'      => 'boolean',
             'core_amount'        => 'nullable|numeric|min:0|max:99999.99',
             'taxable'            => 'boolean',
+            'track_inventory'    => 'boolean',
+            'qty_on_hand'        => 'nullable|numeric|min:0',
         ]);
 
         if (($validated['core_amount'] ?? null) === null) {
             $validated['core_amount'] = 0.00;
         }
 
-        $validated['catalog_category_id'] = $this->defaultCategory()->id;
+        // Only products can track inventory; services never do
+        if (($validated['type'] ?? 'service') !== CatalogItem::TYPE_PRODUCT) {
+            $validated['track_inventory'] = false;
+            $validated['qty_on_hand']     = 0;
+            $validated['qty_reserved']    = 0;
+        } else {
+            $validated['qty_on_hand']  = $validated['qty_on_hand'] ?? 0;
+            $validated['qty_reserved'] = 0;
+        }
 
         CatalogItem::create($validated);
 
@@ -123,17 +137,21 @@ class CatalogController extends Controller
 
     public function editItem(CatalogItem $item): View
     {
-        $pricingTypes = CatalogItem::pricingTypes();
-        $units = CatalogItem::units();
+        $pricingTypes    = CatalogItem::pricingTypes();
+        $units           = CatalogItem::units();
+        $types           = CatalogItem::types();
+        $categories      = CatalogCategory::active()->orderBy('sort_order')->orderBy('name')->get();
         $revenueAccounts = Account::general()->where('type', 'revenue')->where('is_active', true)->orderBy('code')->get();
-        $cogsAccounts = Account::general()->whereIn('type', ['cogs', 'expense'])->where('is_active', true)->orderBy('code')->get();
+        $cogsAccounts    = Account::general()->whereIn('type', ['cogs', 'expense'])->where('is_active', true)->orderBy('code')->get();
 
-        return view('catalog.items.edit', compact('item', 'pricingTypes', 'units', 'revenueAccounts', 'cogsAccounts'));
+        return view('catalog.items.edit', compact('item', 'pricingTypes', 'units', 'types', 'categories', 'revenueAccounts', 'cogsAccounts'));
     }
 
     public function updateItem(Request $request, CatalogItem $item): RedirectResponse
     {
         $validated = $request->validate([
+            'catalog_category_id' => 'required|exists:catalog_categories,id',
+            'type'               => ['required', 'string', Rule::in(array_keys(CatalogItem::types()))],
             'name'               => 'required|string|max:255',
             'description'        => 'nullable|string|max:1000',
             'base_cost'          => 'required|numeric|min:0|max:99999999.99',
@@ -146,10 +164,20 @@ class CatalogController extends Controller
             'core_required'      => 'boolean',
             'core_amount'        => 'nullable|numeric|min:0|max:99999.99',
             'taxable'            => 'boolean',
+            'track_inventory'    => 'boolean',
+            'qty_on_hand'        => 'nullable|numeric|min:0',
         ]);
 
         if (($validated['core_amount'] ?? null) === null) {
             $validated['core_amount'] = 0.00;
+        }
+
+        if (($validated['type'] ?? 'service') !== CatalogItem::TYPE_PRODUCT) {
+            $validated['track_inventory'] = false;
+            $validated['qty_on_hand']     = 0;
+            $validated['qty_reserved']    = 0;
+        } else {
+            $validated['qty_on_hand'] = $validated['qty_on_hand'] ?? $item->qty_on_hand;
         }
 
         $item->update($validated);
@@ -167,15 +195,5 @@ class CatalogController extends Controller
             ->with('success', 'Service "' . $name . '" deleted.');
     }
 
-    private function defaultCategory(): CatalogCategory
-    {
-        return CatalogCategory::query()->firstOrCreate(
-            ['name' => 'Services'],
-            [
-                'description' => 'Default service catalog category.',
-                'sort_order' => 0,
-                'is_active' => true,
-            ],
-        );
-    }
 }
+

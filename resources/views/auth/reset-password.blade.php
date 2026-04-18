@@ -1,3 +1,14 @@
+{{--
+    PUBLIC-FACING RESET PASSWORD PAGE
+    Preserved features:
+      - Layout: <x-guest-layout> (narrow centered card; do NOT widen)
+      - Form POST to route('password.store') with @csrf
+      - Hidden token field bound to $request->route('token')
+      - Inputs: email (prefilled from $request->email, autofocus, autocomplete=username),
+               password + password_confirmation (autocomplete=new-password)
+      - Field-level errors via <x-input-error> for each field
+      - Submit via <x-primary-button> ("Reset Password")
+--}}
 <x-guest-layout>
     <form method="POST" action="{{ route('password.store') }}">
         @csrf

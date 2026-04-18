@@ -1,7 +1,18 @@
+{{--
+  Expenses — expenses.index
+  Controller vars: $expenses (paginator), $categories, $currentCategory, $currentFrom, $currentTo, $currentSearch
+  Features preserved:
+    - Record Expense button
+    - Filters: Category, From/To dates, Search (vendor/description/#)
+    - Clear filters link (conditional)
+    - Table cols: Date, Number, Vendor, Category badge, Amount, Method, View action
+    - Empty state
+    - Pagination
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Header --}}
     <div class="flex items-center justify-between">

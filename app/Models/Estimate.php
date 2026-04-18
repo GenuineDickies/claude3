@@ -19,6 +19,8 @@ use Illuminate\Support\Str;
  * @property numeric $tax_amount
  * @property numeric $total
  * @property numeric|null $approved_total
+ * @property bool $deposit_required
+ * @property numeric|null $deposit_amount
  * @property string|null $notes
  * @property string $status
  * @property int $version
@@ -88,6 +90,8 @@ class Estimate extends Model
         'tax_amount',
         'total',
         'approved_total',
+        'deposit_required',
+        'deposit_amount',
         'notes',
         'status',
         'version',
@@ -111,6 +115,8 @@ class Estimate extends Model
             'tax_amount' => 'decimal:2',
             'total' => 'decimal:2',
             'approved_total' => 'decimal:2',
+            'deposit_required' => 'boolean',
+            'deposit_amount' => 'decimal:2',
             'is_locked' => 'boolean',
             'locked_at' => 'datetime',
             'approval_token_expires_at' => 'datetime',

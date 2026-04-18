@@ -1,11 +1,33 @@
+{{--
+  Estimate Show Page — estimates.show
+  Feature preservation notes:
+    - Breadcrumb (All Service Requests > SR # > estimate number)
+    - Session success flash message
+    - Header card with estimate number, version badge, locked badge, status badge
+    - Customer/SR reference subtitle
+    - Details section (customer, state, tax rate)
+    - Line Items table with per-row name/description/price/qty/unit/amount
+    - Totals block (subtotal, tax, total, deposit required, approved total)
+    - Notes section (conditional)
+    - Customer Approval card (signed_by, approved_at, approved_total, signature image)
+    - Awaiting Customer Approval state messaging
+    - Approval Required state messaging
+    - Actions row: back link, Request/Resend Approval form, Create Work Order link, Revise form, Edit link, Delete form
+    - Version History list with per-version status badges and view links
+    - Documents partial (partials.document-list with upload URL)
+  Layout changes only:
+    - Outer container widened from max-w-4xl to max-w-7xl
+    - Vertical spacing tightened from space-y-6 to space-y-4
+    - All Alpine state, forms, routes, and PHP logic kept intact
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-4xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Breadcrumb --}}
     <div class="flex items-center gap-2 text-sm text-gray-500">
-        <a href="{{ route('service-requests.index') }}" class="hover:text-cyan-400">All Tickets</a>
+        <a href="{{ route('service-requests.index') }}" class="hover:text-cyan-400">All Service Requests</a>
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
         <a href="{{ route('service-requests.show', $serviceRequest) }}" class="hover:text-cyan-400">SR #{{ $serviceRequest->id }}</a>
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
@@ -142,6 +164,12 @@
                     <span class="font-bold text-white">Total</span>
                     <span class="text-lg font-bold font-mono text-cyan-400">${{ number_format($estimate->total, 2) }}</span>
                 </div>
+                @if($estimate->deposit_required && $estimate->deposit_amount !== null)
+                <div class="flex justify-between w-56 mt-1">
+                    <span class="text-xs font-semibold text-amber-700">Required Deposit</span>
+                    <span class="text-sm font-bold font-mono text-amber-700">${{ number_format($estimate->deposit_amount, 2) }}</span>
+                </div>
+                @endif
                 @if($estimate->approved_total !== null)
                 <div class="flex justify-between w-56 mt-1">
                     <span class="text-xs font-semibold text-green-700">Approved Total</span>

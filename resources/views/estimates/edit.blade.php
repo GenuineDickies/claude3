@@ -1,289 +1,300 @@
+{{--
+  Edit Estimate — estimates.edit
+  Preserved features: CSRF, @method('PUT'), Alpine estimateEditForm
+  (state/tax/items/totals + fetchTaxRate + prepareSubmit), breadcrumb,
+  status select, tax config, catalog picker + custom items, line items
+  table with totals, notes, hidden items container, update + cancel.
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="space-y-6">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div class="space-y-2">
-                <p class="text-sm text-gray-300">Service Request #{{ $serviceRequest->id }}</p>
-                <h1 class="text-3xl font-semibold text-white">Edit Estimate</h1>
-                <p class="max-w-2xl text-sm text-gray-300">Refine this estimate with updated items, tax settings, and notes before saving.</p>
+<div class="max-w-7xl mx-auto space-y-4" x-data="estimateEditForm()">
+
+    {{-- Breadcrumb --}}
+    <div class="flex items-center gap-2 text-sm text-gray-500">
+        <a href="{{ route('service-requests.index') }}" class="hover:text-cyan-400">All Service Requests</a>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        <a href="{{ route('service-requests.show', $serviceRequest) }}" class="hover:text-cyan-400">SR #{{ $serviceRequest->id }}</a>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        <a href="{{ route('estimates.show', [$serviceRequest, $estimate]) }}" class="hover:text-cyan-400">Estimate #{{ $estimate->id }}</a>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-gray-300 font-medium">Edit</span>
+    </div>
+
+    @if($errors->any())
+        <div class="bg-red-50 border border-red-500/30 rounded-lg p-4">
+            <ul class="text-sm text-red-700 list-disc list-inside">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <form action="{{ route('estimates.update', [$serviceRequest, $estimate]) }}" method="POST" @submit="prepareSubmit">
+        @csrf
+        @method('PUT')
+
+        {{-- Header --}}
+        <div class="bg-linear-to-r from-blue-50 to-white rounded-lg shadow-sm p-6 border-l-4 border-blue-500">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-2xl font-bold text-white">Edit Estimate #{{ $estimate->id }}</h1>
+                    <p class="text-sm text-gray-500 mt-1">
+                        For Service Request #{{ $serviceRequest->id }}
+                        @if($serviceRequest->customer)
+                            — {{ $serviceRequest->customer->first_name }} {{ $serviceRequest->customer->last_name }}
+                        @endif
+                    </p>
+                </div>
+                <select name="status"
+                        class="border border-white/10 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide focus:ring-2 focus:ring-cyan-500 focus:border-blue-500">
+                    @foreach(\App\Models\Estimate::statuses() as $value => $label)
+                        <option value="{{ $value }}" @selected($estimate->status === $value)>{{ $label }}</option>
+                    @endforeach
+                </select>
             </div>
-            <a href="{{ route('service-requests.show', $serviceRequest) }}" class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-slate-900/80 px-4 py-2 text-sm text-cyan-300 transition hover:border-cyan-500/40 hover:bg-slate-900">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-                Back to ticket
-            </a>
         </div>
 
-        @if($errors->any())
-            <div class="rounded-3xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-200">
-                <ul class="list-disc list-inside space-y-1">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        <form action="{{ route('estimates.update', [$serviceRequest, $estimate]) }}" method="POST" @submit="prepareSubmit" x-data="estimateForm()" @catalog-item-selected.window="addCatalogItem($event.detail)">
-            @csrf
-            @method('PUT')
-
-            <div class="rounded-[2rem] border border-white/10 bg-slate-950/90 shadow-2xl overflow-hidden">
-                <div class="grid gap-6 lg:grid-cols-[1.5fr_0.95fr] p-6 sm:p-8 border-b border-white/10 bg-slate-950/90">
-                    <div class="space-y-5">
-                        <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-5">
-                            <div class="flex items-center gap-4">
-                                <div class="flex h-12 w-12 items-center justify-center rounded-3xl bg-cyan-500/10 text-cyan-300">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                                </div>
-                                <div>
-                                    <p class="text-xs uppercase tracking-[0.28em] text-cyan-300/70">Estimate</p>
-                                    <p class="text-2xl font-semibold text-white">Version {{ $estimate->version }}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="grid gap-4 sm:grid-cols-2">
-                            <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-5">
-                                <p class="text-xs uppercase tracking-[0.24em] text-gray-500">Client</p>
-                                <p class="mt-3 text-sm text-gray-300 font-medium">
-                                    @if($serviceRequest->customer)
-                                        {{ $serviceRequest->customer->first_name }} {{ $serviceRequest->customer->last_name }}
-                                    @else
-                                        Unassigned customer
-                                    @endif
-                                </p>
-                                @if($serviceRequest->customer?->phone)
-                                    <p class="mt-2 text-sm text-gray-400">{{ $serviceRequest->customer->phone }}</p>
-                                @endif
-                                @if($serviceRequest->location)
-                                    <p class="mt-3 text-sm text-gray-400">{{ $serviceRequest->location }}</p>
-                                @endif
-                            </div>
-                            <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-5">
-                                <p class="text-xs uppercase tracking-[0.24em] text-gray-500">Estimate details</p>
-                                <div class="mt-3 space-y-3 text-sm text-gray-300">
-                                    <div class="flex items-center justify-between gap-4">
-                                        <span class="text-gray-400">Estimate number</span>
-                                        <span class="font-medium">{{ $estimate->displayNumber() }}</span>
-                                    </div>
-                                    <div class="flex items-center justify-between gap-4">
-                                        <span class="text-gray-400">Status</span>
-                                        <span class="font-medium capitalize">{{ $estimate->status }}</span>
-                                    </div>
-                                    <div class="flex items-center justify-between gap-4">
-                                        <span class="text-gray-400">Updated</span>
-                                        <span class="font-medium">{{ $estimate->updated_at->format('M j, Y') }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-5">
-                        <div class="flex items-start justify-between gap-4">
-                            <div>
-                                <p class="text-xs uppercase tracking-[0.24em] text-gray-500">Tax</p>
-                                <p class="mt-3 text-sm text-gray-300">Update the rate for this estimate as needed.</p>
-                            </div>
-                        </div>
-
-                        <div class="mt-5 grid gap-4">
-                            <div>
-                                <label for="state_code" class="block text-sm font-medium text-gray-300 mb-1">State</label>
-                                <select id="state_code" name="state_code" x-model="stateCode" @change="fetchTaxRate"
-                                        class="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30">
-                                    <option value="">— Select State —</option>
-                                    @foreach(\App\Models\StateTaxRate::stateList() as $code => $name)
-                                        <option value="{{ $code }}" @selected(old('state_code', $estimate->state_code) === $code)>{{ $name }} ({{ $code }})</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label for="tax_rate" class="block text-sm font-medium text-gray-300 mb-1">Tax rate (%)</label>
-                                <input type="number" id="tax_rate" name="tax_rate" x-model.number="taxRate" step="0.0001" min="0" max="100"
-                                       @input="recalculate"
-                                       class="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30" />
-                            </div>
-                            <p class="text-xs text-green-400" x-show="taxRateFromDb" x-cloak>
-                                Rate loaded from saved state tax rates.
-                            </p>
-                        </div>
-                    </div>
+        {{-- Tax Configuration --}}
+        <div class="surface-1 p-6 border border-white/10">
+            <h2 class="text-lg font-semibold text-white mb-3">Tax Configuration</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="state_code" class="block text-sm font-medium text-gray-300 mb-1">State</label>
+                    <select id="state_code" name="state_code" x-model="stateCode" @change="fetchTaxRate"
+                            class="w-full border border-white/10 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-cyan-500 focus:border-blue-500">
+                        <option value="">— Select State —</option>
+                        @foreach(\App\Models\StateTaxRate::stateList() as $code => $name)
+                            <option value="{{ $code }}">{{ $name }} ({{ $code }})</option>
+                        @endforeach
+                    </select>
                 </div>
-
-                <div class="px-6 pb-8 pt-8 sm:px-8">
-                    <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                        <div>
-                            <h2 class="text-lg font-semibold text-white">Line items</h2>
-                            <p class="mt-1 text-sm text-gray-400">Add products or services from your catalog or create a blank line item.</p>
-                        </div>
-                        <div class="flex flex-wrap gap-3">
-                            <x-add-item-modal :categories="$categories" />
-                        </div>
-                    </div>
-
-                    <div class="mt-6 overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-900/80">
-                        <template x-if="items.length === 0">
-                            <div class="px-6 py-16 text-center text-gray-400">
-                                <svg class="mx-auto mb-4 h-10 w-10 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
-                                <p class="text-base font-medium text-white">No items yet</p>
-                                <p class="mt-1 text-sm">Select an item from the catalog or add a blank line item to begin.</p>
-                            </div>
-                        </template>
-
-                        <div x-show="items.length > 0" class="overflow-x-auto">
-                            <table class="w-full border-separate border-spacing-0 text-sm">
-                                <thead class="bg-slate-950/90 text-left text-xs uppercase tracking-[0.24em] text-gray-400">
-                                    <tr>
-                                        <th class="px-5 py-4">Item</th>
-                                        <th class="px-5 py-4 text-right">Unit price</th>
-                                        <th class="px-5 py-4 text-center w-24">Qty</th>
-                                        <th class="px-5 py-4 text-center w-28">Unit</th>
-                                        <th class="px-5 py-4 text-right w-28">Amount</th>
-                                        <th class="w-14"></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <template x-for="(item, index) in items" :key="index">
-                                        <tr class="border-t border-white/10 even:bg-slate-950/80">
-                                            <td class="px-5 py-4 align-top">
-                                                <div class="space-y-2">
-                                                    <input type="text" x-model="item.name" required placeholder="Item name"
-                                                           class="w-full rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-sm text-white focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20" />
-                                                    <input type="text" x-model="item.description" placeholder="Description (optional)"
-                                                           class="w-full rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-xs text-gray-400 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20" />
-                                                </div>
-                                            </td>
-                                            <td class="px-5 py-4 align-top">
-                                                <input type="number" x-model.number="item.unit_price" step="0.01" min="0" required @input="recalculate"
-                                                       class="w-full rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-sm text-right text-white focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20" />
-                                            </td>
-                                            <td class="px-5 py-4 align-top">
-                                                <input type="number" x-model.number="item.quantity" step="0.01" min="0.01" required @input="recalculate"
-                                                       class="w-full rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-sm text-center text-white focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20" />
-                                            </td>
-                                            <td class="px-5 py-4 align-top">
-                                                <select x-model="item.unit"
-                                                        class="w-full rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-sm text-white focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20">
-                                                    <option value="each">Each</option>
-                                                    <option value="mile">Mile</option>
-                                                    <option value="hour">Hour</option>
-                                                    <option value="gallon">Gallon</option>
-                                                </select>
-                                            </td>
-                                            <td class="px-5 py-4 text-right align-top">
-                                                <span class="text-sm font-semibold text-white" x-text="formatCurrency(item.unit_price * item.quantity)"></span>
-                                            </td>
-                                            <td class="px-5 py-4 text-center align-top">
-                                                <button type="button" @click="removeItem(index)"
-                                                        class="rounded-full p-2 text-gray-400 transition hover:bg-white/5 hover:text-red-400">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    </template>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="mt-6 grid gap-6 lg:grid-cols-[1fr_0.95fr]">
-                        <div>
-                            <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-5">
-                                <label for="notes" class="block text-sm font-medium text-gray-300 mb-2">Notes</label>
-                                <textarea id="notes" name="notes" rows="4" placeholder="Optional notes for this estimate..."
-                                          class="w-full resize-none rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-3 text-sm text-white focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20">{{ old('notes', $estimate->notes) }}</textarea>
-                            </div>
-                        </div>
-                        <div class="rounded-3xl border border-white/10 bg-slate-900/80 p-5">
-                            <p class="text-sm uppercase tracking-[0.24em] text-gray-500">Totals</p>
-                            <div class="mt-4 space-y-3 text-sm text-gray-300">
-                                <div class="flex items-center justify-between">
-                                    <span>Subtotal</span>
-                                    <span class="font-medium" x-text="formatCurrency(subtotal)"></span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span>Tax</span>
-                                    <span class="font-medium" x-text="formatCurrency(taxAmount)"></span>
-                                </div>
-                                <div class="border-t border-white/10 pt-4 flex items-center justify-between text-base font-semibold text-white">
-                                    <span>Total</span>
-                                    <span x-text="formatCurrency(total)"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div>
+                    <label for="tax_rate" class="block text-sm font-medium text-gray-300 mb-1">Tax Rate (%)</label>
+                    <input type="number" id="tax_rate" name="tax_rate" x-model.number="taxRate" step="0.0001" min="0" max="100"
+                           class="w-full border border-white/10 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-cyan-500 focus:border-blue-500"
+                           @input="recalculate">
+                    <p class="text-xs text-green-400 mt-1" x-show="taxRateFromDb" x-cloak>
+                        <svg class="w-3 h-3 inline" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        Rate loaded from saved state tax rates
+                    </p>
                 </div>
             </div>
+        </div>
 
-            <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <a href="{{ route('service-requests.show', $serviceRequest) }}" class="text-sm text-gray-300 hover:text-cyan-300 transition">&larr; Cancel</a>
-                <button type="submit" x-bind:disabled="items.length === 0"
-                        class="inline-flex items-center justify-center rounded-full bg-linear-to-r from-cyan-500 to-blue-500 px-8 py-3 text-base font-bold text-white transition hover:from-cyan-400 hover:to-blue-400 disabled:cursor-not-allowed disabled:opacity-50 shadow-lg hover:shadow-cyan-500/50">
-                    Save Changes
+        {{-- Add from Catalog --}}
+        <div class="surface-1 p-6 border border-white/10" x-data="{ search: '' }">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-lg font-semibold text-white">Add from Catalog</h2>
+                <input type="text" x-model="search" placeholder="Search items..."
+                       class="border border-white/10 rounded-md px-3 py-1.5 text-sm w-48 focus:ring-2 focus:ring-cyan-500 focus:border-blue-500">
+            </div>
+
+            <div class="space-y-2 max-h-64 overflow-y-auto">
+                @foreach($categories as $category)
+                    <details class="border border-white/10 rounded-md group">
+                        <summary class="px-4 py-2.5 cursor-pointer text-sm font-medium text-gray-300 bg-white/5 hover:bg-cyan-500/10 flex items-center justify-between select-none">
+                            <span>{{ $category->name }}</span>
+                            <span class="text-xs text-gray-400">{{ $category->items->count() }} items</span>
+                        </summary>
+                        <div class="px-4 pb-3 divide-y divide-gray-100">
+                            @foreach($category->items as $item)
+                                <div class="flex items-center justify-between py-2"
+                                     x-show="!search || {{ json_encode(strtolower($item->name)) }}.includes(search.toLowerCase())"
+                                     x-cloak>
+                                    <div class="min-w-0 mr-3">
+                                        <span class="text-sm font-medium text-white">{{ $item->name }}</span>
+                                        @if($item->description)
+                                            <p class="text-xs text-gray-500 truncate">{{ Str::limit($item->description, 80) }}</p>
+                                        @endif
+                                        <span class="text-xs text-gray-400 font-mono">${{ number_format($item->base_cost, 2) }}/{{ $item->unit }}</span>
+                                    </div>
+                                    <button type="button"
+                                            @click="addCatalogItem({{ $item->id }}, {{ json_encode($item->name) }}, {{ json_encode($item->description) }}, {{ $item->base_cost }}, {{ json_encode($item->unit) }})"
+                                            class="shrink-0 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 rounded-sm p-1.5 transition" title="Add to estimate">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                    </button>
+                                </div>
+                            @endforeach
+                        </div>
+                    </details>
+                @endforeach
+            </div>
+
+            <div class="mt-3 pt-3 border-t border-white/10">
+                <button type="button" @click="addCustomItem"
+                        class="inline-flex items-center gap-1.5 text-sm text-cyan-400 hover:text-cyan-300 font-medium">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    Add Custom Line Item
                 </button>
             </div>
+        </div>
 
-            <div id="hidden-items-container"></div>
-        </form>
-    </div>
+        {{-- Line Items --}}
+        <div class="surface-1 overflow-hidden border border-white/10">
+            <div class="px-6 py-4 border-b border-white/10 bg-white/5">
+                <h2 class="text-lg font-semibold text-white">Estimate Items</h2>
+            </div>
+
+            <template x-if="items.length === 0">
+                <div class="px-6 py-10 text-center">
+                    <svg class="mx-auto w-10 h-10 text-gray-300 mb-2" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+                    <p class="text-sm text-gray-400">No items yet</p>
+                    <p class="text-xs text-gray-400 mt-0.5">Use the catalog above or add a custom line item</p>
+                </div>
+            </template>
+
+            <div x-show="items.length > 0">
+                <table class="w-full text-sm">
+                    <thead class="bg-white/5 border-b border-white/10">
+                        <tr>
+                            <th class="text-left px-4 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Item</th>
+                            <th class="text-right px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wider w-28">Price</th>
+                            <th class="text-center px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wider w-20">Qty</th>
+                            <th class="text-center px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wider w-24">Unit</th>
+                            <th class="text-right px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wider w-24">Amount</th>
+                            <th class="w-10"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="(item, index) in items" :key="index">
+                            <tr class="border-b border-white/10 last:border-b-0 even:bg-white/5/60">
+                                <td class="px-4 py-2.5">
+                                    <input type="text" x-model="item.name" required placeholder="Item name"
+                                           class="w-full border border-white/10 rounded-sm px-2 py-1 text-sm focus:ring-1 focus:ring-cyan-500 focus:border-blue-500">
+                                    <input type="text" x-model="item.description" placeholder="Description (optional)"
+                                           class="w-full border border-white/10 rounded-sm px-2 py-1 text-xs text-gray-500 mt-1 focus:ring-1 focus:ring-cyan-500 focus:border-blue-500">
+                                </td>
+                                <td class="px-3 py-2.5">
+                                    <input type="number" x-model.number="item.unit_price" step="0.01" min="0" required @input="recalculate"
+                                           class="w-full border border-white/10 rounded-sm px-2 py-1 text-sm text-right font-mono focus:ring-1 focus:ring-cyan-500 focus:border-blue-500">
+                                </td>
+                                <td class="px-3 py-2.5">
+                                    <input type="number" x-model.number="item.quantity" step="0.01" min="0.01" required @input="recalculate"
+                                           class="w-full border border-white/10 rounded-sm px-2 py-1 text-sm text-center focus:ring-1 focus:ring-cyan-500 focus:border-blue-500">
+                                </td>
+                                <td class="px-3 py-2.5">
+                                    <select x-model="item.unit"
+                                            class="w-full border border-white/10 rounded-sm px-2 py-1 text-sm focus:ring-1 focus:ring-cyan-500 focus:border-blue-500">
+                                        <option value="each">Each</option>
+                                        <option value="mile">Mile</option>
+                                        <option value="hour">Hour</option>
+                                        <option value="gallon">Gallon</option>
+                                    </select>
+                                </td>
+                                <td class="px-3 py-2.5 text-right">
+                                    <span class="text-sm font-semibold font-mono text-white" x-text="'$' + (item.unit_price * item.quantity).toFixed(2)"></span>
+                                </td>
+                                <td class="px-2 py-2.5 text-center">
+                                    <button type="button" @click="removeItem(index)"
+                                            class="text-gray-400 hover:text-red-500 transition" title="Remove item">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- Totals --}}
+            <div class="border-t-2 border-white/10 bg-cyan-500/10/60 px-6 py-4" x-show="items.length > 0">
+                <div class="flex flex-col items-end space-y-1.5 text-sm">
+                    <div class="flex justify-between w-56">
+                        <span class="text-gray-500">Subtotal</span>
+                        <span class="font-mono font-medium text-gray-300" x-text="'$' + subtotal.toFixed(2)"></span>
+                    </div>
+                    <div class="flex justify-between w-56">
+                        <span class="text-gray-500">
+                            Tax
+                            <span class="text-gray-400" x-show="stateCode" x-text="'(' + stateCode + ' ' + taxRate + '%)'"></span>
+                            <span class="text-gray-400" x-show="!stateCode && taxRate > 0" x-text="'(' + taxRate + '%)'"></span>
+                        </span>
+                        <span class="font-mono font-medium text-gray-300" x-text="'$' + taxAmount.toFixed(2)"></span>
+                    </div>
+                    <div class="flex justify-between w-56 border-t-2 border-cyan-500/30 pt-2 mt-1">
+                        <span class="font-bold text-white">Total</span>
+                        <span class="text-lg font-bold font-mono text-cyan-400" x-text="'$' + total.toFixed(2)"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Notes --}}
+        <div class="surface-1 p-6 border border-white/10">
+            <label for="notes" class="block text-sm font-medium text-white mb-1">Notes</label>
+            <textarea id="notes" name="notes" rows="3" placeholder="Optional notes for this estimate..."
+                      class="w-full border border-white/10 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-cyan-500 focus:border-blue-500">{{ $estimate->notes }}</textarea>
+        </div>
+
+        {{-- Hidden items — populated on submit --}}
+        <div id="hidden-items-container"></div>
+
+        {{-- Actions --}}
+        <div class="flex justify-between items-center">
+            <a href="{{ route('estimates.show', [$serviceRequest, $estimate]) }}"
+               class="text-sm text-gray-500 hover:text-cyan-400 underline">&larr; Cancel</a>
+            <button type="submit" x-bind:disabled="items.length === 0"
+                    class="bg-blue-600 text-white font-medium px-6 py-2.5 rounded-md  shadow-xs transition disabled:opacity-50 disabled:cursor-not-allowed">
+                Update Estimate
+            </button>
+        </div>
+    </form>
 </div>
 
-<script type="application/json" id="estimate-init-data">
-{!! json_encode([
-    'stateCode' => old('state_code', $estimate->state_code ?? ''),
-    'taxRate' => old('tax_rate', $estimate->tax_rate ?? 0),
-    'taxRateFromDb' => $estimate->state_code !== null,
-    'items' => old('items', $estimate->items->map(fn ($item) => [
-        'catalog_item_id' => $item->catalog_item_id,
-        'name' => $item->name,
-        'description' => $item->description,
-        'unit_price' => (float) $item->unit_price,
-        'quantity' => (float) $item->quantity,
-        'unit' => $item->unit,
-    ])->toArray()),
-]) !!}
-</script>
-
 <script>
-function estimateForm() {
-    const init = JSON.parse(document.getElementById('estimate-init-data').textContent);
+function estimateEditForm() {
     return {
-        ...init,
-        subtotal: 0,
-        taxAmount: 0,
-        total: 0,
+        stateCode: @json($estimate->state_code ?? ''),
+        taxRate: @json((float) $estimate->tax_rate),
+        taxRateFromDb: false,
+        items: @json($estimate->items->map(fn ($i) => [
+            'catalog_item_id' => $i->catalog_item_id,
+            'name' => $i->name,
+            'description' => $i->description ?? '',
+            'unit_price' => (float) $i->unit_price,
+            'quantity' => (float) $i->quantity,
+            'unit' => $i->unit,
+        ])->values()),
+        subtotal: @json((float) $estimate->subtotal),
+        taxAmount: @json((float) $estimate->tax_amount),
+        total: @json((float) $estimate->total),
 
-        addCatalogItem(catalogItem) {
+        addCatalogItem(catalogItemId, name, description, unitPrice, unit) {
             this.items.push({
-                catalog_item_id: catalogItem.catalog_item_id,
-                name: catalogItem.name,
-                description: catalogItem.description || '',
-                unit_price: catalogItem.unit_price,
-                quantity: catalogItem.quantity ?? 1,
-                unit: catalogItem.unit || 'each',
+                catalog_item_id: catalogItemId,
+                name: name,
+                description: description || '',
+                unit_price: unitPrice,
+                quantity: 1,
+                unit: unit,
             });
             this.recalculate();
         },
 
+        addCustomItem() {
+            this.items.push({
+                catalog_item_id: null,
+                name: '',
+                description: '',
+                unit_price: 0,
+                quantity: 1,
+                unit: 'each',
+            });
+        },
+
         removeItem(index) {
-            if (!confirm('Remove this line item?')) {
-                return;
-            }
             this.items.splice(index, 1);
             this.recalculate();
         },
 
         recalculate() {
-            this.subtotal = this.items.reduce((sum, item) => sum + (parseFloat(item.unit_price) || 0) * (parseFloat(item.quantity) || 0), 0);
+            this.subtotal = this.items.reduce((sum, item) => {
+                return sum + (parseFloat(item.unit_price) || 0) * (parseFloat(item.quantity) || 0);
+            }, 0);
             this.taxAmount = Math.round(this.subtotal * (parseFloat(this.taxRate) || 0) / 100 * 100) / 100;
             this.total = this.subtotal + this.taxAmount;
-        },
-
-        formatCurrency(amount) {
-            return '$' + Number(amount || 0).toFixed(2);
         },
 
         async fetchTaxRate() {
@@ -300,6 +311,7 @@ function estimateForm() {
                     this.taxRate = parseFloat(data.rate);
                     this.taxRateFromDb = true;
                 } else {
+                    this.taxRate = 0;
                     this.taxRateFromDb = false;
                 }
             } catch {
@@ -308,7 +320,7 @@ function estimateForm() {
             this.recalculate();
         },
 
-        prepareSubmit() {
+        prepareSubmit(e) {
             const container = document.getElementById('hidden-items-container');
             container.innerHTML = '';
             this.items.forEach((item, i) => {

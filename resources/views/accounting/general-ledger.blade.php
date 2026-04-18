@@ -1,7 +1,8 @@
+{{-- General Ledger: preserves account header, date-range filter form, opening balance row, entry table with running balance, back link to chart of accounts --}}
 @extends('layouts.app')
 
 @section('content')
-<div class="space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Header --}}
     <div class="flex items-center justify-between flex-wrap gap-4">

@@ -1,7 +1,18 @@
+{{--
+  Message Templates — message-templates.index
+  Controller vars: $categories, $templates
+  Features preserved:
+    - New Template button
+    - Success flash message
+    - Collapsible Available Variables panel (Alpine x-data, x-collapse)
+    - Templates grouped by category, with template ID, name link, body preview, variables, Edit + Preview actions
+    - Inactive badge handling
+    - Empty state
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-6xl mx-auto">
+<div class="max-w-7xl mx-auto">
     <div class="flex items-center justify-between mb-6">
         <div>
             <h1 class="text-2xl font-bold text-white">Message Templates</h1>

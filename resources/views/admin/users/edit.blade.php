@@ -1,7 +1,13 @@
+{{--
+  Edit User — admin.users.edit
+  Preserved features: CSRF, @method('PUT'), Alpine x-data and role helpers,
+  identity fields with prefill from $managedUser, password (blank-keep),
+  roles checkbox grid, save + cancel actions, success/error flash blocks.
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-4xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
     <div>
         <a href="{{ route('admin.users.index') }}" class="text-sm text-cyan-400 hover:text-cyan-300">&larr; Back to users</a>
         <h1 class="mt-2 text-2xl font-bold text-white">Edit {{ $managedUser->name }}</h1>

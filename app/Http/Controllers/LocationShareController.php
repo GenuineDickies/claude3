@@ -93,19 +93,25 @@ class LocationShareController extends Controller
     {
         $serviceRequest = ServiceRequest::where('location_token', $token)->firstOrFail();
 
+        $noCache = [
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+            'Pragma'        => 'no-cache',
+            'Expires'       => '0',
+        ];
+
         if (! $serviceRequest->isLocationTokenValid()) {
             return response()->view('locate', [
                 'expired' => true,
                 'serviceRequest' => $serviceRequest,
-            ], 410);
+            ], 410)->withHeaders($noCache);
         }
 
-        return view('locate', [
+        return response()->view('locate', [
             'expired' => false,
             'serviceRequest' => $serviceRequest,
             'token' => $token,
             'mapsApiKey' => Setting::getValue('google_maps_api_key', (string) config('services.google_maps.api_key', '')),
-        ]);
+        ])->withHeaders($noCache);
     }
 
     /**
@@ -158,6 +164,42 @@ class LocationShareController extends Controller
         return response()->json([
             'ok'      => true,
             'message' => 'Location received. Thank you!',
+        ]);
+    }
+
+    /**
+     * POST /api/locate/{token}/manual
+     *
+     * Receive manually entered address when map pin confirmation is not possible.
+     */
+    public function storeManual(Request $request, string $token): JsonResponse
+    {
+        $validated = $request->validate([
+            'street' => ['required', 'string', 'max:255'],
+            'city'   => ['required', 'string', 'max:120'],
+            'state'  => ['required', 'string', 'max:120'],
+        ]);
+
+        $manualLocation = trim($validated['street']) . ', ' . trim($validated['city']) . ', ' . trim($validated['state']);
+
+        $updated = \Illuminate\Support\Facades\DB::table('service_requests')
+            ->where('location_token', $token)
+            ->whereNull('location_shared_at')
+            ->where('location_token_expires_at', '>', now())
+            ->update([
+                'location' => $manualLocation,
+                'latitude' => null,
+                'longitude' => null,
+                'location_shared_at' => now(),
+            ]);
+
+        if ($updated === 0) {
+            return response()->json(['error' => 'Invalid or expired token.'], 422);
+        }
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Manual address received. Thank you!',
         ]);
     }
 }

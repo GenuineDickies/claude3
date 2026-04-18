@@ -1,7 +1,14 @@
+{{--
+  Create User — admin.users.create
+  Preserved features: CSRF, Alpine x-data (selectedRoleIds/status/
+  requirements + helpers requiresMobilePhone/requiresSmsConsent),
+  identity fields (name/username/email/status/phone/password), roles
+  checkbox grid, create + cancel actions.
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-4xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
     <div>
         <a href="{{ route('admin.users.index') }}" class="text-sm text-cyan-400 hover:text-cyan-300">&larr; Back to users</a>
         <h1 class="mt-2 text-2xl font-bold text-white">Create User</h1>

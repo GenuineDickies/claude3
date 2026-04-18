@@ -1,3 +1,16 @@
+{{--
+    PUBLIC-FACING SIGNATURE CAPTURE PAGE
+    Preserved features:
+      - Standalone HTML (no layout extend); branded card (max-width: 480px; do NOT widen)
+      - CSRF meta tag + @csrf in form
+      - Displays: $companyName title, customer name, catalogItem service name, location, today's date
+      - Form POST to route('signature.store', $signature->token)
+      - Inputs: hidden signature_data (set from canvas toDataURL on submit),
+               signer_name (required, maxlength=200, prefilled from customer first/last name)
+      - Inline error list via $errors
+      - Buttons: Clear (resets canvas, disables submit) + Submit Signature (disabled until drawn)
+      - Canvas JS: resizeCanvas, mouse + touch drawing, submit-guard that blocks if !hasDrawn
+--}}
 <!DOCTYPE html>
 <html lang="en">
 <head>

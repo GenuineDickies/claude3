@@ -1,7 +1,19 @@
+{{--
+  Pages — admin.pages.index
+  Controller vars: $pages, $search
+  Features preserved:
+    - Sync Routes (POST) and Register Page (Alpine modal: create-page) buttons
+    - Success + error flash messages
+    - Search filter + Clear
+    - Pages grouped by section with per-section colored headers and collapse toggle (Alpine)
+    - Per-row truncate cells with hover tooltip (Alpine), Edit modal, Delete form
+    - Edit modal (x-modal) and Register modal (x-modal) with name/path/description fields
+    - Empty state
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-5xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
     <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
             <h1 class="text-2xl font-bold text-white">Pages</h1>

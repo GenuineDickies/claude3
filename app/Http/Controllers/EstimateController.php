@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class EstimateController extends Controller
 {
@@ -36,6 +37,7 @@ class EstimateController extends Controller
         $stateCode = $this->detectState($serviceRequest);
         $taxRate = $stateCode ? StateTaxRate::rateForState($stateCode) : null;
         $stateAutoDetected = $stateCode !== null;
+        $initialItems = $this->buildInitialItems($serviceRequest);
 
         return view('estimates.create', compact(
             'serviceRequest',
@@ -43,6 +45,7 @@ class EstimateController extends Controller
             'stateCode',
             'taxRate',
             'stateAutoDetected',
+            'initialItems',
         ));
     }
 
@@ -55,6 +58,9 @@ class EstimateController extends Controller
             'state_code' => 'nullable|string|size:2',
             'tax_rate' => 'required|numeric|min:0|max:100',
             'notes' => 'nullable|string|max:2000',
+            'deposit_required' => 'nullable|boolean',
+            'deposit_amount' => 'nullable|numeric|min:0',
+            'send_for_approval' => 'nullable|boolean',
             'items' => 'required|array|min:1',
             'items.*.catalog_item_id' => 'nullable|integer|exists:catalog_items,id',
             'items.*.name' => 'required|string|max:255',
@@ -64,14 +70,38 @@ class EstimateController extends Controller
             'items.*.unit' => 'required|string|in:each,mile,hour,gallon',
         ]);
 
-        $estimate = DB::transaction(function () use ($validated, $serviceRequest) {
+        $subtotal = collect($validated['items'])->sum(function (array $item): float {
+            return ((float) $item['unit_price']) * ((float) $item['quantity']);
+        });
+        $taxAmount = round($subtotal * (((float) $validated['tax_rate']) / 100), 2);
+        $total = round($subtotal + $taxAmount, 2);
+
+        $depositRequired = (bool) ($validated['deposit_required'] ?? false);
+        $depositAmount = $depositRequired ? (float) ($validated['deposit_amount'] ?? 0) : null;
+        $sendForApproval = (bool) ($validated['send_for_approval'] ?? false);
+
+        if ($depositRequired && $depositAmount <= 0) {
+            throw ValidationException::withMessages([
+                'deposit_amount' => 'Deposit amount is required when deposit is marked as required.',
+            ]);
+        }
+
+        if ($depositAmount !== null && $depositAmount > $total) {
+            throw ValidationException::withMessages([
+                'deposit_amount' => 'Deposit amount cannot be greater than the estimate total.',
+            ]);
+        }
+
+        $estimate = DB::transaction(function () use ($validated, $serviceRequest, $depositRequired, $depositAmount, $sendForApproval) {
             $estimate = Estimate::create([
                 'service_request_id' => $serviceRequest->id,
                 'estimate_number' => Estimate::generateEstimateNumber(),
-                'state_code' => $validated['state_code'] ? strtoupper($validated['state_code']) : null,
+                'state_code' => !empty($validated['state_code']) ? strtoupper((string) $validated['state_code']) : null,
                 'tax_rate' => $validated['tax_rate'],
                 'notes' => $validated['notes'] ?? null,
-                'status' => 'draft',
+                'deposit_required' => $depositRequired,
+                'deposit_amount' => $depositAmount,
+                'status' => $sendForApproval ? 'sent' : 'draft',
             ]);
 
             foreach ($validated['items'] as $index => $item) {
@@ -92,9 +122,17 @@ class EstimateController extends Controller
             return $estimate;
         });
 
+        if ($sendForApproval) {
+            $this->sendApprovalRequest($serviceRequest, $estimate);
+
+            return redirect()
+                ->route('estimates.show', [$serviceRequest, $estimate])
+                ->with('success', 'Estimate created and sent for customer approval.');
+        }
+
         return redirect()
             ->route('estimates.show', [$serviceRequest, $estimate])
-            ->with('success', 'Estimate created — $' . number_format($estimate->total, 2));
+            ->with('success', 'Estimate created - $' . number_format((float) $estimate->total, 2));
     }
 
     /**
@@ -236,6 +274,59 @@ class EstimateController extends Controller
         abort_if($estimate->service_request_id !== $serviceRequest->id, 404);
         abort_unless(in_array($estimate->status, ['sent', 'pending_approval']), 403, 'Only sent estimates can be sent for approval.');
 
+        $this->sendApprovalRequest($serviceRequest, $estimate);
+
+        return redirect()
+            ->route('estimates.show', [$serviceRequest, $estimate])
+            ->with('success', 'Approval request sent. Customer will receive an SMS with a link to review and sign.');
+    }
+
+    /**
+    * GET /api/state-tax-rate/{stateCode} - AJAX endpoint
+     */
+    public function taxRateForState(string $stateCode)
+    {
+        $stateCode = strtoupper(preg_replace('/[^a-zA-Z]/', '', $stateCode));
+
+        if (strlen($stateCode) !== 2) {
+            return response()->json(['rate' => null]);
+        }
+
+        $rate = StateTaxRate::rateForState($stateCode);
+
+        return response()->json(['rate' => $rate]);
+    }
+
+    /**
+     * Build prefilled estimate items from the selected service on the request.
+     */
+    private function buildInitialItems(ServiceRequest $serviceRequest): array
+    {
+        $catalogItem = $serviceRequest->catalogItem;
+
+        if (! $catalogItem) {
+            return [];
+        }
+
+        $unitPrice = $serviceRequest->quoted_price !== null
+            ? (float) $serviceRequest->quoted_price
+            : (float) $catalogItem->base_cost;
+
+        return [[
+            'catalog_item_id' => $catalogItem->id,
+            'name' => $catalogItem->name,
+            'description' => $catalogItem->description,
+            'unit_price' => max(0, $unitPrice),
+            'quantity' => 1,
+            'unit' => $catalogItem->unit ?: 'each',
+        ]];
+    }
+
+    /**
+     * Generate approval token, log, and send approval SMS where possible.
+     */
+    private function sendApprovalRequest(ServiceRequest $serviceRequest, Estimate $estimate): void
+    {
         $serviceRequest->loadMissing('customer');
         $token = $estimate->generateApprovalToken();
 
@@ -245,12 +336,16 @@ class EstimateController extends Controller
             'total'           => $estimate->total,
         ], Auth::id());
 
-        // Send SMS if customer has a phone number
         $customer = $serviceRequest->customer;
         if ($customer && $customer->phone) {
             $companyName = Setting::getValue('company_name', config('app.name'));
             $approvalUrl = route('estimate-approval.show', $token);
-            $text = "{$companyName}: Please review and approve your estimate for \${$estimate->total}. {$approvalUrl}";
+            $text = sprintf(
+                '%s: Please review and approve your estimate for $%s. %s',
+                $companyName,
+                number_format((float) $estimate->total, 2),
+                $approvalUrl,
+            );
 
             try {
                 app(SmsServiceInterface::class)->sendRaw($customer->phone, $text);
@@ -269,26 +364,6 @@ class EstimateController extends Controller
                 Log::warning('Failed to send estimate approval SMS', ['error' => $e->getMessage()]);
             }
         }
-
-        return redirect()
-            ->route('estimates.show', [$serviceRequest, $estimate])
-            ->with('success', 'Approval request sent. Customer will receive an SMS with a link to review and sign.');
-    }
-
-    /**
-     * GET /api/state-tax-rate/{stateCode} — AJAX endpoint
-     */
-    public function taxRateForState(string $stateCode)
-    {
-        $stateCode = strtoupper(preg_replace('/[^a-zA-Z]/', '', $stateCode));
-
-        if (strlen($stateCode) !== 2) {
-            return response()->json(['rate' => null]);
-        }
-
-        $rate = StateTaxRate::rateForState($stateCode);
-
-        return response()->json(['rate' => $rate]);
     }
 
     /**

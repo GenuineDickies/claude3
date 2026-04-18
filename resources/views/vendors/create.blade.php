@@ -1,7 +1,12 @@
+{{--
+  Add Vendor — vendors.create
+  Preserved features: CSRF, breadcrumb, shared @include('vendors._form')
+  with $vendor=null and $expenseAccounts, save + cancel actions.
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-3xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Breadcrumb --}}
     <a href="{{ route('vendors.index') }}" class="inline-flex items-center text-sm text-gray-500 hover:text-cyan-400">

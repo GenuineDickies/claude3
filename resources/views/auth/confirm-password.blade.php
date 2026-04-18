@@ -1,3 +1,12 @@
+{{--
+    PUBLIC-FACING CONFIRM PASSWORD PAGE
+    Preserved features:
+      - Layout: <x-guest-layout> (narrow centered card; do NOT widen)
+      - Intro copy: "secure area" explanation
+      - Form POST to route('password.confirm') with @csrf
+      - Input: password (autocomplete=current-password), with field-level <x-input-error>
+      - Submit via <x-primary-button> ("Confirm")
+--}}
 <x-guest-layout>
     <div class="mb-4 text-sm text-gray-400">
         {{ __('This is a secure area of the application. Please confirm your password before continuing.') }}

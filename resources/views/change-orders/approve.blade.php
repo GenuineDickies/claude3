@@ -1,3 +1,13 @@
+{{--
+    PUBLIC-FACING CHANGE ORDER APPROVAL PAGE
+    Preserved features:
+      - Layout: @extends('layouts.app') with @section('content')
+      - Wrapper: max-w-2xl centered card (intentionally narrow; do NOT widen)
+      - Displays: work_order_number, change description, price_impact
+      - Form POST to route('change-orders.approve', $changeOrder->approval_token) with @csrf
+      - Inputs: approved_by_name (required), signature_data textarea (optional base64 data URL)
+      - Dual submit buttons: decision=approved and decision=rejected
+--}}
 @extends('layouts.app')
 
 @section('content')

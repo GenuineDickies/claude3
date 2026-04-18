@@ -1,3 +1,9 @@
+{{--
+    PUBLIC-FACING SIGNATURE EXPIRED PAGE
+    Preserved features:
+      - Standalone HTML (no layout extend); branded card (max-width: 400px; do NOT widen)
+      - Static "signing link expired" message
+--}}
 <!DOCTYPE html>
 <html lang="en">
 <head>

@@ -1,7 +1,18 @@
+{{--
+  Vendor Documents — vendor-documents.index
+  Controller vars: $documents (paginator), $vendors, $currentType, $currentStatus, $currentVendor, $currentFrom, $currentTo, $currentSearch
+  Features preserved:
+    - New Document button
+    - Filters: Type, Status, Vendor, From/To dates, Search (doc#/vendor)
+    - Clear filters link (conditional)
+    - Table cols: Date, Vendor, Doc #, Type badge, Total, Paid (Yes/No), Status (via _status-badge include), View action
+    - Empty state
+    - Pagination
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Header --}}
     <div class="flex items-center justify-between">

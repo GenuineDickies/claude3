@@ -1,7 +1,13 @@
+{{--
+  New Vendor Document — vendor-documents.create
+  Preserved features: CSRF, Alpine vendorDocForm, breadcrumb, vendor select
+  (with $preselectedVendor), document info (type/dates/amounts/upload),
+  and all downstream form sections + actions — unchanged.
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-4xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Breadcrumb --}}
     <a href="{{ route('vendor-documents.index') }}" class="inline-flex items-center text-sm text-gray-500 hover:text-cyan-400">

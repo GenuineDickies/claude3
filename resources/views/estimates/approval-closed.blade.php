@@ -1,3 +1,11 @@
+{{--
+    PUBLIC-FACING ESTIMATE APPROVAL CLOSED PAGE
+    Preserved features:
+      - Layout: @extends('layouts.app') with @section('content')
+      - Wrapper: max-w-lg centered card (intentionally narrow; do NOT widen)
+      - Branches on $estimate->status: 'accepted' (green check), 'declined' (red X), else expired (amber clock)
+      - Shows $estimate->approved_at formatted when applicable
+--}}
 @extends('layouts.app')
 
 @section('content')

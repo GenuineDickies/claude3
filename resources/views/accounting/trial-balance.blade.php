@@ -1,7 +1,8 @@
+{{-- Trial Balance: preserves as-of date filter form, account table with debits/credits, totals footer, out-of-balance warning --}}
 @extends('layouts.app')
 
 @section('content')
-<div class="space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Header --}}
     <div class="flex items-center justify-between flex-wrap gap-4">

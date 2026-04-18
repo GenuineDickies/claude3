@@ -1,3 +1,13 @@
+{{--
+    PUBLIC-FACING FORGOT PASSWORD PAGE
+    Preserved features:
+      - Layout: <x-guest-layout> (narrow centered card; do NOT widen)
+      - Intro copy explaining the reset-link flow
+      - Session status banner via <x-auth-session-status>
+      - Form POST to route('password.email') with @csrf
+      - Input: email (autofocus), with field-level <x-input-error>
+      - Submit via <x-primary-button> ("Email Password Reset Link")
+--}}
 <x-guest-layout>
     <div class="mb-4 text-sm text-gray-400">
         {{ __('Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.') }}

@@ -1,7 +1,13 @@
+{{--
+  Record Expense — expenses.create
+  Preserved features: CSRF, multipart upload, breadcrumb, expense details
+  (date/category/vendor/description), payment (amount/method/reference),
+  receipt upload, notes, save + cancel actions.
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-3xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Breadcrumb --}}
     <a href="{{ route('expenses.index') }}" class="inline-flex items-center text-sm text-gray-500 hover:text-cyan-400">

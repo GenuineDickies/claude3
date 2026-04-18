@@ -1,7 +1,16 @@
+{{--
+  Audit Logs — admin.audit-logs.index
+  Controller vars: $auditLogs (paginator), $eventOptions, $currentSearch, $currentEvent
+  Features preserved:
+    - Filters: Search (user/email/IP/UA), Event dropdown, Filter + Clear buttons
+    - Table cols: When, Event, User (name/email or System), IP, Details (JSON pretty-printed)
+    - Empty state
+    - Pagination
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
     <div>
         <h1 class="text-2xl font-bold text-white">Audit Logs</h1>
         <p class="mt-1 text-sm text-gray-500">Review sign-in events, access denials, and administration changes.</p>

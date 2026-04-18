@@ -1,7 +1,8 @@
+{{-- Rapid Dispatch Page — rapid-dispatch.store | Feature preservation notes: Alpine component rapidDispatch() with shorthand lookup, phone formatter, customer lookup (api.customers.search), shorthand parser (rapid-dispatch.parse), catalog item price updater; Header with Quick Mode badge and Full Form link (service-requests.create); Shorthand quick-service lookup input with matched feedback; Main dispatch form (POST rapid-dispatch.store) with @csrf: phone (required, formatted), first_name/last_name (required), catalog_item_id select grouped by serviceCategories with old() + data-price, quoted_price (required), location, notes, send_location_request checkbox; Errors block; Submit button with submitting state. Layout: max-w-5xl compromise (rapid is narrow-focus quick form); All Alpine state, forms, routes, and PHP logic kept intact. --}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-2xl mx-auto" x-data="rapidDispatch()">
+<div class="max-w-5xl mx-auto" x-data="rapidDispatch()">
 
     {{-- Header --}}
     <div class="flex items-center justify-between mb-6">

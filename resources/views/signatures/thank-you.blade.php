@@ -1,3 +1,9 @@
+{{--
+    PUBLIC-FACING SIGNATURE THANK YOU PAGE
+    Preserved features:
+      - Standalone HTML (no layout extend); branded card (max-width: 400px; do NOT widen)
+      - Success icon + confirmation message + $companyName footer line
+--}}
 <!DOCTYPE html>
 <html lang="en">
 <head>

@@ -1,7 +1,8 @@
+{{-- Chart of Accounts: preserves grouped account tables (asset/liability/equity/revenue/cogs/expense), balance calculations, status badges, links to general ledger --}}
 @extends('layouts.app')
 
 @section('content')
-<div class="space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Header --}}
     <div class="flex items-center justify-between">

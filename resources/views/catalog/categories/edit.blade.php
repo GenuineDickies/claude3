@@ -1,7 +1,12 @@
+{{--
+  Edit Service Category — catalog.categories.edit
+  Preserved features: CSRF, @method('PUT'), shared form include, update +
+  cancel actions, separate delete form (@method('DELETE'), confirm).
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-4xl mx-auto">
+<div class="max-w-7xl mx-auto">
     <div class="mb-6">
         <a href="{{ route('catalog.index') }}" class="text-sm text-cyan-400 hover:text-cyan-300">&larr; Back to Catalog</a>
         <h1 class="text-2xl font-bold text-white mt-2">Edit: {{ $category->name }}</h1>

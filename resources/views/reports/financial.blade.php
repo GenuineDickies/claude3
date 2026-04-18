@@ -1,7 +1,8 @@
+{{-- Financial Dashboard: preserves date-range selector, financial metric cards, A/R aging buckets, 14-day Chart.js trend charts (jobs + revenue), operational metrics, service mix chart, top technicians table --}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Header + Date Range Selector --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -53,9 +54,9 @@
             <p class="stat-card__sub">Paid / billed</p>
         </div>
 
-        {{-- Avg Ticket Value --}}
+        {{-- Avg Service Request Value --}}
         <div class="stat-card stat-card--default">
-            <p class="stat-card__label">Avg Ticket Value</p>
+            <p class="stat-card__label">Avg Service Request Value</p>
             <p class="stat-card__value">{{ $avgTicketValue !== null ? '$' . number_format($avgTicketValue, 2) : '—' }}</p>
             <p class="stat-card__sub">Per paid invoice</p>
         </div>

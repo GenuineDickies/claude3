@@ -1,7 +1,16 @@
+{{--
+  Warranties — warranties.index
+  Controller vars: $warranties (paginator), $filter
+  Features preserved:
+    - Status filter (uses Warranty::EXPIRY_LABELS) with Clear link
+    - Table cols: Part (name + part #), Service Request link, Customer, Vendor, Install Date, Expires, Status badge, View action
+    - Empty state
+    - Pagination
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Header --}}
     <div class="flex items-center justify-between">
@@ -46,7 +55,7 @@
                     <thead class="bg-white/5">
                         <tr>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Part</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Request</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Install Date</th>

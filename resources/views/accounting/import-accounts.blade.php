@@ -1,7 +1,8 @@
+{{-- Import Categories: preserves documents sub-nav, grouped category tables (asset/equity/revenue/cogs/expense), status badges, link to chart of accounts --}}
 @extends('layouts.app')
 
 @section('content')
-<div class="space-y-5">
+<div class="max-w-7xl mx-auto space-y-4">
 
     @include('documents._sub-nav')
 

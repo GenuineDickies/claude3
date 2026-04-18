@@ -1,7 +1,8 @@
+{{-- Transaction Imports Index: preserves documents sub-nav, stats bar, filter tabs, document list cards with progress bars and status badges, pagination --}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-6xl mx-auto space-y-5">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Sub-navigation --}}
     @include('documents._sub-nav')

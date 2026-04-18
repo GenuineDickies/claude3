@@ -1,7 +1,17 @@
+{{--
+    Settings — State Tax Rates
+    Preserved features:
+      - Breadcrumb back to Settings
+      - Session success flash message
+      - Bulk update form via route('settings.tax-rates.update') with @csrf @method('PUT')
+      - Per-state numeric tax rate inputs (rates[CODE]) with step/min/max validation
+      - Highlight styling for states with an existing rate
+      - Back-to-Settings link and Save Tax Rates submit button
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-3xl mx-auto">
+<div class="max-w-7xl mx-auto">
 
     <div class="mb-6">
         <div class="flex items-center gap-2 text-sm text-gray-500 mb-4">

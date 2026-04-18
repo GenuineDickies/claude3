@@ -1,3 +1,10 @@
+{{--
+    PUBLIC-FACING CHANGE ORDER THANK YOU PAGE
+    Preserved features:
+      - Layout: @extends('layouts.app') with @section('content')
+      - Wrapper: max-w-xl centered card (intentionally narrow; do NOT widen)
+      - Confirmation message echoing $decision back to the signer
+--}}
 @extends('layouts.app')
 
 @section('content')

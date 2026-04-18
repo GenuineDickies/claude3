@@ -1,7 +1,19 @@
+{{--
+  Roles — admin.roles.index
+  Controller vars: $roles (paginator), $search
+  Features preserved:
+    - New Role button (Alpine modal: create-role)
+    - Success + error flash messages
+    - Search filter + Clear
+    - Table cols: Role (name + description), Users count, Requirements (mobile/sms badges), Pages count, Actions (Access link, Edit modal, Delete form)
+    - Per-row Edit modal (x-modal) with name/description/requires_mobile_phone/requires_sms_consent
+    - Create modal (x-modal) with the same fields
+    - Pagination
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
             <h1 class="text-2xl font-bold text-white">Roles</h1>

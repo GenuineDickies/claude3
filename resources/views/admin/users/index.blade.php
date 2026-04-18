@@ -1,7 +1,18 @@
+{{--
+  User Access — admin.users.index
+  Controller vars: $users (paginator), $search, $status
+  Features preserved:
+    - Add User button
+    - Success + error flash messages
+    - Filters: Search (name/username/email), Status (active/disabled), Filter + Clear buttons
+    - Table cols: User (name/email/username), Roles chips, Status badge, Created, Actions (Edit + Disable/Enable POST)
+    - Empty state row
+    - Pagination
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
             <h1 class="text-2xl font-bold text-white">User Access</h1>

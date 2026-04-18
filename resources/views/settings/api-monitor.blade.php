@@ -1,7 +1,18 @@
+{{--
+    Settings — API Health Monitoring
+    Preserved features:
+      - Breadcrumb back to Settings
+      - Session success flash message
+      - Add Endpoint form via route('settings.api-monitor.store') (@csrf) with name, url, method, expected status, interval, active
+      - Endpoints table with status badge (healthy/degraded/down/unknown), last error, last check time, response time, failures
+      - Per-endpoint update form via route('settings.api-monitor.update', $endpoint) (@csrf @method('PUT'))
+      - Per-endpoint "Run now" form via route('settings.api-monitor.run', $endpoint) (@csrf)
+      - Empty state row when no endpoints configured
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-5xl mx-auto">
+<div class="max-w-7xl mx-auto">
 
     <div class="mb-6">
         <div class="flex items-center gap-2 text-sm text-gray-500 mb-4">

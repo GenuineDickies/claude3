@@ -1,12 +1,46 @@
+{{--
+  Service Request detail / show — service-requests.show
+  Feature preservation notes:
+    - Breadcrumb to service request queue
+    - Header: service request #, created timestamp, assign-technician (inline Alpine form),
+      status badge, status-transition controls (advance / cancel / add note with
+      SMS consent checkbox), x-ref advanceForm/cancelForm with hidden inputs for
+      note + notify
+    - Workflow progress tracker: 5 stages (Create Estimate → Create Work Order →
+      Create Invoice → Collect Payment → Complete) with green/cyan/grey states and
+      conditional links to show or create for each stage
+    - Customer card with SMS consent state + link to customer record
+    - Vehicle & service card with persistent vehicle record form
+      (sync-vehicle PATCH, plate/VIN fields required by invoice stage)
+    - Location section: Send Location to Technician (technician SMS consent gated),
+      Send Location Request (customer token SMS), embedded Google Maps / OSM,
+      directions, polling script for pending token
+    - Estimates list with create link, statuses, totals, tax state
+    - Work orders list with create link, priority + status chips
+    - Receipts list with PDF download links
+    - Photos grouped by before/during/after with upload form
+    - Customer signature capture (in-person or SMS-request)
+    - Payments list + record-payment form, payment status chip, total paid
+    - Activity log (service_logs) with detail sub-events
+    - Correspondence timeline partial
+    - Messages thread + compose (template picker, render via API, character count)
+    - Status history log
+    - Documents partial with upload
+    - Back / new-service request links
+  Layout changes only:
+    - Outer container widened from max-w-3xl to max-w-7xl for density
+    - Vertical spacing tightened from space-y-6 to space-y-4
+    - All Alpine state, forms, routes, and PHP logic kept intact
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-3xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Breadcrumb --}}
     <a href="{{ route('service-requests.index') }}" class="inline-flex items-center text-sm text-gray-500 hover:text-cyan-400">
         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-        All Tickets
+        All Service Requests
     </a>
 
     {{-- Header --}}
@@ -1082,9 +1116,9 @@
     {{-- Back link --}}
     <div class="flex gap-3">
         <a href="{{ route('service-requests.index') }}"
-           class="text-sm text-gray-500 hover:text-cyan-400 underline">&larr; All Tickets</a>
+           class="text-sm text-gray-500 hover:text-cyan-400 underline">&larr; All Service Requests</a>
         <a href="{{ route('service-requests.create') }}"
-           class="text-sm text-cyan-400 hover:text-cyan-300 underline">+ New Ticket</a>
+           class="text-sm text-cyan-400 hover:text-cyan-300 underline">+ New Service Request</a>
     </div>
 </div>
 @endsection

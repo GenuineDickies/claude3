@@ -1,14 +1,15 @@
+{{-- Service Request Evidence Package — service-requests.evidence | Feature preservation notes: Back link to service-requests.show; Print/Save PDF button (window.print); Service Details grid (customer, phone, service type, status via x-status-badge, location, GPS coordinates + location_shared_at); Photos section grouped by type (before/during/after) via route('photos.show'); Customer Signature block with signature_data img, signer_name, signed_at, ip_address, user_agent; Payment Records table using methodLabel() and totalPayments(); SMS Consent status via hasSmsConsent() + sms_consent_at; Receipts list with receipts.pdf link; Complete Activity Log merging statusLogs + serviceLogs into a unified timeline with STATUS_LABELS mapping; Evidence Completeness checklist with dynamic score/percentage bar. Layout: max-w-7xl + space-y-4 for wider internal-tool layout; All Alpine state, forms, routes, and PHP logic kept intact. --}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-4xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row justify-between items-start gap-3">
         <div>
             <a href="{{ route('service-requests.show', $serviceRequest) }}" class="inline-flex items-center text-sm text-gray-500 hover:text-cyan-400 mb-2">
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-                Ticket #{{ $serviceRequest->id }}
+                Service Request #{{ $serviceRequest->id }}
             </a>
             <h1 class="text-xl sm:text-2xl font-bold text-white">Evidence Package</h1>
             <p class="text-sm text-gray-500">Service Request #{{ $serviceRequest->id }} &middot; {{ $serviceRequest->created_at->format('M j, Y') }}</p>

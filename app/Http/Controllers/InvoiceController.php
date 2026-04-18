@@ -9,6 +9,7 @@ use App\Models\Setting;
 use App\Models\Vehicle;
 use App\Models\WorkOrder;
 use App\Services\ChangeOrderAuthorizationService;
+use App\Services\InventoryService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -38,6 +39,7 @@ class InvoiceController extends Controller
         $workOrder->load('items');
 
         $workOrderItems = $workOrder->items->map(fn ($i) => [
+            'catalog_item_id' => $i->catalog_item_id,
             'name'        => $i->name,
             'description' => $i->description ?? '',
             'quantity'    => (float) $i->quantity,
@@ -60,6 +62,7 @@ class InvoiceController extends Controller
         ServiceRequest $serviceRequest,
         WorkOrder $workOrder,
         ChangeOrderAuthorizationService $changeOrderAuthorizationService,
+        InventoryService $inventoryService,
     )
     {
         abort_if($workOrder->service_request_id !== $serviceRequest->id, 404);
@@ -85,6 +88,7 @@ class InvoiceController extends Controller
             'service_description' => 'nullable|string|max:200',
             'service_location'   => 'nullable|string|max:500',
             'line_items'         => 'required|array|min:1',
+            'line_items.*.catalog_item_id' => 'nullable|integer|exists:catalog_items,id',
             'line_items.*.name'  => 'required|string|max:200',
             'line_items.*.description' => 'nullable|string|max:500',
             'line_items.*.quantity' => 'required|numeric|min:0.01',
@@ -128,6 +132,8 @@ class InvoiceController extends Controller
                 'email'   => Setting::getValue('company_email', ''),
             ],
         ]);
+
+        $inventoryService->fulfillInvoiceLineItems($validated['line_items']);
 
         return redirect()->route('invoices.show', [$serviceRequest, $invoice])
             ->with('success', 'Invoice ' . $invoice->invoice_number . ' created.');
@@ -189,7 +195,7 @@ class InvoiceController extends Controller
     /**
      * PUT /service-requests/{sr}/invoices/{invoice}
      */
-    public function update(Request $request, ServiceRequest $serviceRequest, Invoice $invoice)
+    public function update(Request $request, ServiceRequest $serviceRequest, Invoice $invoice, InventoryService $inventoryService)
     {
         abort_if($invoice->service_request_id !== $serviceRequest->id, 404);
         abort_if($invoice->is_locked, 403, 'This invoice version is locked.');
@@ -207,6 +213,7 @@ class InvoiceController extends Controller
             'service_description' => 'nullable|string|max:200',
             'service_location'    => 'nullable|string|max:500',
             'line_items'          => 'required|array|min:1',
+            'line_items.*.catalog_item_id' => 'nullable|integer|exists:catalog_items,id',
             'line_items.*.name'   => 'required|string|max:200',
             'line_items.*.description' => 'nullable|string|max:500',
             'line_items.*.quantity' => 'required|numeric|min:0.01',
@@ -222,6 +229,9 @@ class InvoiceController extends Controller
         ]);
 
         $vehicle = $this->syncVehicleRecord($serviceRequest, $validated, $invoice);
+
+        // Restore stock consumed by the old line_items, then re-fulfill with new ones
+        $inventoryService->restoreInvoiceLineItems($invoice->line_items);
 
         $invoice->update([
             'vehicle_id'           => $vehicle?->id,
@@ -240,11 +250,13 @@ class InvoiceController extends Controller
             'notes'               => $validated['notes'] ?? null,
         ]);
 
+        $inventoryService->fulfillInvoiceLineItems($validated['line_items']);
+
         return redirect()->route('invoices.show', [$serviceRequest, $invoice])
             ->with('success', 'Invoice updated.');
     }
 
-    public function updateStatus(Request $request, ServiceRequest $serviceRequest, Invoice $invoice)
+    public function updateStatus(Request $request, ServiceRequest $serviceRequest, Invoice $invoice, InventoryService $inventoryService)
     {
         abort_if($invoice->service_request_id !== $serviceRequest->id, 404);
 
@@ -255,6 +267,10 @@ class InvoiceController extends Controller
         if (! $invoice->canTransitionTo($validated['status'])) {
             return redirect()->route('invoices.show', [$serviceRequest, $invoice])
                 ->with('error', "Cannot change invoice status from '{$invoice->status}' to '{$validated['status']}'.");
+        }
+
+        if ($validated['status'] === Invoice::STATUS_CANCELLED) {
+            $inventoryService->restoreInvoiceLineItems($invoice->line_items);
         }
 
         $invoice->update(['status' => $validated['status']]);

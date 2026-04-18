@@ -1,3 +1,10 @@
+{{--
+    PUBLIC-FACING ESTIMATE APPROVAL COMPLETE PAGE
+    Preserved features:
+      - Layout: @extends('layouts.app') with @section('content')
+      - Wrapper: max-w-lg centered card (intentionally narrow; do NOT widen)
+      - Branches on $decision: 'approved' (green check with displayNumber + approved_total) or declined (red X)
+--}}
 @extends('layouts.app')
 
 @section('content')

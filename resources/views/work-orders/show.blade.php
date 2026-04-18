@@ -1,11 +1,36 @@
+{{--
+  Work Order Show Page — work-orders.show
+  Feature preservation notes:
+    - Breadcrumb (All Service Requests > SR # > work order number)
+    - Session success/inventory_warnings/error flash messages
+    - Header card with WO number, status badge, priority badge
+    - Customer/SR subtitle and created timestamp
+    - Status transition form (Start Work / Mark Complete) via PATCH update-status
+    - Edit link (when not completed/cancelled)
+    - Download PDF link
+    - Create Invoice link (when completed)
+    - Details section (customer, assigned_to, priority)
+    - Started/completed/duration row (conditional)
+    - Description block (conditional)
+    - Line Items table (name/description/price/qty/unit/amount)
+    - Totals block (subtotal, tax, total)
+    - Notes / Technician Notes block (conditional)
+    - Change Orders section: header, error display, create form (change_type, price_impact, description, technician_notes, send_sms checkbox), and existing change orders table with cancel form per pending entry
+    - Documents partial
+    - Back to SR link
+  Layout changes only:
+    - Outer container widened from max-w-4xl to max-w-7xl
+    - Vertical spacing tightened from space-y-6 to space-y-4
+    - All Alpine state, forms, routes, and PHP logic kept intact
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-4xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Breadcrumb --}}
     <div class="flex items-center gap-2 text-sm text-gray-500">
-        <a href="{{ route('service-requests.index') }}" class="hover:text-cyan-400">All Tickets</a>
+        <a href="{{ route('service-requests.index') }}" class="hover:text-cyan-400">All Service Requests</a>
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
         <a href="{{ route('service-requests.show', $serviceRequest) }}" class="hover:text-cyan-400">SR #{{ $serviceRequest->id }}</a>
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
@@ -13,13 +38,19 @@
     </div>
 
     @if(session('success'))
-        <div class="bg-green-500/10 border border-green-500/30 text-green-800 px-4 py-3 rounded-lg text-sm">
+        <div class="bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-3 rounded-lg text-sm">
             {{ session('success') }}
         </div>
     @endif
 
+    @if(session('inventory_warnings'))
+        <div class="bg-amber-500/10 border border-amber-500/30 text-amber-400 px-4 py-3 rounded-lg text-sm">
+            ⚠ {{ session('inventory_warnings') }}
+        </div>
+    @endif
+
     @if(session('error'))
-        <div class="bg-red-50 border border-red-500/30 text-red-800 px-4 py-3 rounded-lg text-sm">
+        <div class="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm">
             {{ session('error') }}
         </div>
     @endif

@@ -1,3 +1,9 @@
+{{--
+    PUBLIC-FACING "ALREADY SIGNED" PAGE
+    Preserved features:
+      - Standalone HTML (no layout extend); branded card (max-width: 400px; do NOT widen)
+      - Displays $signature->signer_name and $signature->signed_at formatted as "M j, Y g:i A"
+--}}
 <!DOCTYPE html>
 <html lang="en">
 <head>

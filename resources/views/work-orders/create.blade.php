@@ -1,11 +1,19 @@
+{{--
+  Create Work Order — work-orders.create
+  Preserved features: CSRF, Alpine workOrderForm (tax/items + helpers +
+  prepareSubmit), breadcrumb, approval-required notice, header, optional
+  estimate_id hidden, priority/assigned_to/description, tax config,
+  catalog picker + custom items, line items table with totals, notes,
+  hidden items container, submit + back actions.
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-4xl mx-auto space-y-6" x-data="workOrderForm()">
+<div class="max-w-7xl mx-auto space-y-4" x-data="workOrderForm()">
 
     {{-- Breadcrumb --}}
     <div class="flex items-center gap-2 text-sm text-gray-500">
-        <a href="{{ route('service-requests.index') }}" class="hover:text-cyan-400">All Tickets</a>
+        <a href="{{ route('service-requests.index') }}" class="hover:text-cyan-400">All Service Requests</a>
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
         <a href="{{ route('service-requests.show', $serviceRequest) }}" class="hover:text-cyan-400">SR #{{ $serviceRequest->id }}</a>
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>

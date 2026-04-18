@@ -1,3 +1,11 @@
+{{--
+    Profile — Edit
+    Preserved features:
+      - x-app-layout shell with Profile header slot
+      - Update Profile Information partial (@include profile.partials.update-profile-information-form)
+      - Update Password partial (@include profile.partials.update-password-form)
+      - Delete User partial (@include profile.partials.delete-user-form)
+--}}
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-white leading-tight">

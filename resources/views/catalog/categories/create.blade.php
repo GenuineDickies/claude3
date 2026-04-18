@@ -1,7 +1,12 @@
+{{--
+  New Service Category — catalog.categories.create
+  Preserved features: CSRF, shared @include('catalog.categories._form'),
+  back link, create + cancel actions.
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-4xl mx-auto">
+<div class="max-w-7xl mx-auto">
     <div class="mb-6">
         <a href="{{ route('catalog.index') }}" class="text-sm text-cyan-400 hover:text-cyan-300">&larr; Back to Catalog</a>
         <h1 class="text-2xl font-bold text-white mt-2">New Service Category</h1>

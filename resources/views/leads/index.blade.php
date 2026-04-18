@@ -1,11 +1,23 @@
+{{--
+  Inbound Queue — leads.index
+  Controller vars: $leads (paginator), $stageOptions, $currentSearch, $currentStage
+  Features preserved:
+    - New Inbound Request button
+    - Search (name, phone, email, service) + Stage filter dropdown
+    - Clear filters link (conditional)
+    - Success flash message
+    - Table cols: Lead (name/phone/service), Stage, Source, Assigned, Converted, view action
+    - Empty state
+    - Pagination with withQueryString
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
     <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
             <h1 class="text-2xl font-bold text-white">Inbound Queue</h1>
-            <p class="text-sm text-gray-500">Track inbound customer requests before they are converted to dispatch tickets.</p>
+            <p class="text-sm text-gray-500">Track inbound customer requests before they are converted to dispatch service requests.</p>
         </div>
         <a href="{{ route('leads.create') }}" class="inline-flex items-center px-4 py-2 btn-crystal text-sm">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>

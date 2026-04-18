@@ -1,7 +1,16 @@
+{{--
+  Technician Compliance — technician-profiles.index
+  Controller vars: $users
+  Features preserved:
+    - Success flash message
+    - Table cols: Technician, License, Insurance, Background, Drug Screen, Actions (View / Edit)
+    - Compliance badges via x-compliance-badge component
+    - Empty state row
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-5xl mx-auto">
+<div class="max-w-7xl mx-auto">
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-white">Technician Compliance</h1>
     </div>

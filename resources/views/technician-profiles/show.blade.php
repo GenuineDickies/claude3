@@ -1,7 +1,8 @@
+{{-- Technician Profile Show — technician-profiles.show | Feature preservation notes: Header with user->name and Edit Profile link (technician-profiles.edit) + Back link (technician-profiles.index); Session success flash; Empty-state when no technicianProfile with Create Profile link; License & Insurance dl block (drivers_license_number/expiry + x-compliance-badge licenseStatus(), insurance_policy_number/expiry + insuranceStatus()); Background & Drug Screen dl block (dates + x-compliance-badge for background_check_status and drug_screen_status); Certifications table (name, issued_date, expiry_date + x-compliance-badge via TechnicianProfile::dateStatus()); Emergency Contact & Vehicle dl block (emergency_contact_name/phone, user->phone, hasSmsConsent() + sms_consent_at, vehicle_year/make/model/plate). Layout: widened to max-w-7xl for consistent internal-tool layout; All forms, routes, and PHP logic kept intact. --}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-3xl mx-auto">
+<div class="max-w-7xl mx-auto">
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-white">{{ $user->name }} — Compliance</h1>
         <div class="flex gap-3">

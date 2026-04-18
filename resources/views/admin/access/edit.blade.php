@@ -1,7 +1,13 @@
+{{--
+  Role Access — admin.access.edit
+  Preserved features: CSRF, @method('PUT'), search GET form, grouped page
+  sections with section styles, Alpine open/toggleAll, page checkboxes
+  (page_ids[]), administrator special-case (always granted), save action.
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-5xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
     <div>
         <a href="{{ route('admin.roles.index') }}" class="text-sm text-cyan-400 hover:text-cyan-300">&larr; Back to roles</a>
         <h1 class="mt-2 text-2xl font-bold text-white">Role Access: {{ $role->role_name }}</h1>

@@ -1,12 +1,18 @@
+{{--
+  Create Invoice — invoices.create
+  Preserved features: CSRF, Alpine invoiceForm, breadcrumb, customer info
+  (prefilled from service request customer), and downstream invoice form
+  sections (line items, totals, notes, actions) — all unchanged.
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-3xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Breadcrumb --}}
     <a href="{{ route('service-requests.show', $serviceRequest) }}" class="inline-flex items-center text-sm text-gray-500 hover:text-cyan-400">
         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-        Ticket #{{ $serviceRequest->id }}
+        Service Request #{{ $serviceRequest->id }}
     </a>
 
     <h1 class="text-2xl font-bold text-white">Create Invoice</h1>
@@ -61,7 +67,7 @@
 
         <div class="surface-1 p-6">
             <h2 class="text-lg font-semibold text-gray-300 mb-4">Persistent Vehicle Record</h2>
-            <p class="mb-4 text-sm text-gray-400">A persistent vehicle record is attached at invoice stage. License plate or VIN is required here unless a vehicle record is already attached to this ticket.</p>
+            <p class="mb-4 text-sm text-gray-400">A persistent vehicle record is attached at invoice stage. License plate or VIN is required here unless a vehicle record is already attached to this service request.</p>
 
             @if ($serviceRequest->vehicle)
                 <div class="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">

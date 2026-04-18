@@ -1,7 +1,8 @@
+{{-- Reports Dashboard: preserves date-range filter, summary cards, Chart.js charts (revenue, requests, status doughnut, service types), expense breakdown grid --}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Header + Date Range Filter --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

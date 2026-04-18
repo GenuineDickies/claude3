@@ -1,7 +1,19 @@
+{{--
+    Settings — Edit
+    Preserved features:
+      - Configuration Status overview grid (configured vs not-configured per field)
+      - Per-field update forms via route('settings.update-single', $key) with @csrf @method('PUT')
+      - Estimate Approval Mode three-way radio form via route('settings.update-approval-mode') with threshold input toggle
+      - Image (logo) upload field with multipart/form-data, preview, and clear-on-save checkbox
+      - Encrypted field handling (masked display, focus-to-clear behavior, Encrypted badge)
+      - "Where do I get this?" how_to <details> blocks
+      - Session success and validation error flash messages
+      - Footer links: dashboard, tax rates, API monitoring
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-3xl mx-auto">
+<div class="max-w-7xl mx-auto">
 
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-white">Settings</h1>

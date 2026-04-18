@@ -1,3 +1,22 @@
+{{--
+  Customer Show Page — customers.show
+  Feature preservation notes:
+    - Back link to customers index
+    - Header with customer name and View service requests link (filtered by phone)
+    - Session success flash
+    - Two-column form (PUT to customers.update) with @csrf and @method('PUT')
+    - Customer Details card (first_name, last_name, phone inputs with @error blocks, is_active checkbox)
+    - Notification Preferences card (status_updates, location_requests, signature_requests, marketing checkboxes using DEFAULT_NOTIFICATION_PREFERENCES)
+    - Persistent Vehicles table (vehicle name, plate, VIN)
+    - Save Customer submit button
+    - Sidebar: SMS Consent panel (status, sms_consent_at, sms_opt_out_at)
+    - Sidebar: Recent Service Requests list with link per service request
+    - Sidebar: Recent Communication (Messages and Correspondence sub-lists)
+  Layout changes only:
+    - Outer container already wider than max-w-3xl (max-w-6xl preserved)
+    - Vertical spacing left as space-y-6 to preserve form column rhythm
+    - All Alpine state, forms, routes, and PHP logic kept intact
+--}}
 @extends('layouts.app')
 
 @section('content')
@@ -12,7 +31,7 @@
             <h1 class="text-2xl font-bold text-white">{{ $customer->first_name }} {{ $customer->last_name }}</h1>
             <p class="mt-1 text-sm text-gray-500">Customer record, notification preferences, and recent history.</p>
         </div>
-        <a href="{{ route('service-requests.index', ['search' => $customer->phone]) }}" class="btn-crystal px-4 py-2 text-sm font-semibold">View tickets</a>
+        <a href="{{ route('service-requests.index', ['search' => $customer->phone]) }}" class="btn-crystal px-4 py-2 text-sm font-semibold">View service requests</a>
     </div>
 
     @if (session('success'))
@@ -130,7 +149,7 @@
             </div>
 
             <div class="surface-1 p-6">
-                <h2 class="text-lg font-semibold text-gray-300 mb-4">Recent Tickets</h2>
+                <h2 class="text-lg font-semibold text-gray-300 mb-4">Recent Service Requests</h2>
                 @if ($customer->serviceRequests->isEmpty())
                     <p class="text-sm text-gray-500">No service requests yet.</p>
                 @else
@@ -138,7 +157,7 @@
                         @foreach ($customer->serviceRequests as $serviceRequest)
                             <a href="{{ route('service-requests.show', $serviceRequest) }}" class="block rounded-lg border border-white/10 px-4 py-3 hover:bg-white/5">
                                 <div class="flex items-center justify-between gap-3">
-                                    <span class="text-sm font-semibold text-white">Ticket #{{ $serviceRequest->id }}</span>
+                                    <span class="text-sm font-semibold text-white">Service Request #{{ $serviceRequest->id }}</span>
                                     <span class="text-xs text-gray-500">{{ $serviceRequest->created_at->format('M j, Y') }}</span>
                                 </div>
                                 <div class="mt-1 text-sm text-gray-400">{{ $serviceRequest->catalogItem?->name ?: 'No service type' }}</div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CatalogCategory;
 use App\Models\Estimate;
+use App\Services\InventoryService;
 use App\Models\ServiceLog;
 use App\Models\ServiceRequest;
 use App\Models\Setting;
@@ -69,7 +70,7 @@ class WorkOrderController extends Controller
     /**
      * POST /service-requests/{serviceRequest}/work-orders
      */
-    public function store(Request $request, ServiceRequest $serviceRequest): RedirectResponse
+    public function store(Request $request, ServiceRequest $serviceRequest, InventoryService $inventoryService): RedirectResponse
     {
         $validated = $request->validate([
             'estimate_id'      => 'nullable|integer|exists:estimates,id',
@@ -87,7 +88,7 @@ class WorkOrderController extends Controller
             'items.*.unit'     => 'required|string|in:each,mile,hour,gallon',
         ]);
 
-        $workOrder = DB::transaction(function () use ($validated, $serviceRequest) {
+        $workOrder = DB::transaction(function () use ($validated, $serviceRequest, $inventoryService) {
             // Gate: if estimate requires approval, it must be approved before WO creation
             if (! empty($validated['estimate_id'])) {
                 $estimate = Estimate::find($validated['estimate_id']);
@@ -122,6 +123,8 @@ class WorkOrderController extends Controller
                 ]);
             }
 
+            $warnings = $inventoryService->syncWorkOrderItems($workOrder, $validated['items']);
+
             $workOrder->recalculate();
 
             ServiceLog::log($serviceRequest, 'work_order_created', [
@@ -129,12 +132,22 @@ class WorkOrderController extends Controller
                 'work_order_number' => $workOrder->work_order_number,
             ], Auth::id());
 
-            return $workOrder;
+            return ['workOrder' => $workOrder, 'warnings' => $warnings];
         });
 
-        return redirect()
+        $result    = $workOrder;
+        $workOrder = $result['workOrder'];
+        $warnings  = $result['warnings'];
+
+        $redirect = redirect()
             ->route('work-orders.show', [$serviceRequest, $workOrder])
             ->with('success', 'Work Order ' . $workOrder->work_order_number . ' created.');
+
+        if (! empty($warnings)) {
+            $redirect->with('inventory_warnings', 'Low inventory on: ' . implode(', ', $warnings));
+        }
+
+        return $redirect;
     }
 
     /**
@@ -184,7 +197,7 @@ class WorkOrderController extends Controller
     /**
      * PUT /service-requests/{serviceRequest}/work-orders/{workOrder}
      */
-    public function update(Request $request, ServiceRequest $serviceRequest, WorkOrder $workOrder): RedirectResponse
+    public function update(Request $request, ServiceRequest $serviceRequest, WorkOrder $workOrder, InventoryService $inventoryService): RedirectResponse
     {
         abort_if($workOrder->service_request_id !== $serviceRequest->id, 404);
 
@@ -210,7 +223,7 @@ class WorkOrderController extends Controller
             'items.*.unit'     => 'required|string|in:each,mile,hour,gallon',
         ]);
 
-        DB::transaction(function () use ($validated, $workOrder, $serviceRequest) {
+        $warnings = DB::transaction(function () use ($validated, $workOrder, $serviceRequest, $inventoryService) {
             $workOrder->update([
                 'priority'         => $validated['priority'],
                 'description'      => $validated['description'] ?? null,
@@ -219,6 +232,9 @@ class WorkOrderController extends Controller
                 'assigned_to'      => $validated['assigned_to'] ?? null,
                 'tax_rate'         => $validated['tax_rate'],
             ]);
+
+            // Release old reservations before deleting WO items, then re-reserve new ones
+            $warnings = $inventoryService->syncWorkOrderItems($workOrder, $validated['items']);
 
             $workOrder->items()->delete();
 
@@ -241,17 +257,25 @@ class WorkOrderController extends Controller
                 'work_order_id'     => $workOrder->id,
                 'work_order_number' => $workOrder->work_order_number,
             ], Auth::id());
+
+            return $warnings;
         });
 
-        return redirect()
+        $redirect = redirect()
             ->route('work-orders.show', [$serviceRequest, $workOrder])
             ->with('success', 'Work Order updated.');
+
+        if (! empty($warnings)) {
+            $redirect->with('inventory_warnings', 'Low inventory on: ' . implode(', ', $warnings));
+        }
+
+        return $redirect;
     }
 
     /**
      * PATCH /service-requests/{serviceRequest}/work-orders/{workOrder}/status
      */
-    public function updateStatus(Request $request, ServiceRequest $serviceRequest, WorkOrder $workOrder): RedirectResponse
+    public function updateStatus(Request $request, ServiceRequest $serviceRequest, WorkOrder $workOrder, InventoryService $inventoryService): RedirectResponse
     {
         abort_if($workOrder->service_request_id !== $serviceRequest->id, 404);
 
@@ -270,6 +294,10 @@ class WorkOrderController extends Controller
 
         if ($newStatus === WorkOrder::STATUS_COMPLETED) {
             $updates['completed_at'] = now();
+        }
+
+        if ($newStatus === WorkOrder::STATUS_CANCELLED) {
+            $inventoryService->releaseWorkOrder($workOrder);
         }
 
         $workOrder->update($updates);

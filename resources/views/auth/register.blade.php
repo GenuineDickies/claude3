@@ -1,3 +1,14 @@
+{{--
+    PUBLIC-FACING REGISTER PAGE
+    Preserved features:
+      - Layout: <x-guest-layout> (narrow centered card; do NOT widen)
+      - Form POST to route('register') with @csrf
+      - Inputs: name (autofocus, autocomplete=name), email (autocomplete=username),
+               password + password_confirmation (both autocomplete=new-password)
+      - Field-level errors via <x-input-error> for each field
+      - "Already registered?" link -> route('login')
+      - Submit via <x-primary-button>
+--}}
 <x-guest-layout>
     <form method="POST" action="{{ route('register') }}">
         @csrf

@@ -1,3 +1,14 @@
+{{--
+    PUBLIC-FACING LOGIN PAGE
+    Preserved features:
+      - Layout: <x-guest-layout> (narrow centered card; do NOT widen)
+      - Session status banner via <x-auth-session-status>
+      - Form POST to route('login') with @csrf
+      - Inputs: email (autofocus, autocomplete=username), password (autocomplete=current-password), remember checkbox
+      - Field-level errors via <x-input-error> for email & password
+      - "Forgot your password?" link guarded by Route::has('password.request') -> route('password.request')
+      - Submit via <x-primary-button>
+--}}
 <x-guest-layout>
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />

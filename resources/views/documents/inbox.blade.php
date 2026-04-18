@@ -1,7 +1,25 @@
+{{--
+  Document Inbox — inbox.index
+  Controller vars: $documents (paginator), $stats, $isProcessing, $categories, $autoAcceptable, $filter
+  Features preserved:
+    - documents._sub-nav include
+    - Success/error flash messages
+    - Inbox Summary stats (Total, Processing, Analyzed, Unmatched, Matched, Skipped, Failed)
+    - Processing live indicator + auto-refresh script (when $isProcessing)
+    - Category breakdown chips
+    - Accept All bulk-accept form (when $autoAcceptable > 0)
+    - Collapsible upload card (Alpine) with drag/drop, file input, mobile camera shortcut
+    - Filter tabs (all/unmatched/matched/processing/failed/skipped)
+    - Per-document card: AI status + match status badges, AI summary + extracted fields,
+      Top match + Accept/Skip/Manual link buttons, Re-match form, View details/Download links
+    - Manual Link Modal with type select + search w/ AJAX results + submit
+    - All inline JS for drag/drop, file list, manual link search/submit
+    - Pagination
+--}}
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-6xl mx-auto space-y-5">
+<div class="max-w-7xl mx-auto space-y-4">
 
     {{-- Sub-navigation --}}
     @include('documents._sub-nav')
